@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Row for the Vulkan-extensions multi-select dropdown (Graphics Driver
+    config). Kept as a CheckBox on purpose - this is a real multi-select
+    list, unlike the on/off settings elsewhere that became SwitchCompat.
+    NeonCheckBox replaces the old CheckBox/CheckBox.Dark pair
+    (GraphicsDriverConfigDialog.java used to call setTextAppearance() with a
+    manual isDarkMode branch to pick between them at runtime) - the same
+    hardcoded-light/dark-pair pattern removed everywhere else in the app.
+    Vulkan 확장 다중 선택 드롭다운(그래픽 드라이버 설정)의 행임. 일부러
+    CheckBox로 남김 - 다른 곳의 켜고 끄는 설정과 달리 이건 진짜 다중 선택
+    목록임. NeonCheckBox가 예전 CheckBox/CheckBox.Dark 쌍을 대체함
+    (GraphicsDriverConfigDialog.java가 런타임에 isDarkMode를 직접 분기해서
+    setTextAppearance()로 둘 중 하나를 골라 넣던 방식이었음) - 앱의 다른
+    곳에서 전부 없앤 것과 같은 하드코딩 라이트/다크 쌍 패턴임
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <CheckBox
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/NeonCheckBox"
+        android:id="@+id/checkbox" />
+
+</LinearLayout>

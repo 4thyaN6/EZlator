@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Secondary button - outline only. Used where a filled button next to the
+    START button would fight it for attention.
+    보조 버튼임. 테두리만 있음. 시작 버튼 옆에 꽉 찬 버튼을 두면 시선이
+    분산되므로 그런 자리에 씀
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true">
+        <shape android:shape="rectangle">
+            <corners android:radius="12dp" />
+            <solid android:color="?attr/neonGlowSoft" />
+            <stroke android:width="1dp" android:color="?attr/neonGlow" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="12dp" />
+            <solid android:color="@android:color/transparent" />
+            <stroke android:width="1dp" android:color="?attr/neonGlowMid" />
+        </shape>
+    </item>
+</selector>

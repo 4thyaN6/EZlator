@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Download progress card.
+    Row 1: neon ring spinner beside the item name and its own percentage.
+    Row 2: size line for the CURRENT file ("45.2 / 180.5 MiB"), so over the
+           ten first-run downloads the user can see which parts are big and
+           which finish instantly.
+    Row 3: per-file bar - fills once per file.
+    Row 4: overall "n / total" with a thin bar that steps up each time a file
+           completes. Hidden for single-file downloads (imagefs, Contents).
+    다운로드 진행 카드임.
+    1줄: 네온 원형 스피너 옆에 항목 이름과 그 파일의 퍼센트.
+    2줄: 지금 받는 파일의 용량("45.2 / 180.5 MiB"). 최초 실행 때 10개를
+         받는 동안 어떤 게 크고 어떤 게 금방 끝나는지 보이게 함.
+    3줄: 파일별 막대 - 파일 하나마다 한 번 참.
+    4줄: 전체 "n / 전체수"와 파일 하나가 끝날 때마다 한 칸 오르는 얇은 막대.
+         파일 하나만 받는 경우(imagefs, Contents)에는 숨김
+
+    Ids: TextView / TVProgress / TVFileBytes / PBDownload / LLOverall /
+    TVOverall / PBOverall / LLBottomBar / BTCancel (DownloadProgressDialog.java)
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clickable="false"
+    android:focusable="false">
+
+    <!--
+        BUG FIX (phone portrait clipping): this was a fixed 460dp width. A
+        phone in portrait is typically 360-411dp wide - narrower than the
+        card itself - so it always overflowed both edges no matter what
+        margins were set beside it. match_parent + margins is what every
+        other neon card in the app already uses (settings, detail sheets),
+        and it scales to whatever width is actually available instead of a
+        number picked for a tablet.
+        버그 수정(폰 세로 잘림): 고정 460dp 폭이었음. 폰은 세로에서 보통
+        360~411dp 폭이라 카드 자체보다 좁음 - 그래서 옆에 여백을 아무리
+        줘도 항상 양쪽으로 넘쳤음. match_parent + 여백은 앱의 다른 네온
+        카드(설정, 상세창)가 전부 이미 쓰는 방식이고, 태블릿 기준으로 정한
+        숫자가 아니라 실제로 남는 폭에 맞춰 늘어남
+    -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginLeft="24dp"
+        android:layout_marginRight="24dp"
+        android:orientation="vertical"
+        android:paddingTop="20dp"
+        android:paddingBottom="18dp"
+        android:paddingLeft="22dp"
+        android:paddingRight="22dp"
+        android:background="@drawable/neon_dialog_bg">
+
+        <!-- Spinner | name + size line | current-file percentage -->
+        <!-- 스피너 | 이름 + 용량 줄 | 현재 파일 퍼센트 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <!-- Indeterminate ring: always spinning, signals "still working"
+                 even when a server sends no size and the bar can't move.
+                 무한 회전 고리: 서버가 용량을 안 보내 막대가 못 움직이는
+                 경우에도 "아직 진행 중"임을 알려 줌 -->
+            <ProgressBar
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_marginRight="14dp"
+                android:indeterminate="true"
+                android:indeterminateDrawable="@drawable/neon_progress_indeterminate"
+                android:indeterminateDuration="900" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/TextView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:textColor="?attr/neonText"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:text="@string/downloading_file" />
+
+                <TextView
+                    android:id="@+id/TVFileBytes"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:textSize="12sp"
+                    android:textColor="?attr/neonTextDim"
+                    android:fontFamily="monospace"
+                    android:maxLines="1"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/TVProgress"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="12dp"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="?attr/neonAccent" />
+        </LinearLayout>
+
+        <!-- Current file -->
+        <!-- 현재 파일 -->
+        <ProgressBar
+            android:id="@+id/PBDownload"
+            style="@style/NeonProgressLinear"
+            android:layout_height="8dp"
+            android:layout_marginTop="14dp" />
+
+        <!-- Overall (multi-file only) -->
+        <!-- 전체 (여러 파일일 때만) -->
+        <LinearLayout
+            android:id="@+id/LLOverall"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/TVOverall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="?attr/neonTextDim" />
+
+            <ProgressBar
+                android:id="@+id/PBOverall"
+                style="@style/NeonProgressLinear"
+                android:layout_height="3dp"
+                android:layout_marginTop="4dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/LLBottomBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <View style="@style/NeonSeparator" />
+
+            <Button
+                android:id="@+id/BTCancel"
+                style="@style/NeonButtonGhost"
+                android:layout_width="wrap_content"
+                android:layout_height="44dp"
+                android:layout_gravity="right"
+                android:text="@string/cancel" />
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

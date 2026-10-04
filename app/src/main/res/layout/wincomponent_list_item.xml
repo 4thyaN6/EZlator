@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Row for one Windows component override (DirectX/General field-sets in the
+    WIN COMPONENTS tab). Was still plain @style/ComboBox - the only spinner
+    style in the app never converted to NeonComboBox - so the label,
+    closed-box border, arrow and popup were all the pre-neon look regardless
+    of the Java-side popup-background override in ContainerDetailFragment.java
+    (which only ever affected the popup, not the box itself).
+    윈도우 구성요소 오버라이드 한 줄 항목임(WIN COMPONENTS 탭의
+    DirectX/General 필드셋). 아직 그냥 @style/ComboBox였음 - 앱에서
+    NeonComboBox로 안 바뀐 유일한 스피너 스타일이었음 - 그래서
+    ContainerDetailFragment.java의 Java 쪽 팝업 배경 오버라이드(그건 팝업에만
+    영향을 줬지 박스 자체엔 영향이 없었음)와 무관하게 라벨·닫힌 박스
+    테두리·화살표·팝업 전부 네온 이전 모습이었음
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/TextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="?attr/neonTextDim"
+        android:textSize="13sp" />
+
+    <Spinner
+        android:id="@+id/Spinner"
+        style="@style/NeonComboBox"
+        android:layout_width="match_parent"
+        android:entries="@array/wincomponent_entries" />
+</LinearLayout>

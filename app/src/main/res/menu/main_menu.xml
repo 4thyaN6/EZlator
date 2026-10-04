@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:checkableBehavior="single">
+        <item android:icon="@drawable/icon_shortcut" android:id="@+id/main_menu_shortcuts" android:title="@string/shortcuts" />
+        <item android:icon="@drawable/icon_container" android:id="@+id/main_menu_containers" android:title="@string/containers" />
+        <item android:icon="@drawable/icon_input_controls" android:id="@+id/main_menu_input_controls" android:title="@string/input_controls" />
+        <!-- Renamed label only, same id/fragment - "Tools" reads better now
+             that GraphicTools (Adreno/Exynos drivers) lives inside it too.
+             라벨만 바꿈, id/프래그먼트는 그대로임 - GraphicTools(Adreno/Exynos
+             드라이버)도 이 안에 들어왔으니 "Tools"가 더 맞는 이름임 -->
+        <item android:icon="@drawable/icon_open" android:id="@+id/main_menu_contents" android:title="@string/tools"/>
+        <!-- Steam sign-in (headless agent, phase 1) / Steam 로그인(헤드리스 에이전트 1단계) -->
+        <item android:icon="@drawable/icon_steam_library" android:id="@+id/main_menu_steam" android:title="@string/steam_account" />
+        <item android:icon="@drawable/icon_settings" android:id="@+id/main_menu_settings" android:title="@string/settings" />
+        <item android:icon="@drawable/icon_about" android:id="@+id/main_menu_about" android:title="@string/about" />
+    </group>
+</menu>

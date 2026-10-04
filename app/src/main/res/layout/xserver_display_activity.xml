@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.drawerlayout.widget.DrawerLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/DrawerLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <FrameLayout
+        android:id="@+id/FLXServerDisplay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- Same neon drawer treatment as main_activity.xml's NavigationView -
+         background, checked-row highlight, icon/text colour state lists.
+         This is the escape-menu drawer opened during a running game; it was
+         still hardcoded to a plain white background and the old blue tint.
+         main_activity.xml의 NavigationView와 같은 네온 드로어 처리임 - 배경,
+         선택 행 강조, 아이콘/글자 색 상태 목록. 게임 실행 중 여는 탈출 메뉴
+         드로어인데 여전히 흰 배경과 옛 파랑 틴트로 고정돼 있었음 -->
+    <com.google.android.material.navigation.NavigationView
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:id="@+id/NavigationView"
+        android:background="?attr/neonBg"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:pointerIcon="arrow"
+        app:headerLayout="@layout/main_menu_header"
+        app:itemBackground="@drawable/neon_drawer_item_bg"
+        app:itemIconTint="@color/neon_drawer_icon_tint"
+        app:itemTextColor="@color/neon_drawer_text_tint"
+        app:itemIconPadding="20dp"
+        app:itemHorizontalPadding="16dp"
+        app:menu="@menu/xserver_menu"/>
+
+    <EditText
+        android:id="@+id/XRTextInput"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:inputType="textMultiLine"
+        android:autofillHints="no"
+        tools:ignore="LabelFor"
+        android:visibility="gone" />
+</androidx.drawerlayout.widget.DrawerLayout>

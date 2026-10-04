@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Width set from MainActivity.showAboutDialog() (90% of the screen, max
+         760dp); was a fixed 320dp phone width
+         폭은 MainActivity.showAboutDialog()가 정함(화면의 90%, 최대 760dp).
+         예전엔 폰 기준 320dp 고정이었음 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="4dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <!-- Title glows like every other screen heading in the app -->
+                <!-- 제목은 앱의 다른 화면 헤더와 같이 빛남 -->
+                <TextView
+                    style="@style/NeonTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="20sp"
+                    android:text="Winlator Cmod" />
+
+                <TextView
+                    android:id="@+id/TVWebpage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:textSize="14sp"
+                    android:textColor="?attr/neonAccent" />
+
+                <TextView
+                    android:id="@+id/TVAppVersion"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="13sp"
+                    android:textColor="?attr/neonTextDim" />
+            </LinearLayout>
+
+            <ImageView
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:src="@mipmap/ic_launcher" />
+        </LinearLayout>
+
+        <View style="@style/NeonSeparator" />
+
+        <TextView
+            style="@style/NeonSectionLabel"
+            android:layout_marginLeft="0dp"
+            android:text="@string/credits_and_third_party_apps" />
+
+        <TextView
+            android:id="@+id/TVCreditsAndThirdPartyApps"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:textColor="?attr/neonText"
+            android:lineSpacingMultiplier="1.2" />
+
+<!--        <TextView-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:textStyle="bold"-->
+<!--            android:text="@string/glibc_exp_edition" />-->
+
+        <TextView
+            android:id="@+id/TVGlibcExpVersionFork"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="?attr/neonTextDim" />
+    </LinearLayout>
+</LinearLayout>

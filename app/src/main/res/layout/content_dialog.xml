@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Shared wrapper for every ContentDialog - the confirm/alert/prompt box used
+    across the whole app, plus the host for every ContentDialog-based
+    sub-dialog (Screen Effects, Controller Assignment, Graphics Driver, DX
+    Wrapper, Task Manager, Motion Controls, and more). This is the single
+    highest-leverage file in the neon pass: fixing it here reskins dozens of
+    dialogs app-wide in one shot. See ContentDialog/ContentDialog.Dark in
+    styles.xml for the theme-chain fix that makes the ?attr/neon* references
+    below actually resolve inside a Dialog context.
+    모든 ContentDialog의 공용 래퍼임 - 앱 전체에서 쓰는 확인/알림/입력창이고,
+    ContentDialog 기반 하위 다이얼로그(Screen Effects, Controller Assignment,
+    Graphics Driver, DX Wrapper, Task Manager, Motion Controls 등)의 그릇이기도
+    함. 네온 작업 전체에서 가장 파급력이 큰 파일임: 여기 하나를 고치면 앱
+    전체의 수십 개 다이얼로그가 한 번에 새 옷을 입음. 아래 ?attr/neon*
+    참조가 다이얼로그 컨텍스트 안에서 실제로 해석되게 만드는 테마 체계
+    수정은 styles.xml의 ContentDialog/ContentDialog.Dark 참고
+
+    BUG FIX (button text "Can" instead of "Cancel"): the button row used to
+    be wrap_content with layout_weight="1" on the action buttons - weight
+    does nothing inside a wrap_content parent, so the row never grew to fit
+    "Cancel", and BaseButton's old android:lines="1" (no ellipsize) silently
+    clipped the raw characters instead of wrapping or showing "...". Two
+    changes fix it together: this row is now match_parent so weight actually
+    distributes width, and BaseButton itself now uses singleLine+ellipsize
+    (see styles.xml) as a permanent safety net.
+    버그 수정(버튼 글자가 "Cancel" 대신 "Can"으로 보이던 것): 버튼 줄이
+    wrap_content였고 동작 버튼에 layout_weight="1"이 있었음 - wrap_content
+    부모 안에서는 weight가 아무 효과가 없어서 줄이 "Cancel"에 맞게 넓어지지
+    않았고, BaseButton의 예전 android:lines="1"(ellipsize 없음)이 줄바꿈이나
+    말줄임표 대신 글자를 그냥 잘라냈음. 두 가지를 같이 고쳐서 해결함: 이 줄을
+    match_parent로 바꿔서 weight가 실제로 폭을 나눠 갖게 했고, BaseButton
+    자체도 singleLine+ellipsize를 상시 안전장치로 씀(styles.xml 참고)
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:minWidth="280dp"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:id="@+id/LLTitleBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:id="@+id/IVIcon"
+                android:layout_width="26dp"
+                android:layout_height="26dp"
+                app:tint="?attr/neonAccent"
+                android:layout_marginRight="10dp"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/TVTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="?attr/neonText"
+                android:textStyle="bold"
+                android:textSize="18sp"
+                android:maxLines="2"
+                android:ellipsize="end" />
+        </LinearLayout>
+
+        <View
+            style="@style/NeonSeparator"
+            android:layout_marginTop="10dp" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/TVMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="?attr/neonText"
+        android:textSize="16sp"
+        android:lineSpacingMultiplier="1.2"
+        android:layout_marginBottom="8dp"
+        android:visibility="gone" />
+
+    <EditText
+        style="@style/NeonEditText"
+        android:id="@+id/EditText"
+        android:layout_width="280dp"
+        android:layout_gravity="center_horizontal"
+        android:visibility="gone" />
+
+    <ListView
+        android:id="@+id/ListView"
+        android:layout_width="340dp"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:divider="?attr/neonDivider"
+        android:dividerHeight="1dp"
+        android:visibility="gone" />
+
+    <FrameLayout
+        android:id="@+id/FrameLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:visibility="gone" />
+
+    <!-- Callers are currently commented out app-wide (WinHandler.java) but
+         kept theme-correct in case that changes - see ContentDialog.java.
+         지금은 호출부가 전부 주석 처리돼 있지만(WinHandler.java), 나중에
+         살아날 수 있어 테마는 맞춰 둠 - ContentDialog.java 참고 -->
+    <androidx.appcompat.widget.SwitchCompat
+        style="@style/NeonSwitch"
+        android:id="@+id/CBExtraOption"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="8dp"
+        android:text="Extra Option"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/LLBottomBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <View
+            style="@style/NeonSeparator"
+            android:layout_marginBottom="10dp" />
+
+        <TextView
+            android:id="@+id/TVBottomBarText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="?attr/neonAccent"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:id="@+id/LLBottomBarPanel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="right">
+
+            <!-- Utility buttons keep their natural size; only Cancel/Confirm
+                 (the two that always exist) absorb the row's leftover width.
+                 이 유틸 버튼들은 자기 크기 그대로 두고, 항상 존재하는
+                 Cancel/Confirm 둘만 줄의 남는 폭을 나눠 가짐 -->
+            <Button
+                android:id="@+id/BTDisableAll"
+                style="@style/NeonButtonGhost"
+                android:layout_width="wrap_content"
+                android:layout_height="42dp"
+                android:layout_marginRight="6dp"
+                android:visibility="gone"
+                android:text="@string/disable_all" />
+
+            <Button
+                android:id="@+id/BTEnableAll"
+                style="@style/NeonButtonGhost"
+                android:layout_width="wrap_content"
+                android:layout_height="42dp"
+                android:layout_marginRight="6dp"
+                android:visibility="gone"
+                android:text="@string/enable_all" />
+
+            <Button
+                android:id="@+id/BTReset"
+                style="@style/NeonButtonGhost"
+                android:layout_width="wrap_content"
+                android:layout_height="42dp"
+                android:layout_marginRight="6dp"
+                android:visibility="gone"
+                android:text="@string/reset" />
+
+            <Button
+                style="@style/NeonButtonGhost"
+                android:id="@+id/BTCancel"
+                android:layout_width="0dp"
+                android:layout_height="42dp"
+                android:layout_weight="1"
+                android:layout_marginRight="8dp"
+                android:text="@string/cancel" />
+
+            <Button
+                style="@style/NeonButtonPrimary"
+                android:id="@+id/BTConfirm"
+                android:layout_width="0dp"
+                android:layout_height="42dp"
+                android:layout_weight="1"
+                android:text="@string/ok" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

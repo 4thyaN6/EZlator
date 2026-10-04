@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Steam game delete / download verification strings (Korean) -->
+<!-- 스팀 게임 삭제 / 다운로드 검증 문자열임(한국어) -->
+<resources>
+    <string name="steam_manage_delete">삭제</string>
+    <string name="steam_manage_delete_confirm">%1$s의 게임 파일을 기기에서 삭제할까요?\n\n숏컷은 남아 있어서 다시 받으면 설정과 플레이 시간이 그대로 이어집니다. 게임 폴더 안에 저장되는 세이브는 함께 삭제됩니다.</string>
+    <string name="steam_manage_deleting">%1$s 삭제 중…</string>
+    <string name="steam_manage_deleted">%1$s 삭제 완료. 다시 받을 수 있습니다.</string>
+    <string name="steam_manage_delete_failed">삭제 실패: %1$s</string>
+    <string name="steam_manage_delete_busy">%1$s은(는) 다운로드 중이거나 삭제 중이거나 게임이 실행 중일 때는 삭제할 수 없습니다.</string>
+    <string name="steam_manage_verifying">받은 파일 확인 중…</string>
+    <string name="steam_manage_verify_failed">다운로드 검증 실패: 손상된 파일 %1$d개. 다시 받아 주세요.</string>
+</resources>

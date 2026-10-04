@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Steam game delete / download verification strings (kept in their own file) -->
+<!-- 스팀 게임 삭제 / 다운로드 검증 문자열임(별도 파일로 둠) -->
+<resources>
+    <string name="steam_manage_delete">Delete</string>
+    <string name="steam_manage_delete_confirm">Delete the game files of %1$s from this device?\n\nThe shortcut stays, so downloading it again continues with the same settings and play time. Saves kept inside the game folder are deleted too.</string>
+    <string name="steam_manage_deleting">Deleting %1$s…</string>
+    <string name="steam_manage_deleted">%1$s deleted. It can be downloaded again.</string>
+    <string name="steam_manage_delete_failed">Delete failed: %1$s</string>
+    <string name="steam_manage_delete_busy">%1$s cannot be deleted while it is downloading, being deleted, or a game is running.</string>
+    <string name="steam_manage_verifying">Checking downloaded files…</string>
+    <string name="steam_manage_verify_failed">Download check failed: %1$d broken file(s). Download it again.</string>
+</resources>

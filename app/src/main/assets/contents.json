@@ -1,0 +1,180 @@
+[
+  {
+    "type": "Proton",
+    "verName": "Proton-9.0-arm64ec-test",
+    "verCode": "0",
+    "remoteUrl": "https://github.com/The412Banner/Nightlies/releases/download/Proton/wine/proton-9.0-arm64ec.wcp"
+  },
+  {
+    "type": "DXVK",
+    "verName": "Dxvk-arm64ec-2.4.1-pre-reg",
+    "verCode": "0",
+    "remoteUrl": "https://github.com/The412Banner/Nightlies/releases/download/Dxvk-arm64ec/dxvk-arm64ec-2.4.1-pre-reg.wcp"
+  },
+  {
+    "type": "DXVK",
+    "verName": "Dxvk-arm64ec-3.1",
+    "verCode": "0",
+    "remoteUrl": "https://github.com/The412Banner/Nightlies/releases/download/Dxvk-arm64ec/dxvk-arm64ec-3.1.wcp"
+  },
+  {
+    "type": "DXVK",
+    "verName": "Dxvk-Sarek-dyasync-arm64ec-1.13.0",
+    "verCode": "0",
+    "remoteUrl": "https://github.com/Arihany/WinlatorWCPHub/releases/download/DXVK-SAREK-ASYNC-ARM64EC/dxvk-sarek-dyasync-arm64ec-1.13.0.wcp"
+  },
+  {
+    "type": "VKD3D",
+    "verName": "Vkd3d-proton-arm64ec-3.0.1",
+    "verCode": "0",
+    "remoteUrl": "https://github.com/The412Banner/Nightlies/releases/download/VKD3D-PROTON-ARM/vkd3d-proton-arm64ec-3.0.1.wcp"
+  },
+  {
+    "type": "VKD3D",
+    "verName": "Vkd3d-proton-arm64ec-2.14.1",
+    "verCode": "0",
+    "remoteUrl": "https://github.com/The412Banner/Nightlies/releases/download/VKD3D-PROTON-ARM/vkd3d-proton-arm64ec-2.14.1.wcp"
+  },
+  {
+    "type": "FEXCore",
+    "verName": "FEXCore-2609",
+    "verCode": "0",
+    "remoteUrl": "https://github.com/The412Banner/Nightlies/releases/download/FexCore/FEXCore-2609.wcp"
+  },
+  {
+    "type": "Proton",
+    "verName": "Proton-9.0-arm64ec (fallback)",
+    "verCode": "0",
+    "remoteUrl": "https://github.com/The412Banner/Nightlies/releases/download/Proton/wine/proton-9.0-arm64ec.wcp"
+  },
+  {
+    "type": "Proton",
+    "verName": "Proton-11.0-1-arm64ec-sdk28",
+    "verCode": "0",
+    "remoteUrl": "https://github.com/The412Banner/proton-wine/releases/download/build-p11-20260712/proton-11.0-1-arm64ec-sdk28.wcp"
+  },
+  {
+    "type": "Proton",
+    "verName": "Proton-11.0-1-arm64ec-sdk35",
+    "verCode": "0",
+    "remoteUrl": "https://github.com/The412Banner/proton-wine/releases/download/build-p11-20260712/proton-11.0-1-arm64ec-sdk35.wcp"
+  },
+  {
+    "type": "Proton",
+    "verName": "Proton-10.0-4-arm64ec",
+    "verCode": "0",
+    "remoteUrl": "https://github.com/nicholasx417/WinNative-Components/releases/download/Proton/Proton-10.0-4-arm64ec.wcp"
+  },
+  {
+    "type": "Proton",
+    "verName": "Proton-10.0-4-x86_64",
+    "verCode": "0",
+    "remoteUrl": "https://github.com/nicholasx417/WinNative-Components/releases/download/Proton/Proton-10.0-4-x86_64.wcp"
+  },
+  {
+    "type": "DXVK",
+    "verName": "Dxvk-3.0.2-arm64ec-gplasync",
+    "verCode": "0",
+    "remoteUrl": "https://github.com/nicholasx417/WinNative-Components/releases/download/Stable-Arm64ec-Dxvk/Dxvk-3.0.2-arm64ec-gplasync.wcp"
+  },
+  {
+    "type": "DXVK",
+    "verName": "Dxvk-3.0.2-gplasync",
+    "verCode": "0",
+    "remoteUrl": "https://github.com/nicholasx417/WinNative-Components/releases/download/Stable-Dxvk/Dxvk-3.0.2-gplasync.wcp"
+  },
+  {
+    "type": "VKD3D",
+    "verName": "Vkd3d-3.0.1-arm64ec-S6_9",
+    "verCode": "0",
+    "remoteUrl": "https://github.com/nicholasx417/WinNative-Components/releases/download/Stable-arm64ec-VKD3D/Vkd3d-3.0.1-arm64ec-S6_9.wcp"
+  },
+  {
+    "type": "VKD3D",
+    "verName": "Vkd3d-3.0.1-S6_9",
+    "verCode": "0",
+    "remoteUrl": "https://github.com/nicholasx417/WinNative-Components/releases/download/Stable-VKD3D/Vkd3d-3.0.1-S6_9.wcp"
+  },
+  {
+    "type": "FEXCore",
+    "verName": "FEXCore-2607",
+    "verCode": "0",
+    "remoteUrl": "https://github.com/nicholasx417/WinNative-Components/releases/download/Stable-FEX/FEXCore-2607.wcp"
+  },
+  {
+    "type": "Box64",
+    "verName": "Box64-0.4.3-c08554e3f",
+    "verCode": "0",
+    "remoteUrl": "https://github.com/nicholasx417/WinNative-Components/releases/download/Stable-Box64/Box64-0.4.3-c08554e3f.wcp"
+  },
+  {
+    "type": "WOWBox64",
+    "verName": "WOWBox64-0.4.3-c08554e",
+    "verCode": "0",
+    "remoteUrl": "https://github.com/nicholasx417/WinNative-Components/releases/download/Stable-wowbox64/WOWBox64-0.4.3-c08554e.wcp"
+  },
+  {
+    "type": "GraphicTools",
+    "subType": "adrenotools",
+    "gpuVendor": "adreno",
+    "gpuMatch": "Adreno 8",
+    "verName": "Turnip-Gen8-V36",
+    "verCode": "0",
+    "remoteUrl": "https://github.com/StevenMXZ/Adreno-Tools-Drivers/releases/download/v36/Turnip_Gen8_V36.zip"
+  },
+  {
+    "type": "GraphicTools",
+    "subType": "adrenotools",
+    "gpuVendor": "adreno",
+    "gpuMatch": "Adreno 7, Adreno 6",
+    "manufacturer": "!samsung",
+    "verName": "Turnip-v26.3.0-R5",
+    "verCode": "0",
+    "remoteUrl": "https://github.com/StevenMXZ/Adreno-Tools-Drivers/releases/download/v26.3.0-R5/Turnip_v26.3.0-R5.zip"
+  },
+  {
+    "type": "GraphicTools",
+    "subType": "adrenotools",
+    "gpuVendor": "adreno",
+    "gpuMatch": "Adreno 7, Adreno 6",
+    "manufacturer": "samsung",
+    "verName": "Turnip-v26.3.0-R5-OneUI",
+    "verCode": "0",
+    "remoteUrl": "https://github.com/StevenMXZ/Adreno-Tools-Drivers/releases/download/v26.3.0-R5/Turnip_v26.3.0-R5-Oneui.zip"
+  },
+  {
+    "type": "GraphicTools",
+    "subType": "exynostools",
+    "gpuVendor": "xclipse",
+    "gpuMatch": "Xclipse 920",
+    "verName": "ExynosTools-2.1-Exynos2200",
+    "verCode": "0",
+    "remoteUrl": "https://github.com/WearyConcern1165/ExynosTools/releases/download/2.1/MdiEx_2200_Vortek_v3.2.zip"
+  },
+  {
+    "type": "GraphicTools",
+    "subType": "exynostools",
+    "gpuVendor": "xclipse",
+    "gpuMatch": "Xclipse 940",
+    "verName": "ExynosTools-2.1-Exynos2400",
+    "verCode": "0",
+    "remoteUrl": "https://github.com/WearyConcern1165/ExynosTools/releases/download/2.1/MdiEx_2400_Vortek_v3.2.zip"
+  },
+  {
+    "type": "GraphicTools",
+    "subType": "exynostools",
+    "gpuVendor": "xclipse",
+    "gpuMatch": "Xclipse 960",
+    "verName": "ExynosTools-2.1-Exynos2600",
+    "verCode": "0",
+    "remoteUrl": "https://github.com/WearyConcern1165/ExynosTools/releases/download/2.1/MdiEx_2600_Vortek_v3.2.zip"
+  },
+  {
+    "type": "GraphicTools",
+    "subType": "exynostools",
+    "gpuVendor": "xclipse",
+    "verName": "ExynosTools-2.1-Nativo",
+    "verCode": "0",
+    "remoteUrl": "https://github.com/WearyConcern1165/ExynosTools/releases/download/2.1/MdiEx_Nativo_v3.2.zip"
+  }
+]

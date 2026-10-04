@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Theme-tinted wrapper around icon_action_bar_menu.png. The original PNGs are solid white
+    (checked pixel by pixel), which vanished completely on the light neon
+    toolbar - the reason the hamburger, back and add buttons looked missing.
+    Tinting through ?attr/neonText makes them dark on the light theme and
+    light on the dark theme without touching the source images.
+    icon_action_bar_menu.png를 테마 색으로 칠하는 래퍼임. 원본 PNG가 순백색이라(픽셀 단위로
+    확인함) 라이트 네온 툴바 위에서 완전히 사라졌음 - 햄버거, 뒤로가기, 추가
+    버튼이 없는 것처럼 보인 이유임. ?attr/neonText로 칠하면 원본 이미지를
+    건드리지 않고도 라이트에선 어둡게, 다크에선 밝게 보임
+-->
+<bitmap xmlns:android="http://schemas.android.com/apk/res/android"
+    android:src="@drawable/icon_action_bar_menu"
+    android:tint="?attr/neonText" />

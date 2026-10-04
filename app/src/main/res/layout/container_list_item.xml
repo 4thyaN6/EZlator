@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Container row, rebuilt as a neon card.
+    Ids and widget types are unchanged (ImageView / TVTitle / BTRun / BTMenu,
+    with BTRun and BTMenu still ImageView), because ContainersFragment's
+    ViewHolder declares them as ImageView and casts accordingly.
+    컨테이너 행을 네온 카드로 다시 만듦.
+    id와 위젯 종류는 그대로임(ImageView / TVTitle / BTRun / BTMenu이고 BTRun,
+    BTMenu도 계속 ImageView). ContainersFragment의 ViewHolder가 이걸 ImageView로
+    선언하고 그대로 캐스팅하기 때문임
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginLeft="12dp"
+    android:layout_marginRight="12dp"
+    android:layout_marginTop="5dp"
+    android:layout_marginBottom="5dp"
+    android:background="@drawable/neon_card_bg"
+    android:gravity="center_vertical"
+    android:minHeight="68dp"
+    android:orientation="horizontal"
+    android:paddingLeft="16dp"
+    android:paddingRight="12dp">
+
+    <!-- Tinted with the theme accent instead of colorPrimaryDark, which is
+         the old palette's blue and clashed with both neon themes
+         colorPrimaryDark 대신 테마 강조색으로 칠함. colorPrimaryDark는 옛 팔레트의
+         파랑이라 두 네온 테마 모두와 어긋났음 -->
+    <ImageView
+        android:id="@+id/ImageView"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginRight="14dp"
+        app:tint="?attr/neonAccent" />
+
+    <TextView
+        android:id="@+id/TVTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="?attr/neonText"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <!-- Run is filled, menu is an outline: the primary action is obvious at a
+         glance without reading the icons
+         실행은 채움, 메뉴는 테두리임. 아이콘을 읽지 않아도 주 동작이 한눈에 보임 -->
+    <!-- BUG FIX: icon_run's glyph fills ~81% of its canvas while
+         icon_list_item_menu's fills only 25% (measured by ink bounding box).
+         Same 40dp circle, same 9dp padding either way used to make Run look
+         noticeably heavier than the menu button beside it. Extra padding
+         here brings the two to a matching visual weight.
+         버그 수정: icon_run 그림은 캔버스의 약 81%를 채우고
+         icon_list_item_menu는 25%만 채움(잉크 경계로 측정함). 같은 40dp
+         원에 같은 9dp 여백을 주면 실행 버튼이 옆 메뉴 버튼보다 눈에 띄게
+         무거워 보였음. 여기 여백을 더 줘서 둘의 시각적 무게를 맞춤 -->
+    <ImageView
+        android:id="@+id/BTRun"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginRight="8dp"
+        android:background="@drawable/neon_icon_button_primary_bg"
+        android:clickable="true"
+        android:focusable="true"
+        android:padding="12dp"
+        android:src="@drawable/icon_run"
+        app:tint="#FFFFFF" />
+
+    <ImageView
+        android:id="@+id/BTMenu"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="@drawable/neon_icon_button_bg"
+        android:clickable="true"
+        android:focusable="true"
+        android:padding="9dp"
+        android:src="@drawable/icon_list_item_menu"
+        app:tint="?attr/neonText" />
+</LinearLayout>

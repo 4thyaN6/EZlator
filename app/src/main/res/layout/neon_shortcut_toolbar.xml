@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Main screen toolbar slot: one "View" chip that opens a menu like
+     the Windows Explorer view menu - category (All / Steam / Other), layout
+     (Tile / List) and tiles per row (3 / 5)
+     메인 화면 툴바 슬롯: 윈도우 탐색기 보기 메뉴 같은 "보기" 칩 하나 - 분류
+     (전체 / 스팀 / 일반), 배치(타일 / 목록), 한 줄 타일 수(3 / 5) -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    android:layout_gravity="end|center_vertical"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingRight="12dp">
+
+    <TextView
+        android:id="@+id/BTViewMenu"
+        style="@style/NeonChip"
+        android:text="@string/shortcut_view_menu" />
+</LinearLayout>

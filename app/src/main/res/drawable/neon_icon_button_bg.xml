@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Round ghost button for icon-only actions app-wide (NeonIconMenuButton's
+    own background, so every "..." menu, gear, add/remove and download
+    button uses this). BUG FIX: the resting stroke used to be neonDivider - a
+    near-invisible hairline meant for faint separators, not a button border.
+    A thin glyph like the three-dot kebab menu has almost no ink of its own,
+    so with an invisible ring around it the button read as "nothing there" -
+    while a bold glyph like the download icon still looked fine alone, which
+    is why the two looked mismatched as a pair. A visible ring plus a faint
+    fill now gives every icon button the same recognizable chip shape
+    regardless of how much ink the icon itself has.
+    앱 전체 아이콘 전용 버튼의 둥근 배경임(NeonIconMenuButton 자체 배경이라,
+    "..." 메뉴·톱니·추가/삭제·다운로드 버튼 전부 이걸 씀). 버그 수정: 평소
+    테두리가 neonDivider였는데, 이건 거의 안 보이는 옅은 구분선용 색이지
+    버튼 테두리가 아니었음. 점 3개짜리 케밥 메뉴처럼 그림 자체의 잉크가 거의
+    없는 아이콘은 테두리가 안 보이면 "아무것도 없는" 것처럼 보였음 - 반면
+    다운로드 아이콘처럼 굵은 그림은 테두리 없이도 혼자 괜찮아 보여서, 둘을
+    나란히 두면 안 맞는 것처럼 보인 이유가 이것임. 이제 눈에 보이는 테두리와
+    옅은 채움을 같이 줘서, 아이콘 자체의 잉크량과 무관하게 모든 아이콘
+    버튼이 똑같이 알아볼 수 있는 칩 모양을 가짐
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true">
+        <shape android:shape="oval">
+            <solid android:color="?attr/neonGlowSoft" />
+            <stroke android:width="1dp" android:color="?attr/neonGlow" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="?attr/neonSurfaceAlt" />
+            <stroke android:width="1dp" android:color="?attr/neonGlowMid" />
+        </shape>
+    </item>
+</selector>

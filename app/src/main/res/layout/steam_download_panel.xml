@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Steam download panel: name, progress, speed, pause/resume,
+     stop. Used by the Steam page and by the shortcut detail sheet (update).
+     Bound by SteamDownloadPanel.java
+     스팀 다운로드 창: 이름, 진행률, 속도, 일시정지/재개, 정지. 스팀 페이지와
+     숏컷 상세창(업데이트)에서 씀. SteamDownloadPanel.java가 연결함 -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/NeonFieldSet"
+    android:layout_marginTop="0dp"
+    android:padding="12dp"
+    android:visibility="gone">
+
+    <TextView
+        android:id="@+id/TVSteamDlName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:textColor="?attr/neonText"
+        android:textSize="15sp"
+        android:textStyle="bold" />
+
+    <ProgressBar
+        android:id="@+id/PBSteamDl"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:max="100"
+        android:progressTint="?attr/neonAccent" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/TVSteamDlInfo"
+            style="@style/NeonCaption"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:maxLines="2" />
+
+        <Button
+            android:id="@+id/BTSteamDlPause"
+            style="@style/NeonButtonGhost"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:paddingLeft="14dp"
+            android:paddingRight="14dp"
+            android:text="@string/steam_dl_pause" />
+
+        <Button
+            android:id="@+id/BTSteamDlStop"
+            style="@style/NeonButtonGhost"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:layout_marginLeft="8dp"
+            android:paddingLeft="14dp"
+            android:paddingRight="14dp"
+            android:text="@string/steam_dl_stop" />
+    </LinearLayout>
+</LinearLayout>

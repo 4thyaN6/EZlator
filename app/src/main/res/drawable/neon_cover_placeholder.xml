@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Backdrop shown when a shortcut has no cover art. The app icon is drawn on
+    top of this, so it must stay low-contrast or the icon disappears into it.
+    커버 이미지가 없는 숏컷에 깔리는 바탕임. 이 위에 앱 아이콘을 얹으므로
+    대비가 낮아야 함. 안 그러면 아이콘이 묻힘
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <corners android:radius="12dp" />
+    <gradient
+        android:angle="135"
+        android:startColor="?attr/neonSurfaceAlt"
+        android:centerColor="?attr/neonSurface"
+        android:endColor="?attr/neonSurfaceAlt"
+        android:type="linear" />
+</shape>

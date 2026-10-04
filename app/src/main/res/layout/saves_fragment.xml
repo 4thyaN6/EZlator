@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Saves screen. Same neon pattern as Containers/Contents. Ids unchanged
+    (RecyclerView / TVEmptyText) so SavesFragment binds without a Java change.
+    Saves 화면임. 컨테이너/Contents와 같은 네온 패턴임. id는 그대로라
+    (RecyclerView / TVEmptyText) SavesFragment가 Java 수정 없이 그대로 붙음
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/neonBg">
+
+    <androidx.recyclerview.widget.RecyclerView
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/RecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingTop="8dp"
+        android:paddingBottom="16dp"
+        android:clipToPadding="false"
+        android:scrollbars="none"
+        app:layoutManager="LinearLayoutManager" />
+
+    <TextView
+        android:id="@+id/TVEmptyText"
+        style="@style/NeonCaption"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:text="@string/no_items_to_display_saves"
+        android:visibility="gone" />
+</FrameLayout>

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Save row, rebuilt as a neon card. Ids/widget types unchanged (ImageView /
+    TVTitle / TVContainerName / BTMenu) so SavesFragment's ViewHolder binds
+    without a Java change.
+    저장 파일 행을 네온 카드로 다시 만듦. id/위젯 종류는 그대로라(ImageView /
+    TVTitle / TVContainerName / BTMenu) SavesFragment의 ViewHolder가 Java
+    수정 없이 그대로 붙음
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginLeft="12dp"
+    android:layout_marginRight="12dp"
+    android:layout_marginTop="5dp"
+    android:layout_marginBottom="5dp"
+    android:background="@drawable/neon_card_bg"
+    android:gravity="center_vertical"
+    android:minHeight="64dp"
+    android:orientation="horizontal"
+    android:paddingLeft="14dp"
+    android:paddingRight="10dp">
+
+    <ImageView
+        android:id="@+id/ImageView"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_marginEnd="14dp"
+        app:tint="?attr/neonAccent"
+        android:src="@drawable/icon_save" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/TVTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:textColor="?attr/neonText" />
+
+        <TextView
+            android:id="@+id/TVContainerName"
+            style="@style/NeonCaption"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:ellipsize="end"
+            android:maxLines="1" />
+    </LinearLayout>
+
+    <ImageButton
+        style="@style/NeonIconMenuButton"
+        android:id="@+id/BTMenu"
+        android:src="@drawable/icon_list_item_menu" />
+</LinearLayout>

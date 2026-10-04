@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Table header bar for the Task Manager's process list. Solid accent colour
+    (not a pale surface) so the white header text this style already uses
+    stays legible in both themes - same idea as NeonButtonPrimary.
+    Replaces table_head_background.9.png, a fixed brand-blue 9-patch that
+    never followed the theme.
+    태스크 매니저 프로세스 목록의 테이블 헤더 바임. 옅은 면이 아니라 진한
+    강조색을 씀 - 이 스타일이 이미 쓰는 흰 헤더 글자가 두 테마 모두에서
+    읽히게 함. NeonButtonPrimary와 같은 발상임.
+    table_head_background.9.png(테마를 안 타는 고정 브랜드 파랑 9-patch)를
+    대체함
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <corners android:radius="6dp" />
+    <solid android:color="?attr/neonAccent" />
+</shape>

@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- ===== Top-level quick actions ===== -->
+    <item
+        android:id="@+id/main_menu_relative_mouse"
+        android:title="@string/relative_mouse_movement"
+        android:icon="@drawable/icon_mouse"
+        android:checkable="true" />
+
+    <item
+        android:id="@+id/main_menu_keyboard"
+        android:title="@string/keyboard"
+        android:icon="@drawable/icon_keyboard" />
+
+    <!-- ===== INPUT ===== -->
+    <item
+        android:id="@+id/header_input"
+        android:title="@string/menu_section_input"
+        android:icon="@drawable/icon_input_header" />
+    <group
+        android:id="@+id/group_input"
+        android:checkableBehavior="none">
+        <item
+            android:id="@+id/main_menu_input_controls"
+            android:title="@string/input_controls"
+            android:icon="@drawable/icon_input_controls" />
+        <!-- Hidden (not deleted): undecided whether Controller Manager is
+             worth keeping. android:visible="false" so it can be flipped back
+             with one attribute if the answer is yes.
+             숨김(삭제 아님): Controller Manager를 남길지 아직 결정 안 됨.
+             남기기로 하면 속성 하나만 바꿔서 되돌릴 수 있게 android:visible="false"만 씀 -->
+        <item
+            android:id="@+id/main_menu_controller_assignment"
+            android:title="@string/controller_manager"
+            android:icon="@drawable/icon_gamepad"
+            android:visible="false" />
+
+        <!-- BUILD-BREAKING MISTAKE FIXED: fully commenting this item out
+             removed R.id.main_menu_motion_controls entirely, but
+             XServerDisplayActivity.java still references that id in two live
+             places (the INPUT_IDS array, and a switch-case that opens
+             MotionControls' config dialog) - so it's a real, working feature
+             (motion/gyro-based control input), not dead code. Hidden the
+             same way as Controller Manager instead: android:visible="false"
+             keeps the id alive for Java while removing it from view.
+             빌드를 깬 실수를 고침: 이 항목을 통째로 주석 처리하면서
+             R.id.main_menu_motion_controls 자체가 사라졌는데,
+             XServerDisplayActivity.java가 이 id를 실제 코드 두 곳에서
+             씀(INPUT_IDS 배열, 그리고 MotionControls 설정창을 여는
+             switch-case) - 즉 죽은 코드가 아니라 실제로 동작하는 기능임
+             (모션/자이로 기반 컨트롤 입력). Controller Manager와 같은
+             방식으로 숨김: android:visible="false"로 id는 살려 두고
+             화면에서만 뺌 -->
+        <item
+            android:id="@+id/main_menu_motion_controls"
+            android:title="@string/motion_controls"
+            android:icon="@drawable/icon_motion_controls"
+            android:visible="false" />
+    </group>
+
+    <!-- ===== DISPLAY ===== -->
+    <item
+        android:id="@+id/header_display"
+        android:title="@string/menu_section_display"
+        android:icon="@drawable/ic_big_picture_mode" />
+    <group
+        android:id="@+id/group_display"
+        android:checkableBehavior="none">
+        <item
+            android:id="@+id/main_menu_screen_effects"
+            android:title="@string/screen_effect"
+            android:icon="@drawable/icon_screen_effect" />
+        <item
+            android:id="@+id/main_menu_toggle_fullscreen"
+            android:title="@string/toggle_fullscreen"
+            android:icon="@drawable/icon_fullscreen" />
+        <item
+            android:id="@+id/main_menu_magnifier"
+            android:title="@string/magnifier"
+            android:icon="@drawable/icon_magnifier" />
+        <item
+            android:id="@+id/main_menu_pip_mode"
+            android:title="@string/pip_mode"
+            android:icon="@drawable/ic_picture_in_picture_alt" />
+    </group>
+
+    <!-- ===== SYSTEM ===== -->
+    <item
+        android:id="@+id/header_system"
+        android:title="@string/menu_section_system"
+        android:icon="@drawable/icon_settings" />
+    <group
+        android:id="@+id/group_system"
+        android:checkableBehavior="none">
+        <item
+            android:id="@+id/main_menu_task_manager"
+            android:title="@string/task_manager"
+            android:icon="@drawable/icon_task_manager" />
+        <item
+            android:id="@+id/main_menu_terminal"
+            android:title="@string/debug_terminal"
+            android:icon="@drawable/icon_env_var" />
+    </group>
+
+    <!-- ===== More quick actions at bottom ===== -->
+    <item
+        android:id="@+id/main_menu_pause"
+        android:title="@string/pause_resume"
+        android:icon="@drawable/icon_pause" />
+
+    <item
+        android:id="@+id/main_menu_logs"
+        android:title="@string/logs"
+        android:icon="@drawable/icon_debug" />
+
+    <item
+        android:id="@+id/main_menu_touchpad_help"
+        android:title="@string/touchpad_help"
+        android:icon="@drawable/icon_help" />
+
+    <item
+        android:id="@+id/main_menu_exit"
+        android:title="@string/exit"
+        android:icon="@drawable/icon_exit" />
+</menu>

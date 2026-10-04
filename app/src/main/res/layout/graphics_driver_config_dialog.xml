@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <!-- Same width fix as vkd3d_config_dialog.xml: minWidth actually forces
+         the Dialog window wider so long driver/extension names don't
+         truncate; a fixed 300dp did not.
+         vkd3d_config_dialog.xml과 같은 폭 수정임: minWidth라야 Dialog 창을
+         실제로 넓혀서 긴 드라이버/확장 이름이 안 잘림. 고정 300dp로는
+         안 됐음 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minWidth="320dp"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/graphics_driver_version"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:paddingBottom="8dp"/>
+
+        <Spinner
+            style="@style/NeonComboBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/SGraphicsDriverVersion"
+            android:spinnerMode="dialog"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/graphics_driver_available_extensions"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:paddingBottom="8dp"/>
+
+        <Spinner
+            style="@style/NeonComboBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/SGraphicsDriverAvailableExtensions"
+            android:spinnerMode="dialog"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/graphics_driver_max_device_memory"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:paddingBottom="8dp"/>
+
+        <Spinner
+            style="@style/NeonComboBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/SGraphicsDriverMaxDeviceMemory"
+            android:entries="@array/device_memory_entries"
+            android:spinnerMode="dialog"/>
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/graphics_driver_frame_sync"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:paddingBottom="8dp"/>
+
+        <Spinner
+            style="@style/NeonComboBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/SGraphicsDriverFrameSync"
+            android:entries="@array/frame_sync_entries"
+            android:spinnerMode="dialog"/>
+
+        <androidx.appcompat.widget.SwitchCompat
+            style="@style/NeonSwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/CBAdrenotoolsTurnip"
+            android:checked="true"
+            android:text="@string/graphics_driver_adrenotools_turnip" />
+    </LinearLayout>
+</ScrollView>

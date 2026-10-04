@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="screen_size_entries">
+        <item>Custom</item>
+        <item>690x360 (16:9)</item>
+        <item>780x360 (19.5:9)</item>
+        <item>640x480 (4:3)</item>
+        <item>800x600 (4:3)</item>
+        <item>854x480 (16:9)</item>
+        <item>960x544 (16:9)</item>
+        <item>1024x768 (4:3)</item>
+        <item>1280x720 (16:9)</item>
+        <item>1280x800 (16:10)</item>
+        <item>1280x1024 (5:4)</item>
+        <item>1366x768 (16:9)</item>
+        <item>1440x900 (16:10)</item>
+        <item>1560x720 (19.5:9)</item>
+        <item>1600x900 (16:9)</item>
+        <item>1920x1080 (16:9)</item>
+    </string-array>
+    <string-array name="graphics_driver_entries">
+        <item>Wrapper</item>
+        <item>Wrapper-v2</item>
+    </string-array>
+    <!-- Bundled driver assets were deleted; only the device's own driver stays as a -->
+    <!-- built-in option. Turnip builds now come from the download flow only. -->
+    <!-- 번들 드라이버 에셋을 삭제했으므로 내장 선택지는 기기 자체 드라이버만 남김. -->
+    <!-- Turnip 계열은 이제 다운로드로만 제공됨 -->
+    <string-array name="wrapper_graphics_driver_version_entries">
+        <item>System</item>
+    </string-array>
+
+    <string-array name="audio_driver_entries">
+        <item>ALSA-Reflector</item>
+        <item>ALSA</item>
+        <item>PulseAudio</item>
+    </string-array>
+    <string-array name="binding_type_entries">
+        <item>Keyboard</item>
+        <item>Mouse</item>
+        <item>Gamepad</item>
+    </string-array>
+    <!-- DXVK and VKD3D are no longer separate, mutually-exclusive choices. -->
+    <!-- Real Wine/Proton setups always run them together (DXVK for D3D9-11, -->
+    <!-- VKD3D for D3D12), so they're now one combined option that opens a -->
+    <!-- single config screen with both version spinners. -->
+    <!-- DXVK와 VKD3D는 더 이상 서로 배타적인 별개 선택지가 아님. -->
+    <!-- 실제 Wine/Proton 환경에서는 항상 같이 동작하므로(DXVK=D3D9~11, -->
+    <!-- VKD3D=D3D12), 이제 하나의 통합 옵션으로 합치고, 그 안에서 -->
+    <!-- DXVK/VKD3D 버전을 각각 고르는 설정 화면 하나를 씀 -->
+    <string-array name="dxwrapper_entries">
+        <item>WineD3D</item>
+        <item>DXVK + VKD3D</item>
+    </string-array>
+    <string-array name="ddrawrapper_entries">
+        <item>CnC-DDraw</item>
+        <item>Dd7To9</item>
+        <item>WineD3D</item>
+    </string-array>
+    <!-- Intentionally empty. Items here are treated as bundled assets and resolve to -->
+    <!-- assets/dxwrapper/dxvk-<item>.tzst, which does not exist for any of these. They -->
+    <!-- also fail profile lookup because the version code cannot be parsed out of the -->
+    <!-- name, so selecting one installed nothing at all. DXVK now comes only from -->
+    <!-- ContentsManager (recommended downloads / Contents screen). -->
+    <!-- 의도적으로 비움. 여기 항목은 번들 에셋으로 간주되어 -->
+    <!-- assets/dxwrapper/dxvk-<항목>.tzst 를 찾는데, 해당 파일이 하나도 없음. -->
+    <!-- 게다가 이름에서 버전 코드를 분리할 수 없어 프로필 조회도 실패하므로 -->
+    <!-- 고르면 아무것도 설치되지 않았음. 이제 DXVK는 ContentsManager(추천 -->
+    <!-- 다운로드 / Contents 화면)를 통해서만 제공됨 -->
+    <string-array name="dxvk_version_entries">
+    </string-array>
+    <string-array name="device_memory_entries">
+    <item>0 (Default)</item>
+    <item>512 MB</item>
+    <item>1024 MB</item>
+    <item>2048 MB</item>
+    <item>4096 MB</item>
+    </string-array>
+    <string-array name="frame_sync_entries">
+        <item>Never</item>
+        <item>Normal</item>
+        <item>Always</item>
+    </string-array>
+    <string-array name="video_memory_size_entries">
+        <item>@string/video_memory_size_auto</item>
+        <item>32 MB</item>
+        <item>64 MB</item>
+        <item>128 MB</item>
+        <item>256 MB</item>
+        <item>512 MB</item>
+        <item>1024 MB</item>
+        <item>2048 MB</item>
+        <item>4096 MB</item>
+    </string-array>
+    <string-array name="wincomponent_entries">
+        <item>Builtin (Wine)</item>
+        <item>Native (Windows)</item>
+    </string-array>
+    <!-- These must match the .tzst filenames actually shipped in assets/, because -->
+    <!-- they are extracted as assets/box86_64/box64-<item>.tzst. "0.4.3" was never -->
+    <!-- bundled, so the offline fallback silently extracted nothing. -->
+    <!-- 여기 항목은 assets/box86_64/box64-<항목>.tzst 로 압축 해제되므로 -->
+    <!-- assets/에 실제로 들어 있는 파일명과 일치해야 함. "0.4.3"은 번들된 적이 -->
+    <!-- 없어서 오프라인 폴백이 조용히 아무것도 풀지 않았음 -->
+    <string-array name="box64_version_entries">
+        <item>0.3.2</item>
+        <item>0.3.6</item>
+        <item>0.3.7</item>
+    </string-array>
+    <!-- Extracted as assets/wowbox64/wowbox64-<item>.tzst - same rule as above -->
+    <!-- assets/wowbox64/wowbox64-<항목>.tzst 로 풀리므로 위와 동일한 규칙 -->
+    <string-array name="wowbox64_version_entries">
+        <item>0.3.4</item>
+        <item>0.3.7</item>
+    </string-array>
+    <!-- Intentionally empty. assets/fexcore/ only ships 2505 and 2507, both older than -->
+    <!-- what the download catalog provides, and "2607" had no asset at all. FEXCore -->
+    <!-- now comes only from ContentsManager. -->
+    <!-- 의도적으로 비움. assets/fexcore/에는 2505, 2507만 있고 둘 다 다운로드 -->
+    <!-- 카탈로그보다 구버전이며 "2607"은 에셋 자체가 없었음. FEXCore는 이제 -->
+    <!-- ContentsManager를 통해서만 제공됨 -->
+    <string-array name="fexcore_version_entries">
+    </string-array>
+    <string-array name="desktop_theme_entries">
+        <item>Light</item>
+        <item>Dark</item>
+    </string-array>
+    <string-array name="desktop_background_type_entries">
+        <item>Image</item>
+        <item>Solid Color</item>
+    </string-array>
+    <string-array name="startup_selection_entries">
+        <item>Normal (Load all services)</item>
+        <item>Essential (Load only essential services)</item>
+    </string-array>
+    <!-- Same reason as dxvk_version_entries: no matching assets/dxwrapper/vkd3d-*.tzst -->
+    <!-- and no matching content profile, so these were unselectable in practice. -->
+    <!-- dxvk_version_entries와 같은 이유: 대응되는 assets/dxwrapper/vkd3d-*.tzst도 -->
+    <!-- 없고 일치하는 컨텐츠 프로필도 없어서 사실상 고를 수 없는 항목이었음 -->
+    <string-array name="vkd3d_version_entries">
+    </string-array>
+    <string-array name="some_lc_all">
+        <item>ar_EG</item>
+        <item>ar_SA</item>
+        <item>de_AT</item>
+        <item>de_CH</item>
+        <item>de_DE</item>
+        <item>de_LU</item>
+        <item>en_AU</item>
+        <item>en_CA</item>
+        <item>en_GB</item>
+        <item>en_IN</item>
+        <item>en_US</item>
+        <item>es_AR</item>
+        <item>es_ES</item>
+        <item>es_MX</item>
+        <item>fr_BE</item>
+        <item>fr_CA</item>
+        <item>fr_CH</item>
+        <item>fr_FR</item>
+        <item>it_CH</item>
+        <item>it_IT</item>
+        <item>ja_JP</item>
+        <item>ko_KR</item>
+        <item>pt_BR</item>
+        <item>pt_PT</item>
+        <item>ru_RU</item>
+        <item>ru_UA</item>
+        <item>zh_CN</item>
+        <item>zh_HK</item>
+        <item>zh_SG</item>
+        <item>zh_TW</item>
+    </string-array>
+    <string-array name="button_options">
+        <item>A</item>
+        <item>B</item>
+        <item>X</item>
+        <item>Y</item>
+        <item>R1 (Right Bumper)</item>
+        <item>R2 (Right Trigger)</item>
+        <item>L1 (Left Bumper)</item>
+        <item>L2 (Left Trigger)</item>
+        <item>Start</item>
+        <item>Select</item>
+        <item>R3 (Right Stick Button)</item>
+        <item>L3 (Left Stick Button)</item>
+    </string-array>
+    <integer-array name="button_keycodes">
+        <item>@integer/keycode_button_a</item>
+        <item>@integer/keycode_button_b</item>
+        <item>@integer/keycode_button_x</item>
+        <item>@integer/keycode_button_y</item>
+        <item>@integer/keycode_button_r1</item> <!-- Right Bumper -->
+        <item>@integer/keycode_button_r2</item> <!-- Right Trigger -->
+        <item>@integer/keycode_button_l1</item> <!-- Left Bumper -->
+        <item>@integer/keycode_button_l2</item> <!-- Left Trigger -->
+        <item>@integer/keycode_button_start</item>
+        <item>@integer/keycode_button_select</item>
+        <item>@integer/keycode_button_r3</item> <!-- Right Stick Button -->
+        <item>@integer/keycode_button_l3</item> <!-- Left Stick Button -->
+    </integer-array>
+
+    <string-array name="fexcore_preset_entries">
+        <item>Fastest</item>
+        <item>Fast</item>
+        <item>Slow</item>
+        <item>Slowest</item>
+    </string-array>
+    <string-array name="x87mode_preset_entries">
+        <item>Fast</item>
+        <item>Slow</item>
+    </string-array>
+    <string-array name="multiblock_values">
+        <item>Enabled</item>
+        <item>Disabled</item>
+    </string-array>
+    <string-array name="emulator_entries">
+        <item>FEXCore</item>
+        <item>Box64</item>
+    </string-array>
+    <string-array name="wine_entries">
+    </string-array>
+    <string-array name="vkbasalt_sharpness_entries">
+        <item>None</item>
+        <item>CAS</item>
+        <item>DLS</item>
+    </string-array>
+</resources>

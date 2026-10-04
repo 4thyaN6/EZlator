@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- app:itemIconTint state list: selected = accent, otherwise dim text -->
+<!-- app:itemIconTint 상태 목록: 선택 시 강조색, 아니면 흐린 글자색 -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:color="?attr/neonAccent" android:state_checked="true" />
+    <item android:color="?attr/neonTextDim" />
+</selector>

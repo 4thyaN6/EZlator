@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Linear determinate progress for downloads. A known-percentage bar is the
+    honest choice for a download, because the size is known in advance -
+    a spinner tells the user nothing about how long is left.
+    다운로드용 선형 진행 막대임. 용량을 미리 알 수 있는 다운로드에는
+    퍼센트를 보여 주는 쪽이 정직함 - 빙글빙글 도는 표시는 얼마나 남았는지
+    아무것도 알려 주지 않음
+
+    Use with: style="?android:attr/progressBarStyleHorizontal"
+              android:progressDrawable="@drawable/neon_progress_horizontal"
+    사용법: 위 두 속성을 ProgressBar에 지정하면 됨
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:id="@android:id/background">
+        <shape android:shape="rectangle">
+            <corners android:radius="999dp" />
+            <solid android:color="?attr/neonSurfaceAlt" />
+        </shape>
+    </item>
+
+    <!-- Secondary track shows buffered/queued portion if ever needed -->
+    <!-- 보조 트랙. 대기 중이거나 버퍼된 구간이 필요해지면 씀 -->
+    <item android:id="@android:id/secondaryProgress">
+        <clip>
+            <shape android:shape="rectangle">
+                <corners android:radius="999dp" />
+                <solid android:color="?attr/neonGlowSoft" />
+            </shape>
+        </clip>
+    </item>
+
+    <item android:id="@android:id/progress">
+        <clip>
+            <shape android:shape="rectangle">
+                <corners android:radius="999dp" />
+                <gradient android:angle="0"
+                    android:startColor="?attr/neonAccent3"
+                    android:centerColor="?attr/neonAccent2"
+                    android:endColor="?attr/neonAccent"
+                    android:type="linear" />
+            </shape>
+        </clip>
+    </item>
+</layer-list>

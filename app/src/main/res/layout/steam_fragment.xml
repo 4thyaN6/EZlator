@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Steam screen as a drawer page, replacing SteamLoginActivity so it
+     has the same toolbar and hamburger menu as every other screen.
+       SVSteamLogin   - sign-in form (signed out)
+       LLSteamLibrary - owned games in the same tile / list layout as Main (signed in)
+     Profile picture, nickname and "Signed in" sit in the toolbar's action slot
+     (steam_toolbar_header.xml); tapping the picture asks before logging out.
+     스팀 화면을 드로어 페이지로 바꿈. SteamLoginActivity를 대체해서 다른
+     화면과 같은 툴바와 햄버거 메뉴를 가짐.
+       SVSteamLogin   - 로그인 양식(로그아웃 상태)
+       LLSteamLibrary - 보유 게임을 메인과 같은 타일 / 목록 구성으로 보여 줌(로그인 상태)
+     프로필 사진, 닉네임, "로그인됨"은 툴바 동작 슬롯(steam_toolbar_header.xml)에
+     있고, 사진을 누르면 확인 후 로그아웃함 -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/neonBg">
+
+    <ScrollView
+        android:id="@+id/SVSteamLogin"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+        <TextView
+            android:id="@+id/TVSteamStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:textColor="?attr/neonText"
+            android:textSize="15sp" />
+
+        <LinearLayout
+            android:id="@+id/LLSteamLoginForm"
+            style="@style/NeonFieldSet"
+            android:layout_marginTop="12dp"
+            android:orientation="vertical">
+
+            <EditText
+                android:id="@+id/ETSteamUser"
+                style="@style/NeonEditText"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:hint="@string/steam_username"
+                android:inputType="text"
+                android:autofillHints="username" />
+
+            <EditText
+                android:id="@+id/ETSteamPassword"
+                style="@style/NeonEditText"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="8dp"
+                android:hint="@string/steam_password"
+                android:inputType="textPassword"
+                android:autofillHints="password" />
+
+            <Button
+                android:id="@+id/BTSteamLogin"
+                style="@style/NeonButtonPrimary"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginTop="14dp"
+                android:text="@string/steam_login" />
+
+            <!-- QR sign-in (Steam mobile app) / QR 로그인(스팀 모바일 앱) -->
+            <Button
+                android:id="@+id/BTSteamQr"
+                style="@style/NeonButtonGhost"
+                android:layout_width="match_parent"
+                android:layout_height="46dp"
+                android:layout_marginTop="10dp"
+                android:text="@string/steam_login_qr" />
+
+            <ImageView
+                android:id="@+id/IVSteamQr"
+                android:layout_width="240dp"
+                android:layout_height="240dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="12dp"
+                android:background="#FFFFFF"
+                android:padding="8dp"
+                android:visibility="gone"
+                android:contentDescription="@string/steam_login_qr" />
+
+            <TextView
+                style="@style/NeonCaption"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="@string/steam_login_note" />
+        </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
+
+    <LinearLayout
+        android:id="@+id/LLSteamLibrary"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <!-- Search + update (re-reads the owned list from Steam; the list is
+             otherwise shown from the local cache)
+             검색 + 업데이트(스팀에서 보유 목록을 다시 읽음. 평소에는 기기에 저장한
+             목록을 바로 보여 줌) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingLeft="12dp"
+            android:paddingTop="10dp"
+            android:paddingRight="12dp">
+
+            <EditText
+                android:id="@+id/ETSteamSearch"
+                style="@style/NeonEditText"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:hint="@string/steam_search_games"
+                android:inputType="text"
+                android:maxLines="1" />
+
+            <!-- Small refresh button (browser-style circular arrow). Pulling the
+                 list down from the top does the same
+                 작은 새로고침 버튼(브라우저식 둥근 화살표). 목록 맨 위에서 아래로
+                 당겨도 같은 동작임 -->
+            <ImageButton
+                android:id="@+id/BTSteamUpdate"
+                style="@style/NeonIconMenuButton"
+                android:layout_marginLeft="8dp"
+                android:contentDescription="@string/steam_refresh_list"
+                android:src="@drawable/icon_refresh" />
+        </LinearLayout>
+
+        <!-- Download panel (steam_download_panel.xml, shared with the
+             shortcut detail sheet). Hidden while nothing is downloading
+             다운로드 창(steam_download_panel.xml, 숏컷 상세창과 공용). 받는 게
+             없으면 숨김 -->
+        <include
+            android:id="@+id/LLSteamDownload"
+            layout="@layout/steam_download_panel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="12dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginRight="12dp" />
+
+        <!-- Status line above the tiles (download done, loading, errors).
+             Raised from the 13sp caption size to 15sp and given room below, so
+             a finished download is noticed and the line no longer touches the
+             first tile row
+             타일 위 상태 줄임(다운로드 완료, 불러오는 중, 오류). 13sp 보조 글자
+             크기에서 15sp로 올리고 아래 여백을 줘서, 다운로드 완료를 알아보기 쉽고
+             첫 타일 줄에 붙지 않게 함 -->
+        <!-- Spinner sits in front of the text and shows only while a game's
+             files are being deleted (a big folder takes a while and the confirm
+             window is already gone by then)
+             글자 앞의 스피너는 게임 파일을 지우는 동안에만 보임(큰 폴더는 시간이
+             걸리고, 그때는 확인창이 이미 닫혀 있음) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingLeft="16dp"
+            android:paddingTop="8dp"
+            android:paddingRight="16dp"
+            android:paddingBottom="14dp">
+
+            <ProgressBar
+                android:id="@+id/PBSteamBusy"
+                style="@style/NeonProgressRing"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_marginRight="10dp"
+                android:indeterminate="true"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/TVSteamLibraryStatus"
+                style="@style/NeonCaption"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="15sp" />
+        </LinearLayout>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <!-- Pull down at the top of the list to re-read the owned games
+                 목록 맨 위에서 아래로 당기면 보유 게임을 다시 읽음 -->
+            <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+                android:id="@+id/SRLSteamGames"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/RVSteamGames"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:clipToPadding="false"
+                    android:padding="6dp" />
+            </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+            <TextView
+                android:id="@+id/TVSteamEmpty"
+                style="@style/NeonCaption"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="@string/steam_no_games"
+                android:visibility="gone" />
+        </FrameLayout>
+    </LinearLayout>
+</FrameLayout>

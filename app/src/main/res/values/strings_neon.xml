@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Strings used only by the new neon screens. Prefixed "neon_" so they cannot
+    clash with the existing strings.xml.
+    새 네온 화면에서만 쓰는 문자열임. "neon_" 접두사를 붙여 기존 strings.xml과
+    충돌하지 않게 함
+-->
+<resources>
+    <string name="neon_view_tile">Tile</string>
+    <string name="neon_view_list">List</string>
+    <string name="neon_start">START</string>
+    <string name="neon_playtime">Playtime</string>
+    <string name="neon_size">Size</string>
+    <string name="neon_last_played">Last played</string>
+    <string name="neon_never_played">Never</string>
+    <string name="neon_edit">Edit</string>
+    <string name="neon_remove">Remove</string>
+    <string name="neon_gpu_spoof">Desktop GPU</string>
+    <string name="neon_gpu_spoof_hint">Turn on if the game refuses to run on a mobile GPU (DXVK only)</string>
+    <string name="neon_gstreamer">Video decoder</string>
+    <string name="neon_gstreamer_hint">Turn on if videos or Live2D do not play, or the screen stays black</string>
+    <string name="neon_add_shortcut">Add shortcut</string>
+    <string name="neon_no_shortcuts">No shortcuts yet.\nTap + to add a program.</string>
+    <string name="neon_save">Save</string>
+    <string name="neon_cover">Cover image</string>
+    <string name="neon_downloading">Downloading…</string>
+    <!-- Shortcut tile image / detail background cover -->
+    <!-- 숏컷 타일 이미지 / 상세창 배경 커버 -->
+    <string name="neon_tile_image">Tile image</string>
+    <string name="neon_background_cover">Background cover</string>
+    <string name="neon_image_choose">Choose image</string>
+    <string name="neon_tile_image_reset">Reset to icon</string>
+    <string name="neon_background_cover_remove">Remove cover</string>
+    <string name="neon_image_applied">Image applied.</string>
+    <string name="neon_image_failed">Could not read this image.</string>
+    <!-- Layer switch / external image / container fallback -->
+    <!-- 레이어 변경 / 외부 이미지 / 컨테이너 대체 -->
+    <string name="neon_image_external">Add external image (other folders / apps)</string>
+    <string name="neon_layer_change">Change layer</string>
+    <string name="neon_layer_change_message">Move this game to the %1$s container?\n\nEach container has its own settings and its own C: drive, so saves kept on C: stay in the current container. You can switch back with the same button.</string>
+    <string name="neon_layer_change_ok">Move</string>
+    <string name="neon_layer_switching">Preparing the container…</string>
+    <string name="neon_layer_switched">Moved to %1$s</string>
+    <string name="neon_layer_no_arm64ec_wine">No ARM64EC Proton (Wine) is installed. Download one in Components &amp; Drivers.</string>
+    <string name="neon_layer_no_x86_64_wine">No X86_64 Proton (Wine) is installed. Download one in Components &amp; Drivers.</string>
+    <string name="neon_no_wine_installed">No Proton (Wine) is installed, so no container could be created. Download one in Components &amp; Drivers.</string>
+</resources>

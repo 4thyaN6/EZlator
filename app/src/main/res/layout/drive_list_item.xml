@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Row for one drive-letter mapping in the DRIVES tab. Was never converted:
+    old ComboBox/EditText/ListMenuButton throughout, same as
+    wincomponent_list_item.xml before this pass.
+    DRIVES 탭의 드라이브 문자 매핑 한 줄 항목임. 지금까지 한 번도 전환된 적
+    없었음: 이번 작업 전 wincomponent_list_item.xml과 똑같이 옛 ComboBox/
+    EditText/ListMenuButton 그대로였음
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="6dp"
+    android:gravity="center_vertical">
+
+    <Spinner
+        style="@style/NeonComboBox"
+        android:id="@+id/Spinner"
+        android:layout_width="100dp"
+        android:layout_marginRight="6dp" />
+
+    <EditText
+        style="@style/NeonEditText"
+        android:id="@+id/EditText"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1" />
+
+    <ImageButton
+        style="@style/NeonIconMenuButton"
+        android:id="@+id/BTSearch"
+        android:src="@drawable/icon_open" />
+
+    <ImageButton
+        style="@style/NeonIconMenuButton"
+        android:id="@+id/BTRemove"
+        android:src="@drawable/icon_remove" />
+</LinearLayout>

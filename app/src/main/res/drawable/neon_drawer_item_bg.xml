@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Selected drawer row background. This is what puts a neon-tinted highlight
+    behind the checked item instead of Material's default flat pink/grey fill.
+    선택된 드로어 행 배경임. 이게 있어야 선택 항목 뒤에 Material 기본값인
+    밋밋한 분홍/회색 채움 대신 네온 색조 강조가 깔림
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_checked="true">
+        <shape android:shape="rectangle">
+            <corners android:radius="12dp" />
+            <solid android:color="?attr/neonGlowSoft" />
+        </shape>
+    </item>
+    <item android:state_pressed="true">
+        <shape android:shape="rectangle">
+            <corners android:radius="12dp" />
+            <solid android:color="?attr/neonSurfaceAlt" />
+        </shape>
+    </item>
+    <item android:drawable="@android:color/transparent" />
+</selector>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Add-button background. Sweep gradient so the ring of colour rotates
+    around the circle instead of sitting flat on one side.
+    추가 버튼 배경임. 스윕 그라데이션이라 색 고리가 한쪽에 몰리지 않고
+    원을 따라 돌아감
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+    <gradient
+        android:type="sweep"
+        android:startColor="?attr/neonAccent3"
+        android:centerColor="?attr/neonAccent2"
+        android:endColor="?attr/neonAccent"
+        android:useLevel="false" />
+</shape>

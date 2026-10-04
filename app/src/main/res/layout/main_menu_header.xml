@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Drawer header: the app icon and the app name on one row, the name centred
+    on the icon (the name sat at the top of the icon). The row is
+    pinned to the bottom-left of a fixed dark plate (not ?attr), so the white
+    name reads the same in the light and dark theme.
+    드로어 머리글: 앱 아이콘과 앱 이름을 한 줄에 놓고, 이름을 아이콘 세로 중앙에
+    맞춤(이름이 아이콘 위쪽에 붙어 있었음). 줄은 고정된 어두운 판(?attr 아님)의
+    왼쪽 아래에 고정해서 흰 글자가 라이트·다크 테마 모두에서 똑같이 보임
+-->
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="124dp"
+    android:background="@color/neon_d_bg"
+    android:paddingLeft="16dp"
+    android:paddingBottom="24dp">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:layout_gravity="left|bottom"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:contentDescription="@string/app_name"
+            android:src="@drawable/ic_app_logo" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="12dp"
+            android:includeFontPadding="false"
+            android:text="@string/app_name"
+            android:textColor="#FFFFFF"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+</FrameLayout>

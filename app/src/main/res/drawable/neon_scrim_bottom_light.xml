@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Light theme veil - the same gradient in white. This is the piece that
+    makes the detail sheet read as white rather than as a dark overlay,
+    while the cover keeps showing through as a soft tint.
+    라이트 테마용 막임. 같은 그라데이션을 흰색으로 씀. 상세창이 어두운
+    덮개가 아니라 흰색으로 보이게 하는 부분이고, 커버는 옅은 색감으로
+    계속 비쳐 보임
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <gradient
+        android:angle="90"
+        android:startColor="#80FFFFFF"
+        android:centerColor="#1AFFFFFF"
+        android:endColor="#00FFFFFF"
+        android:type="linear" />
+</shape>

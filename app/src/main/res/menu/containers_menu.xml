@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Containers toolbar menu. Trimmed to the single action that belongs here.
+    The favorite star and the Big Picture toggle were removed: both launched
+    a shortcut or another screen, which is not what a container list is for.
+    컨테이너 툴바 메뉴임. 이 화면에 어울리는 동작 하나만 남김.
+    즐겨찾기 별표와 빅픽처 전환은 제거함. 둘 다 숏컷이나 다른 화면을 띄우는
+    동작이라 컨테이너 목록이 할 일이 아니었음
+-->
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/containers_menu_add"
+        android:icon="@drawable/neon_ic_toolbar_add"
+        android:title="@string/add"
+        app:showAsAction="ifRoom" />
+</menu>

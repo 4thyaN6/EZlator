@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Tile mode item. IVCover fills the card with the custom tile image, or
+    with the exe icon scaled up when no tile image is set. IVIcon (small,
+    centred) is shown only when the shortcut has no icon at all.
+    타일 모드 항목임. IVCover가 사용자 지정 타일 이미지로 카드를 채우고, 타일
+    이미지가 없으면 exe 아이콘을 확대해서 채움. IVIcon(가운데 작은 아이콘)은
+    숏컷에 아이콘이 아예 없을 때만 보임
+
+    Height note: 168dp pairs with a 3-column grid on a ~360dp screen to give a
+    roughly 2:3 portrait cover, which is the SteamGridDB grid ratio.
+    높이 참고: 360dp 화면에서 3열 격자와 168dp를 짝지으면 대략 2:3 세로 커버가
+    되고, 이게 SteamGridDB 그리드 비율임
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/FLShortcutTile"
+    style="@style/NeonShortcutCard"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="6dp">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="168dp"
+        android:layout_margin="6dp">
+
+        <!-- Cover art. centerCrop fills the frame and crops the overflow, -->
+        <!-- which is what keeps every tile the same size regardless of the -->
+        <!-- source image ratio -->
+        <!-- 커버 이미지임. centerCrop이 틀을 채우고 넘치는 부분을 잘라내므로 -->
+        <!-- 원본 비율이 제각각이어도 타일 크기가 전부 같아짐 -->
+        <ImageView
+            android:id="@+id/IVCover"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:background="@drawable/neon_cover_placeholder"
+            android:contentDescription="@string/neon_cover" />
+
+        <!-- Last-resort icon (app logo). GONE whenever IVCover has a picture -->
+        <!-- 최후의 대체 아이콘(앱 로고)임. IVCover에 그림이 있으면 GONE 처리함 -->
+        <ImageView
+            android:id="@+id/IVIcon"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_gravity="center"
+            android:scaleType="fitCenter"
+            android:visibility="gone" />
+
+        <!-- Scrim sits between the art and the title, never over the whole card -->
+        <!-- 어둠 막은 그림과 제목 사이에만 깔고 카드 전체에는 안 깔음 -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="72dp"
+            android:layout_gravity="bottom"
+            android:background="@drawable/neon_scrim_bottom" />
+
+        <TextView
+            android:id="@+id/TVName"
+            style="@style/NeonShortcutTitleOverCover"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:padding="8dp" />
+
+        <!-- Long-press menu handle. Kept in the corner so it never overlaps -->
+        <!-- the title block -->
+        <!-- 길게 누르기 메뉴 손잡이임. 제목 영역과 안 겹치게 구석에 둠 -->
+        <ImageButton
+            android:id="@+id/BTMenu"
+            android:layout_width="34dp"
+            android:layout_height="34dp"
+            android:layout_gravity="top|right"
+            android:background="@android:color/transparent"
+            android:scaleType="centerInside"
+            android:visibility="gone" />
+        <!-- src is set from the adapter on purpose: this file must not depend -->
+        <!-- on an icon name that may not exist in the project yet -->
+        <!-- src를 일부러 어댑터에서 지정함. 이 파일이 프로젝트에 있을지 확실치 -->
+        <!-- 않은 아이콘 이름에 의존하면 안 됨 -->
+    </FrameLayout>
+</FrameLayout>

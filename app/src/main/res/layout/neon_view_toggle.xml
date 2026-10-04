@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Tile/List toggle that ShortcutsFragment places in the toolbar's action
+    slot, so it shares one line with the hamburger and the title.
+    ShortcutsFragment가 툴바의 동작 슬롯에 넣는 타일/리스트 전환 칩임.
+    그래서 햄버거, 제목과 한 줄을 같이 씀
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    android:layout_gravity="end|center_vertical"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingRight="12dp">
+
+    <TextView
+        android:id="@+id/BTViewTile"
+        style="@style/NeonChip"
+        android:layout_marginRight="6dp"
+        android:text="@string/neon_view_tile" />
+
+    <TextView
+        android:id="@+id/BTViewList"
+        style="@style/NeonChip"
+        android:text="@string/neon_view_list" />
+</LinearLayout>

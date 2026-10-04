@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Rounded box behind the two quick toggles in the shortcut detail sheet.
+    Same corner radius and stroke colour as NeonButtonGhost, so it reads as
+    part of the Edit/Remove row above it. The centre divider is a separate
+    View (see neon_shortcut_detail_dialog.xml) so it can stop short of the
+    top and bottom edges.
+    숏컷 상세창의 빠른 토글 2개 뒤에 까는 둥근 상자임.
+    NeonButtonGhost와 모서리 반경/테두리 색을 맞춰서 위의 Edit/Remove 줄과
+    한 세트로 보이게 함. 가운데 구분선은 위아래 끝에 닿지 않게 하려고 별도
+    View로 뺌(neon_shortcut_detail_dialog.xml 참고)
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners android:radius="12dp" />
+    <solid android:color="@android:color/transparent" />
+    <stroke android:width="1dp" android:color="?attr/neonGlowMid" />
+</shape>

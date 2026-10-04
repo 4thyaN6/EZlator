@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Generic spinner dialog (PreloaderDialog) - shown for indeterminate work
+    like "Installing content...", drag extraction, etc. Same old white
+    9-patch + hardcoded blue text as download_progress_dialog.xml; fixed the
+    same way. Id/widget type unchanged (TextView) so PreloaderDialog.java
+    binds without a Java change.
+    범용 스피너 다이얼로그(PreloaderDialog)임. "설치 중...", 압축 해제 등
+    길이를 모르는 작업에 씀. download_progress_dialog.xml과 같은 옛 순백
+    9-patch + 고정 파랑 글자였고 같은 방식으로 고침. id/위젯 종류는 그대로라
+    (TextView) PreloaderDialog.java가 수정 없이 그대로 붙음
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:clickable="false"
+    android:focusable="false">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingTop="22dp"
+        android:paddingBottom="22dp"
+        android:paddingLeft="28dp"
+        android:paddingRight="28dp"
+        android:gravity="center_vertical"
+        android:layout_gravity="center"
+        android:background="@drawable/neon_dialog_bg">
+
+        <!-- Indeterminate ring for length-unknown work, same drawable used
+             app-wide (NeonProgressRing's underlying asset).
+             길이를 모르는 작업용 고리임. 앱 전체가 쓰는 것과 같은
+             드로어블임(NeonProgressRing의 실제 에셋) -->
+        <ProgressBar
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:indeterminate="true"
+            android:layout_marginRight="16dp"
+            android:indeterminateDrawable="@drawable/neon_progress_indeterminate"
+            android:indeterminateDuration="900" />
+
+        <TextView
+            android:id="@+id/TextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:textColor="?attr/neonText" />
+    </LinearLayout>
+</FrameLayout>

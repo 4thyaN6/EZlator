@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Combo box background. Replaces combo_box_bg.xml, which was hardcoded to
+    #FFFFFF with a #DDDDDD border - 37 bright white boxes on a black neon
+    screen were the main reason the container screen looked broken.
+    콤보박스 배경임. #FFFFFF 배경에 #DDDDDD 테두리가 박혀 있던 combo_box_bg.xml을
+    대체함. 검은 네온 화면 위의 하얀 상자 37개가 컨테이너 화면이 깨져 보인
+    가장 큰 원인이었음
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:state_pressed="true">
+        <layer-list>
+            <item>
+                <shape android:shape="rectangle">
+                    <corners android:radius="12dp" />
+                    <solid android:color="?attr/neonSurfaceAlt" />
+                    <stroke android:width="1dp" android:color="?attr/neonGlow" />
+                </shape>
+            </item>
+            <item android:gravity="right|center_vertical" android:right="12dp"
+                android:width="18dp" android:height="18dp"
+                android:drawable="@drawable/neon_ic_chevron_down" />
+        </layer-list>
+    </item>
+
+    <item android:state_focused="true">
+        <layer-list>
+            <item>
+                <shape android:shape="rectangle">
+                    <corners android:radius="12dp" />
+                    <solid android:color="?attr/neonSurfaceAlt" />
+                    <stroke android:width="1dp" android:color="?attr/neonGlowMid" />
+                </shape>
+            </item>
+            <item android:gravity="right|center_vertical" android:right="12dp"
+                android:width="18dp" android:height="18dp"
+                android:drawable="@drawable/neon_ic_chevron_down" />
+        </layer-list>
+    </item>
+
+    <item android:state_enabled="false">
+        <layer-list>
+            <item>
+                <shape android:shape="rectangle">
+                    <corners android:radius="12dp" />
+                    <solid android:color="?attr/neonBg" />
+                    <stroke android:width="1dp" android:color="?attr/neonDivider" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+
+    <item>
+        <layer-list>
+            <item>
+                <shape android:shape="rectangle">
+                    <corners android:radius="12dp" />
+                    <solid android:color="?attr/neonSurface" />
+                    <stroke android:width="1dp" android:color="?attr/neonDivider" />
+                </shape>
+            </item>
+            <item android:gravity="right|center_vertical" android:right="12dp"
+                android:width="18dp" android:height="18dp"
+                android:drawable="@drawable/neon_ic_chevron_down" />
+        </layer-list>
+    </item>
+</selector>

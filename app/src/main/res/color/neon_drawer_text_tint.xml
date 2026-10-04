@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- app:itemTextColor state list -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:color="?attr/neonAccent" android:state_checked="true" />
+    <item android:color="?attr/neonText" />
+</selector>

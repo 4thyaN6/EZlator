@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    The name tile that sits beside the cover in list mode.
+    Filled with the window background colour as requested, with a neon hairline
+    on the left edge so it reads as attached to the cover rather than floating.
+    리스트 모드에서 커버 옆에 붙는 이름 타일임.
+    요청대로 창 배경색으로 채우고, 왼쪽 모서리에만 네온 실선을 둬서
+    떠 있는 게 아니라 커버에 붙어 있는 것처럼 보이게 함
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:topRightRadius="12dp" android:bottomRightRadius="12dp" />
+            <solid android:color="?attr/neonGlowMid" />
+        </shape>
+    </item>
+    <item android:left="2dp">
+        <shape android:shape="rectangle">
+            <corners android:topRightRadius="12dp" android:bottomRightRadius="12dp" />
+            <solid android:color="?attr/neonBg" />
+        </shape>
+    </item>
+</layer-list>

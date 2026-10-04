@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    List mode item. Cover on the left, name tile on the right, split 1:3 by
+    layout_weight. Swap the two weight values if the split should go the other way.
+    리스트 모드 항목임. 왼쪽 커버, 오른쪽 이름 타일이고 layout_weight로 1:3
+    분할함. 비율을 반대로 하려면 weight 값 두 개만 바꾸면 됨
+
+    Row height is fixed at 88dp. A fixed height is what lets centerCrop crop
+    predictably - with wrap_content the crop would change per image.
+    행 높이는 88dp로 고정함. 높이가 고정이어야 centerCrop이 일정하게 잘림 -
+    wrap_content면 이미지마다 잘리는 모양이 달라짐
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/LLShortcutRow"
+    style="@style/NeonShortcutCard"
+    android:layout_width="match_parent"
+    android:layout_height="88dp"
+    android:layout_marginLeft="10dp"
+    android:layout_marginRight="10dp"
+    android:layout_marginTop="5dp"
+    android:layout_marginBottom="5dp"
+    android:orientation="horizontal"
+    android:padding="4dp">
+
+    <!-- weight 1 of 4 total / 전체 4 중 1 -->
+    <FrameLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1">
+
+        <ImageView
+            android:id="@+id/IVCover"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:background="@drawable/neon_cover_placeholder"
+            android:contentDescription="@string/neon_cover" />
+
+        <ImageView
+            android:id="@+id/IVIcon"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_gravity="center"
+            android:scaleType="fitCenter"
+            android:visibility="gone" />
+    </FrameLayout>
+
+    <!-- weight 3 of 4 total. Filled with the window background colour so it -->
+    <!-- reads as a plate the name sits on, exactly as specified -->
+    <!-- 전체 4 중 3임. 창 배경색으로 채워서 이름이 얹힌 판처럼 보이게 함. -->
+    <!-- 요청하신 그대로임 -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="3"
+        android:background="@drawable/neon_label_tile_bg"
+        android:gravity="center_vertical"
+        android:orientation="vertical"
+        android:paddingLeft="14dp"
+        android:paddingRight="10dp">
+
+        <TextView
+            android:id="@+id/TVName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="?attr/neonText"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:ellipsize="end" />
+
+        <!-- Second line carries container + last played. Adapter may hide it -->
+        <!-- 둘째 줄에 컨테이너와 마지막 실행일을 실음. 어댑터가 숨길 수 있음 -->
+        <TextView
+            android:id="@+id/TVSubtitle"
+            style="@style/NeonCaption"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:maxLines="1"
+            android:ellipsize="end" />
+    </LinearLayout>
+</LinearLayout>

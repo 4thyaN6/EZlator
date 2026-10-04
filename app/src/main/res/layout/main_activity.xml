@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.drawerlayout.widget.DrawerLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/DrawerLayout"
+    android:fitsSystemWindows="true"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <!-- BUG FIX: colorPrimaryDark resolves to neon_l_bg in the light
+             theme - a pale, near-white colour - which combined with the
+             hardcoded white title/hamburger made the whole bar nearly
+             invisible (white text on near-white). Switched to the same
+             surface/text pair every card and drawer in the app already uses,
+             which is guaranteed readable in both themes.
+             버그 수정: colorPrimaryDark가 라이트 테마에서 neon_l_bg로
+             해석되는데, 이건 거의 흰색에 가까운 옅은 색임. 여기에 고정된
+             흰색 제목/햄버거가 겹치면서 바 전체가 거의 안 보였음(거의 흰
+             바탕에 흰 글자). 앱의 다른 카드·드로어가 전부 쓰는 것과 같은
+             surface/text 조합으로 바꿔서 두 테마 모두에서 확실히 읽히게 함 -->
+        <androidx.appcompat.widget.Toolbar
+            android:layout_width="match_parent"
+            android:layout_height="?actionBarSize"
+            android:id="@+id/Toolbar"
+            android:background="?attr/neonSurface"
+            app:layout_scrollFlags="enterAlways|scroll"
+            app:title="@string/app_name"
+            app:titleTextColor="?attr/neonText"
+            app:titleTextAppearance="@style/NeonToolbarTitleText">
+
+            <!-- Per-screen action slot on the right of the toolbar. Screens that
+                 need controls on the title line (Shortcuts' Tile/List toggle)
+                 inflate them here instead of adding a second header row.
+                 툴바 오른쪽의 화면별 동작 슬롯임. 제목 줄에 조작 버튼이 필요한
+                 화면(숏컷의 타일/리스트 전환)은 두 번째 헤더 줄을 만드는 대신
+                 여기에 넣음 -->
+            <FrameLayout
+                android:id="@+id/FLToolbarActions"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="end" />
+        </androidx.appcompat.widget.Toolbar>
+
+        <!-- Hairline so the bar still reads as separate from the page body
+             behind it, now that both are the same pale colour in light mode.
+             바가 그 뒤 페이지 배경과 이제 같은 옅은 색이라, 구분되어 보이도록
+             가는 실선을 둠 -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?attr/neonDivider" />
+
+        <FrameLayout
+            android:id="@+id/FLFragmentContainer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
+    </LinearLayout>
+
+    <!-- Drawer surface, checked-row background and icon/text colour all now
+         come from the theme (background + the two colour state lists +
+         neon_drawer_item_bg). This is the panel shown in the screenshot -
+         it had never been touched, which is why it still looked stock.
+         드로어 배경, 선택 행 배경, 아이콘/글자 색을 전부 테마에서 가져옴
+         (background + 색상 상태 목록 2개 + neon_drawer_item_bg). 스크린샷에
+         나온 패널이 바로 이것임 - 여태 손대지 않아서 계속 기본 모습이었음 -->
+    <com.google.android.material.navigation.NavigationView
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:id="@+id/NavigationView"
+        android:fitsSystemWindows="true"
+        android:background="?attr/neonBg"
+        app:headerLayout="@layout/main_menu_header"
+        app:itemBackground="@drawable/neon_drawer_item_bg"
+        app:itemIconTint="@color/neon_drawer_icon_tint"
+        app:itemTextColor="@color/neon_drawer_text_tint"
+        app:itemIconPadding="20dp"
+        app:itemHorizontalPadding="16dp"
+        app:menu="@menu/main_menu"/>
+</androidx.drawerlayout.widget.DrawerLayout>
