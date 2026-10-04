@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Executable/folder picker. Same neon pattern as the rest of the app.
+    Ids unchanged (TVPickerTitle / storageRootButton / upButton / recyclerView /
+    confirmButton) so CustomFilePickerActivity binds without a Java change to
+    the click wiring - only the theme/background overrides in onCreate() go.
+    실행 파일/폴더 선택 화면임. 앱의 다른 부분과 같은 네온 패턴임. id는 그대로라
+    (TVPickerTitle / storageRootButton / upButton / recyclerView / confirmButton)
+    CustomFilePickerActivity의 클릭 연결은 안 건드려도 됨 - onCreate()의
+    테마/배경 강제 오버라이드 부분만 없어짐
+-->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="?attr/neonBg"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/TVPickerTitle"
+        style="@style/NeonTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="18sp"
+        android:paddingBottom="12dp"
+        android:text="@string/select_directory" />
+
+    <Button
+        android:id="@+id/storageRootButton"
+        style="@style/NeonButtonGhost"
+        android:layout_width="match_parent"
+        android:layout_height="46dp"
+        android:layout_marginBottom="8dp"
+        android:text="@string/select_storage" />
+
+    <!-- Optional: hands over to the system document picker. GONE unless the
+         caller passes "externalPickerLabel" (image picking for shortcuts)
+         선택 사항: 시스템 문서 선택기로 넘김. 호출한 쪽이 "externalPickerLabel"을
+         넘길 때만 보임(숏컷 이미지 고르기) -->
+    <Button
+        android:id="@+id/externalPickerButton"
+        style="@style/NeonButtonGhost"
+        android:layout_width="match_parent"
+        android:layout_height="46dp"
+        android:layout_marginBottom="8dp"
+        android:visibility="gone" />
+
+    <Button
+        android:id="@+id/upButton"
+        style="@style/NeonButtonGhost"
+        android:layout_width="match_parent"
+        android:layout_height="46dp"
+        android:layout_marginBottom="8dp"
+        android:text="@string/up_directory"
+        android:enabled="true" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="8dp"
+        android:clipToPadding="false"
+        android:scrollbars="none" />
+
+    <Button
+        android:id="@+id/confirmButton"
+        style="@style/NeonButtonPrimary"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:text="@string/confirm_selection"
+        android:enabled="false" />
+
+</LinearLayout>

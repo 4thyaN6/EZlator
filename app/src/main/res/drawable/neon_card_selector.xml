@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    State wrapper for shortcut cards. Use this as the item root background.
+    숏컷 카드용 상태 묶음임. 항목 최상위 배경으로 쓰면 됨
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true" android:drawable="@drawable/neon_card_bg_active" />
+    <item android:state_selected="true" android:drawable="@drawable/neon_card_bg_active" />
+    <item android:state_activated="true" android:drawable="@drawable/neon_card_bg_active" />
+    <item android:drawable="@drawable/neon_card_bg" />
+</selector>

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- VKD3D configuration dialog. Also lets the user pick the DXVK version -->
+<!-- that gets applied together with VKD3D (see extractDXWrapperFiles). -->
+<!-- VKD3D 설정 화면. VKD3D와 함께 적용될 DXVK 버전도 여기서 고를 수 있게 함 -->
+<!-- (실제 적용 로직은 extractDXWrapperFiles 참고) -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="260dp">
+
+    <!--
+        BUG FIX (version strings truncating, e.g. "3.0.2-ar··"): match_parent
+        alone doesn't widen a Dialog window - it only matches whatever width
+        the window already ended up at, which without this was just
+        ContentDialog's own 280dp minimum. minWidth here is what actually
+        forces the window wider, since it becomes this view's measured
+        natural width in the wrap_content chain above it. 320dp comfortably
+        fits the longest real version strings (e.g. "3.0.2-arm64ec-gplasync").
+        버그 수정(버전 이름이 "3.0.2-ar··"처럼 잘리던 것): match_parent
+        하나만으로는 Dialog 창 자체가 안 넓어짐 - 이미 정해진 창 폭에 맞출
+        뿐이고, 이게 없으면 ContentDialog 자체의 최소값 280dp에 그쳤음.
+        실제로 창을 넓히는 건 여기 minWidth임 - 위쪽 wrap_content 체인에서
+        이 뷰의 측정된 고유 폭이 그대로 됨. 320dp면 실제 가장 긴 버전
+        문자열(예: "3.0.2-arm64ec-gplasync")도 넉넉히 들어감
+    -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minWidth="320dp"
+        android:orientation="vertical">
+
+        <!-- DXVK version applied alongside VKD3D -->
+        <!-- VKD3D와 함께 적용할 DXVK 버전 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/DXVK_version" />
+
+        <Spinner
+            style="@style/NeonComboBox"
+            android:layout_width="match_parent"
+            android:id="@+id/SDxvkVersion"
+            android:spinnerMode="dialog" />
+
+        <!-- VKD3D-Proton version itself -->
+        <!-- VKD3D-Proton 자체 버전 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/VKD3D_version" />
+
+        <Spinner
+            style="@style/NeonComboBox"
+            android:layout_width="match_parent"
+            android:id="@+id/SVKD3D_Version"
+            android:spinnerMode="dialog" />
+
+        <!-- Direct3D 12 feature level exposed to the game -->
+        <!-- 게임에 노출할 Direct3D 12 기능 레벨(Feature Level) -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/vkd3d_feature_level" />
+
+        <Spinner
+            style="@style/NeonComboBox"
+            android:layout_width="match_parent"
+            android:id="@+id/SFeatureLevel"
+            android:spinnerMode="dialog" />
+
+    </LinearLayout>
+</ScrollView>

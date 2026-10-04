@@ -1,0 +1,607 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Settings screen, rebuilt on the neon system.
+
+    Hard constraint honoured throughout this file: every android:id that
+    SettingsFragment.java looks up still exists, with the same name and a
+    compatible widget type. Nothing in the Java has to change for this layout
+    to compile and run. The IDs were taken from the findViewById calls at
+    lines 154, 170, 207, 210, 220, 230, 234, 294, 300, 301, 321, 324, 328,
+    329, 376, 379, 385, 391, 394, 395, 420, 421, 427, 430, 433, 436, 441,
+    447, 453, 555, 561-600, 619, 620, 637 and 700-703.
+
+    이 파일 전체에서 지킨 제약: SettingsFragment.java가 찾는 android:id가
+    전부 같은 이름, 호환되는 위젯 종류로 남아 있음. 이 레이아웃을 넣는다고
+    Java를 고칠 필요가 없음. ID는 위에 적은 줄 번호의 findViewById 호출에서
+    그대로 뽑았음
+
+    Two structural changes from the old file:
+    1. The save FAB moved out of the scroll area into a pinned bottom bar,
+       because a floating button over a long list covers the last row -
+       exactly the interference problem reported.
+    2. Sections were regrouped by subject instead of by the order they were
+       historically added.
+    기존 파일에서 구조가 바뀐 곳 두 군데:
+    1. 저장 FAB를 스크롤 영역 밖 하단 고정 바로 옮김. 긴 목록 위에 떠 있는
+       버튼은 마지막 행을 가리는데, 말씀하신 간섭 문제가 정확히 이것임
+    2. 구역을 추가된 순서가 아니라 주제별로 다시 묶음
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="?attr/neonBg">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingLeft="14dp"
+            android:paddingRight="14dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="18dp">
+
+            <!-- ================= THEME ================= -->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <LinearLayout style="@style/NeonFieldSet">
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/CBDarkMode"
+                        style="@style/NeonSwitch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Enable Dark Mode" />
+
+                    <!-- Beginner mode: shows simplified shortcuts such as the layer
+                         button in the shortcut detail sheet. Saved on toggle
+                         초보자 모드: 숏컷 상세창의 레이어 버튼 같은 간편 기능을
+                         보여 줌. 켜고 끄는 즉시 저장됨 -->
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/CBEzMode"
+                        style="@style/NeonSwitch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/ez_mode_switch" />
+
+                    <TextView
+                        style="@style/NeonCaption"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/ez_mode_hint" />
+
+                    <!-- Detail sheet starts folded / 상세창 접은 채 시작 -->
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/CBDetailFolded"
+                        style="@style/NeonSwitch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:text="@string/detail_folded_setting" />
+
+                    <!-- Steam background download: pause while a game runs
+                         스팀 백그라운드 다운로드: 게임 중 일시정지 -->
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/CBSteamDlPauseGame"
+                        style="@style/NeonSwitch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:text="@string/steam_dl_pause_during_game" />
+
+                    <TextView
+                        style="@style/NeonCaption"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/steam_dl_pause_during_game_hint" />
+
+                    <!-- Game language also in LC_ALL / LC_ALL에도 게임 언어 적용 -->
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/CBWineRealLocale"
+                        style="@style/NeonSwitch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:text="@string/wine_real_locale" />
+
+                    <TextView
+                        style="@style/NeonCaption"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/wine_real_locale_hint" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/TVTheme"
+                    style="@style/NeonSectionLabel"
+                    android:text="Theme" />
+            </FrameLayout>
+
+            <!-- ================= FRAME RATE ================= -->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <LinearLayout style="@style/NeonFieldSet">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            style="@style/NeonBody"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/frame_rate_limit" />
+
+                        <!-- maxLength=3 keeps the value inside a sane int range -->
+                        <!-- maxLength=3으로 값이 비정상적으로 커지는 것을 막음 -->
+                        <EditText
+                            android:id="@+id/ETFrameRateLimit"
+                            style="@style/NeonEditText"
+                            android:layout_width="84dp"
+                            android:layout_height="wrap_content"
+                            android:inputType="number"
+                            android:maxLength="3"
+                            android:gravity="center"
+                            android:text="120" />
+                    </LinearLayout>
+
+                    <View style="@style/NeonSeparator" />
+
+                    <!-- Checked = no cap is applied at all -->
+                    <!-- 체크하면 상한 자체를 걸지 않음 -->
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/CBGamingDeviceUnlimitedFPS"
+                        style="@style/NeonSwitch"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/gaming_device_unlimited_fps" />
+                </LinearLayout>
+
+                <TextView
+                    style="@style/NeonSectionLabel"
+                    android:text="@string/frame_rate_limit" />
+            </FrameLayout>
+
+            <!-- ================= XSERVER ================= -->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <LinearLayout style="@style/NeonFieldSet">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            style="@style/NeonBody"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/cursor_speed" />
+
+                        <TextView
+                            android:id="@+id/TVCursorSpeed"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="?attr/neonAccent"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <SeekBar
+                        android:id="@+id/SBCursorSpeed"
+                        style="@style/NeonSeekBar"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:min="10"
+                        android:max="200" />
+
+                    <View style="@style/NeonSeparator" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/CBUseDRI3"
+                        style="@style/NeonSwitch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/use_dri3_extension" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/CBXTouchscreenToggle"
+                        style="@style/NeonSwitch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Enable Touchscreen Mode Globally" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/TVXServer"
+                    style="@style/NeonSectionLabel"
+                    android:text="@string/xserver" />
+            </FrameLayout>
+
+            <!-- ================= GAME CONTROLLER ================= -->
+            <!-- Kept here for now. Moving it to its own Controller screen -->
+            <!-- means moving the matching Java, so it is a separate step -->
+            <!-- 일단 여기 둠. 별도 컨트롤러 화면으로 빼려면 대응하는 Java도 -->
+            <!-- 같이 옮겨야 하므로 별도 단계로 잡음 -->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <LinearLayout style="@style/NeonFieldSet">
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/CBXinputToggle"
+                        style="@style/NeonSwitch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Disable Controller Input" />
+
+                    <Button
+                        android:id="@+id/BTConfigureAnalogSticks"
+                        style="@style/NeonButtonGhost"
+                        android:layout_width="match_parent"
+                        android:layout_height="46dp"
+                        android:layout_marginTop="10dp"
+                        android:text="Override Joystick Behavior" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/TVGameControllerLabel"
+                    style="@style/NeonSectionLabel"
+                    android:text="@string/game_controller" />
+            </FrameLayout>
+
+            <!-- ================= SHORTCUTS ================= -->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <LinearLayout style="@style/NeonFieldSet">
+
+                    <TextView
+                        style="@style/NeonBody"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Frontend Export Path" />
+
+                    <TextView
+                        android:id="@+id/TVFrontendExportPath"
+                        style="@style/NeonCaption"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Default Path: Download/.EZlator/Frontend" />
+
+                    <Button
+                        android:id="@+id/BTChooseFrontendExportPath"
+                        style="@style/NeonButtonGhost"
+                        android:layout_width="match_parent"
+                        android:layout_height="46dp"
+                        android:layout_marginTop="10dp"
+                        android:text="Choose Path" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/TVShortcutSettings"
+                    style="@style/NeonSectionLabel"
+                    android:text="Shortcut Settings" />
+            </FrameLayout>
+
+            <!-- ================= SOUND ================= -->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <LinearLayout style="@style/NeonFieldSet">
+
+                    <TextView
+                        style="@style/NeonBody"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/midi_sound_font" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <Spinner
+                            android:id="@+id/SMIDISoundFont"
+                            style="@style/NeonComboBox"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1" />
+
+                        <ImageButton
+                            android:id="@+id/BTInstallSF"
+                            style="@style/NeonIconMenuButton"
+                            android:src="@drawable/icon_add" />
+
+                        <ImageButton
+                            android:id="@+id/BTRemoveSF"
+                            style="@style/NeonIconMenuButton"
+                            android:layout_marginRight="0dp"
+                            android:src="@drawable/icon_remove" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/TVSound"
+                    style="@style/NeonSectionLabel"
+                    android:text="@string/sound" />
+            </FrameLayout>
+
+            <!-- ================= BOX64 ================= -->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <LinearLayout style="@style/NeonFieldSet">
+
+                    <TextView
+                        style="@style/NeonBody"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/box64_preset" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <Spinner
+                            android:id="@+id/SBox64Preset"
+                            style="@style/NeonComboBox"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:spinnerMode="dialog" />
+
+                        <ImageButton
+                            android:id="@+id/BTAddBox64Preset"
+                            style="@style/NeonIconMenuButton"
+                            android:src="@drawable/icon_add" />
+
+                        <ImageButton
+                            android:id="@+id/BTEditBox64Preset"
+                            style="@style/NeonIconMenuButton"
+                            android:src="@drawable/icon_edit" />
+
+                        <ImageButton
+                            android:id="@+id/BTDuplicateBox64Preset"
+                            style="@style/NeonIconMenuButton"
+                            android:src="@drawable/icon_duplicate" />
+
+                        <ImageButton
+                            android:id="@+id/BTRemoveBox64Preset"
+                            style="@style/NeonIconMenuButton"
+                            android:layout_marginRight="0dp"
+                            android:src="@drawable/icon_remove" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/TVBox86Box64"
+                    style="@style/NeonSectionLabel"
+                    android:text="@string/box64_section_settings" />
+            </FrameLayout>
+
+            <!-- ================= STORAGE / INTEGRATION ================= -->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <LinearLayout style="@style/NeonFieldSet">
+
+                    <!-- USB storage access stays a manual opt-in. It mirrors the -->
+                    <!-- real permission state, never the other way round -->
+                    <!-- USB 저장장치 접근은 수동 선택 유지임. 실제 권한 상태를 -->
+                    <!-- 따라가며 그 반대가 되면 안 됨 -->
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/CBUsbStorageAccess"
+                        style="@style/NeonSwitch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/all_files_access_switch" />
+
+                    <View style="@style/NeonSeparator" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <androidx.appcompat.widget.SwitchCompat
+                            android:id="@+id/CBEnableFileProvider"
+                            style="@style/NeonSwitch"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/enable_file_provider" />
+
+                        <ImageView
+                            android:id="@+id/BTHelpFileProvider"
+                            style="@style/HelpButton" />
+                    </LinearLayout>
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/CBOpenWithAndroidBrowser"
+                        style="@style/NeonSwitch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/open_with_android_browser" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/CBShareAndroidClipboard"
+                        style="@style/NeonSwitch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/share_android_clipboard" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/TVExperimental"
+                    style="@style/NeonSectionLabel"
+                    android:text="@string/experimental" />
+            </FrameLayout>
+
+            <!-- ================= LOGS ================= -->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <LinearLayout style="@style/NeonFieldSet">
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/CBEnableWineDebug"
+                        style="@style/NeonSwitch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/enable_wine_debug" />
+
+                    <HorizontalScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:scrollbars="none">
+
+                        <LinearLayout
+                            android:id="@+id/LLWineDebugChannels"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:padding="4dp" />
+                    </HorizontalScrollView>
+
+                    <View style="@style/NeonSeparator" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/CBEnableBox86_64Logs"
+                        style="@style/NeonSwitch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/enable_box86_64_logs" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/CBEnablePebLogs"
+                        style="@style/NeonSwitch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/enable_peb_logs" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/TVLogs"
+                    style="@style/NeonSectionLabel"
+                    android:text="@string/logs" />
+            </FrameLayout>
+
+            <!-- ================= IMAGEFS / BACKUP ================= -->
+            <!-- These three are destructive or long-running, so they are last -->
+            <!-- and full width rather than mixed in with toggles above -->
+            <!-- 이 셋은 파괴적이거나 오래 걸리는 동작이라 맨 아래에 두고 -->
+            <!-- 위쪽 토글들과 섞지 않고 전체 너비로 배치함 -->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <LinearLayout style="@style/NeonFieldSet">
+
+                    <Button
+                        android:id="@+id/BTReInstallImagefs"
+                        style="@style/NeonButtonGhost"
+                        android:layout_width="match_parent"
+                        android:layout_height="46dp"
+                        android:text="@string/reinstall_imagefs" />
+
+                    <Button
+                        android:id="@+id/BTBackupData"
+                        style="@style/NeonButtonGhost"
+                        android:layout_width="match_parent"
+                        android:layout_height="46dp"
+                        android:layout_marginTop="8dp"
+                        android:text="Backup Data" />
+
+                    <Button
+                        android:id="@+id/BTRestoreData"
+                        style="@style/NeonButtonGhost"
+                        android:layout_width="match_parent"
+                        android:layout_height="46dp"
+                        android:layout_marginTop="8dp"
+                        android:text="Restore Data" />
+
+                    <!-- Shared save folder backup / restore (SharedSaves) -->
+                    <!-- 공용 세이브 폴더 백업 / 복원(SharedSaves) -->
+                    <Button
+                        android:id="@+id/BTSaveBackup"
+                        style="@style/NeonButtonGhost"
+                        android:layout_width="match_parent"
+                        android:layout_height="46dp"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/save_backup" />
+
+                    <Button
+                        android:id="@+id/BTSaveRestore"
+                        style="@style/NeonButtonGhost"
+                        android:layout_width="match_parent"
+                        android:layout_height="46dp"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/save_restore" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/TVImageFs"
+                    style="@style/NeonSectionLabel"
+                    android:text="@string/imagefs" />
+            </FrameLayout>
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- ================= PINNED SAVE BAR ================= -->
+    <!-- Outside the ScrollView, so it can never overlap content and never -->
+    <!-- scrolls away. BTConfirm keeps its id, so the click listener at -->
+    <!-- SettingsFragment line 453 binds without any change -->
+    <!-- ScrollView 바깥이라 내용과 겹칠 수도, 스크롤로 사라질 수도 없음. -->
+    <!-- BTConfirm이 id를 그대로 유지하므로 SettingsFragment 453번째 줄의 -->
+    <!-- 클릭 리스너가 수정 없이 그대로 붙음 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="?attr/neonSurface">
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?attr/neonGlowMid" />
+
+        <Button
+            android:id="@+id/BTConfirm"
+            style="@style/NeonButtonPrimary"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_margin="12dp"
+            android:text="@string/neon_save" />
+    </LinearLayout>
+</LinearLayout>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Soft veil behind the detail sheet's text block (light theme). Strong at the
+    top where the title sits, fading to nothing under the stats row, so the
+    artwork below stays untouched. Tune the two alpha values (#66 / #40).
+    상세창 글자 묶음 뒤의 옅은 막임(다크 테마). 제목이 있는 위쪽이 진하고 정보
+    줄 아래에서 사라져서 그 아래 아트워크는 그대로임. 알파 두 값(#66 / #40)으로
+    세기를 조절함
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <gradient
+        android:angle="270"
+        android:startColor="#66FFFFFF"
+        android:centerColor="#40FFFFFF"
+        android:endColor="#00FFFFFF"
+        android:type="linear" />
+</shape>

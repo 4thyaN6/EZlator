@@ -1,0 +1,1057 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Restructured to match container_detail_fragment.xml's own tab design and
+    pattern: a TabLayout pinned at the top (WINE / WIN COMPONENTS / RUNTIME
+    ENVIRONMENT / ADVANCED) with one scrollable panel per tab, instead of a
+    block of static fields sitting above three tabs. Same neon_tab_bg /
+    tabTextColor/tabSelectedTextColor/tabIndicatorColor styling as the
+    container screen, so the two settings surfaces finally look like one
+    design instead of two.
+
+    What moved:
+    - The old static top section (Name through Secondary Executable) is now
+      its own first tab, LLTabWine - nothing in it changed, only its wrapper.
+    - Two separate "System" field-sets used to sit inside ADVANCED
+      (Startup Selection/Workarounds up top, Exec Arguments/Fullscreen further
+      down, with Input Controls sandwiched between them) - merged into one
+      System field-set, with Input Controls directly beneath it, and both
+      moved into the renamed Runtime Environment tab alongside the existing
+      environment-variables list. ADVANCED keeps Box86/64, FEXCore, vkBasalt
+      and processor affinity - the actual deep-tuning knobs.
+    - LLTabEnvVars is renamed LLTabRuntime; ShortcutSettingsDialog.java's
+      setupTabLayout() call needs the matching id/order update (see that
+      file's comment).
+
+    container_detail_fragment.xml 자체의 탭 디자인·구조를 그대로 따름: 정적
+    필드 묶음이 탭 3개 위에 얹혀 있던 방식 대신, 상단에 고정된
+    TabLayout(WINE / WIN COMPONENTS / RUNTIME ENVIRONMENT / ADVANCED)과 탭마다
+    스크롤되는 패널 하나씩으로 바뀜. neon_tab_bg /
+    tabTextColor/tabSelectedTextColor/tabIndicatorColor도 컨테이너 화면과
+    똑같이 써서, 두 설정 화면이 이제 하나의 디자인처럼 보임.
+
+    옮긴 내용:
+    - 예전 상단 고정 구역(이름~보조 실행 파일)이 이제 첫 번째 탭
+      LLTabWine이 됨 - 내용은 그대로고 감싸는 틀만 바뀜.
+    - ADVANCED 안에 따로 떨어져 있던 SYSTEM 필드셋 두 개(위쪽 Startup
+      Selection/Workarounds, 아래쪽 Exec Arguments/Fullscreen, 그 사이에 Input
+      Controls가 끼어 있었음)를 SYSTEM 하나로 합치고, Input Controls를 바로
+      아래에 두어서, 이름을 바꾼 Runtime Environment 탭으로 기존 환경변수
+      목록과 함께 옮김. ADVANCED엔 Box86/64, FEXCore, vkBasalt, 프로세서
+      선호도(실제 깊은 튜닝 항목)만 남음.
+    - LLTabEnvVars를 LLTabRuntime으로 이름 바꿈; ShortcutSettingsDialog.java의
+      setupTabLayout() 호출도 id/순서를 맞춰 고쳐야 함(그 파일 주석 참고)
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/LLContent"
+    android:layout_width="340dp"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/TabLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/neon_tab_bg"
+        app:tabGravity="center"
+        app:tabMode="auto"
+        app:tabTextColor="?attr/neonTextDim"
+        app:tabSelectedTextColor="?attr/neonAccent"
+        app:tabIndicatorColor="?attr/neonAccent"
+        app:tabIndicatorHeight="3dp"
+        app:tabIndicatorFullWidth="false"
+        app:tabRippleColor="?attr/neonGlowSoft">
+
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/tab_wine" />
+
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/win_components" />
+
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/tab_runtime_environment" />
+
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/advanced" />
+    </com.google.android.material.tabs.TabLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:id="@+id/LLTabWine"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="8dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/name" />
+
+                        <EditText
+                            style="@style/NeonEditText"
+                            android:id="@+id/ETName"
+                            android:inputType="textCapSentences" />
+
+                        <!-- Container this shortcut runs in. Changing it moves the
+                             .desktop file to the chosen container on Save.
+                             이 바로가기가 실행될 컨테이너임. 바꾸고 저장하면 .desktop
+                             파일을 고른 컨테이너로 옮김 -->
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:text="@string/container" />
+
+                        <Spinner
+                            style="@style/NeonComboBox"
+                            android:layout_width="match_parent"
+                            android:id="@+id/SShortcutContainer" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/screen_size" />
+
+                                <Spinner
+                                    style="@style/NeonComboBox"
+                                    android:layout_width="match_parent"
+                                    android:id="@+id/SScreenSize"
+                                    android:entries="@array/screen_size_entries"
+                                    android:spinnerMode="dialog" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:id="@+id/LLCustomScreenSize"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:visibility="gone">
+
+                                <LinearLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="vertical">
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="@string/width" />
+
+                                    <EditText
+                                        style="@style/NeonEditText"
+                                        android:layout_width="78dp"
+                                        android:id="@+id/ETScreenWidth"
+                                        android:inputType="number" />
+                                </LinearLayout>
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:textStyle="bold"
+                                    android:textSize="18dp"
+                                    android:layout_gravity="bottom"
+                                    android:layout_marginLeft="2dp"
+                                    android:layout_marginRight="2dp"
+                                    android:layout_marginBottom="4dp"
+                                    android:text="x" />
+
+                                <LinearLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="vertical">
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="@string/height" />
+
+                                    <EditText
+                                        style="@style/NeonEditText"
+                                        android:layout_width="78dp"
+                                        android:id="@+id/ETScreenHeight"
+                                        android:inputType="number" />
+                                </LinearLayout>
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/graphics_driver" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+
+                            <Spinner
+                                style="@style/NeonComboBox"
+                                android:layout_width="0dp"
+                                android:layout_weight="1"
+                                android:id="@+id/SGraphicsDriver"
+                                android:entries="@array/graphics_driver_entries" />
+
+                            <!-- ImageButton for configuring graphics driver version -->
+                            <ImageButton
+                                style="@style/NeonIconMenuButton"
+                                android:id="@+id/BTGraphicsDriverConfig"
+                                android:layout_width="48dp"
+                                android:layout_height="48dp"
+                                android:padding="8dp"
+                                android:src="@drawable/icon_settings"
+                                android:visibility="visible" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal" >
+
+                            <TextView
+                                android:id="@+id/TVWrapperVersionLabel"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Current Version:"
+                                android:textStyle="bold"
+                                android:paddingRight="8dp" />
+
+                            <TextView
+                                android:id="@+id/TVGraphicsDriverVersion"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="default_version"
+                                android:textColor="@android:color/holo_blue_dark" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/dxwrapper"
+                                android:paddingTop="8dp" />
+
+                            <ImageView
+                                android:id="@+id/BTHelpDXWrapper"
+                                android:layout_width="22dp"
+                                android:layout_height="22dp"
+                                android:layout_marginLeft="4dp"
+                                android:src="@drawable/icon_help"
+                                app:tint="#e0e0e0" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+
+                            <Spinner
+                                style="@style/NeonComboBox"
+                                android:layout_width="0dp"
+                                android:layout_weight="1"
+                                android:id="@+id/SDXWrapper"
+                                android:entries="@array/dxwrapper_entries"
+                                android:spinnerMode="dialog" />
+
+                            <ImageButton
+                                style="@style/NeonIconMenuButton"
+                                android:id="@+id/BTDXWrapperConfig"
+                                android:layout_width="48dp"
+                                android:layout_height="48dp"
+                                android:padding="8dp"
+                                android:src="@drawable/icon_settings"
+                                android:visibility="visible" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/ddraw_wrapper" >
+                        </TextView>
+
+                        <Spinner
+                            android:id="@+id/SDDrawrapper"
+                            style="@style/NeonComboBox"
+                            android:layout_width="match_parent"
+                            android:layout_weight="1"
+                            android:entries="@array/ddrawrapper_entries">
+                        </Spinner>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/audio_driver" />
+
+                        <Spinner
+                            style="@style/NeonComboBox"
+                            android:layout_width="match_parent"
+                            android:id="@+id/SAudioDriver"
+                            android:entries="@array/audio_driver_entries" />
+
+                                <!-- Hidden per an earlier decision to drop the manual DLL-emulator
+                             picker from the UI (Box86/Box64/FEXCore/Wine selection here).
+                             visibility="gone" rather than deleted - the spinners
+                             (SEmulator64/SEmulator) still exist and still write whatever
+                             their default selection is, so check that default is sane
+                             before this is ever deleted outright.
+                             UI에서 수동 DLL 에뮬레이터 선택기를 빼기로 한 이전 결정에 따라
+                             숨김(Box86/Box64/FEXCore/Wine 선택). 지우지 않고 visibility="gone"만
+                             줌 - 스피너(SEmulator64/SEmulator)는 여전히 존재하고 기본 선택값을
+                             그대로 기록하므로, 나중에 완전히 지우기 전에 그 기본값이 맞는지
+                             확인해야 함 -->
+                <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:visibility="gone"
+                            android:id="@+id/LLEmulator">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="64bit Emulator" />
+                            <Spinner
+                                style="@style/NeonComboBox"
+                                android:layout_width="match_parent"
+                                android:id="@+id/SEmulator64"
+                                android:entries="@array/emulator_entries"/>
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/dll_emulator" />
+                            <Spinner
+                                style="@style/NeonComboBox"
+                                android:layout_width="match_parent"
+                                android:id="@+id/SEmulator"
+                                android:entries="@array/emulator_entries"/>
+                        </LinearLayout>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/midi_sound_font" />
+
+                        <Spinner
+                            style="@style/NeonComboBox"
+                            android:layout_width="match_parent"
+                            android:id="@+id/SMIDISoundFont" />
+
+                        <!-- Checkbox for enabling/disabling secondary executable options -->
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/secondary_exec" />
+
+                        <androidx.appcompat.widget.SwitchCompat
+                            style="@style/NeonSwitch"
+                            android:id="@+id/CBUseSecondaryExec"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/use_secondary_executable" />
+
+
+                        <!-- Secondary Executable Options -->
+                        <LinearLayout
+                            android:id="@+id/LLSecondaryExecOptions"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:paddingTop="8dp"
+                            android:visibility="gone">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/secondary_exe_path_subtext" />
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:paddingTop="8dp">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/secondary_executable" />
+
+                                <EditText
+                                    android:id="@+id/ETSecondaryExec"
+                                    android:layout_width="0dp"
+                                    android:layout_weight="1"
+                                    android:layout_height="wrap_content"
+                                    android:hint="@string/enter_secondary_exec_path" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:paddingTop="8dp">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/exec_delay" />
+
+                                <EditText
+                                    android:id="@+id/ETExecDelay"
+                                    android:layout_width="0dp"
+                                    android:layout_weight="1"
+                                    android:layout_height="wrap_content"
+                                    android:inputType="number"
+                                    android:hint="@string/enter_delay_seconds" />
+                            </LinearLayout>
+                        </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/LLTabWinComponents"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="8dp"
+                android:visibility="gone">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp">
+
+                    <LinearLayout
+                        style="@style/NeonFieldSet"
+                        android:id="@+id/LLWinComponentsDirectX" />
+
+                    <TextView
+                        style="@style/NeonSectionLabel"
+                        android:background="?attr/neonSurface"
+                        android:text="@string/directx" />
+                </FrameLayout>
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp">
+
+                    <LinearLayout
+                        style="@style/NeonFieldSet"
+                        android:id="@+id/LLWinComponentsGeneral" />
+
+                    <TextView
+                        style="@style/NeonSectionLabel"
+                        android:background="?attr/neonSurface"
+                        android:text="@string/general" />
+                </FrameLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/LLTabRuntime"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="8dp"
+                android:visibility="gone">
+
+                <!-- Merged: this used to be two separate "System" field-sets
+                     in ADVANCED with Input Controls sandwiched between them.
+                     이건 ADVANCED에 Input Controls를 사이에 두고 떨어져
+                     있던 SYSTEM 필드셋 두 개를 합친 것임 -->
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp">
+
+                    <LinearLayout style="@style/NeonFieldSet">
+                                            <TextView
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:text="@string/startup_selection" />
+
+                                            <Spinner
+                                                style="@style/NeonComboBox"
+                                                android:layout_width="match_parent"
+                                                android:id="@+id/SStartupSelection"
+                                                android:entries="@array/startup_selection_entries" />
+
+                                            <TextView
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:text="@string/workarounds" />
+
+                                            <androidx.appcompat.widget.SwitchCompat
+                                                style="@style/NeonSwitch"
+                                                android:id="@+id/CBGStreamerWorkaroundToggle"
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:text="@string/enable_gstreamer_workaround" />
+
+                                            <TextView
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:text="@string/exec_arguments" />
+
+                                            <LinearLayout
+                                                android:layout_width="match_parent"
+                                                android:layout_height="wrap_content"
+                                                android:orientation="horizontal"
+                                                android:gravity="center_vertical">
+
+                                                <EditText
+                                                    style="@style/NeonEditText"
+                                                    android:layout_width="0dp"
+                                                    android:layout_weight="1"
+                                                    android:id="@+id/ETExecArgs" />
+
+                                                <ImageButton
+                                                    style="@style/NeonIconMenuButton"
+                                                    android:id="@+id/BTExtraArgsMenu"
+                                                    android:src="@drawable/icon_menu" />
+                                            </LinearLayout>
+
+                                            <!-- Steam AppID: when set (and signed in), the game starts
+                                                 through the SteamLite agent with the saved session
+                                                 Steam AppID: 입력돼 있고 로그인 상태면, 저장된 세션으로
+                                                 SteamLite 에이전트를 거쳐 게임을 실행함 -->
+                                            <TextView
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:layout_marginTop="6dp"
+                                                android:text="@string/steam_app_id" />
+
+                                            <EditText
+                                                style="@style/NeonEditText"
+                                                android:id="@+id/ETSteamAppId"
+                                                android:inputType="number"
+                                                android:hint="@string/steam_app_id_hint" />
+
+                                            <!-- Auto-find: steam_appid.txt, else store search by name
+                                                 자동 찾기: steam_appid.txt, 없으면 이름으로 상점 검색 -->
+                                            <Button
+                                                android:id="@+id/BTSteamAppIdFind"
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:text="@string/steam_app_id_find" />
+
+                                            <androidx.appcompat.widget.SwitchCompat
+                                                style="@style/NeonSwitch"
+                                                android:id="@+id/CBFullscreenStretched"
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:text="@string/fullscreen_stretched" />
+
+                                            <!-- Borderless window (default ON) / 테두리 없는 창(기본 켜짐) -->
+                                            <androidx.appcompat.widget.SwitchCompat
+                                                style="@style/NeonSwitch"
+                                                android:id="@+id/CBBorderless"
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:layout_marginTop="4dp"
+                                                android:text="@string/borderless_window" />
+
+                                            <!-- Caution shown up front so hidden title bars are not reported as a bug
+                                                 제목 표시줄이 안 보이는 걸 버그로 오해하지 않게 미리 보여주는 주의 문구 -->
+                                            <TextView
+                                                android:layout_width="match_parent"
+                                                android:layout_height="wrap_content"
+                                                android:layout_marginTop="2dp"
+                                                android:textSize="11sp"
+                                                android:textColor="?attr/neonTextDim"
+                                                android:text="@string/borderless_window_note" />
+
+                                            <androidx.appcompat.widget.SwitchCompat
+                                                style="@style/NeonSwitch"
+                                                android:id="@+id/CBForceFullscreen"
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:text="@string/force_fullscreen"
+                                                android:layout_marginTop="4dp" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/TVSystem"
+                        style="@style/NeonSectionLabel"
+                        android:background="?attr/neonSurface"
+                        android:text="@string/system" />
+                </FrameLayout>
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp">
+
+                    <LinearLayout style="@style/NeonFieldSet">
+                                            <TextView
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:text="@string/profile" />
+
+                                            <Spinner
+                                                style="@style/NeonComboBox"
+                                                android:id="@+id/SControlsProfile"
+                                                android:layout_width="match_parent"
+                                                android:spinnerMode="dialog" />
+
+                                            <androidx.appcompat.widget.SwitchCompat
+                                                style="@style/NeonSwitch"
+                                                android:id="@+id/CBDisabledXInput"
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:text="@string/disable_xinput_for_shortcut" />
+
+                        <!--                    <androidx.appcompat.widget.SwitchCompat-->
+                        <!--                        android:id="@+id/CBRelativeMouseMovement"-->
+                        <!--                        android:layout_width="wrap_content"-->
+                        <!--                        android:layout_height="wrap_content"-->
+                        <!--                        android:text="@string/relative_mouse_movement" />-->
+
+                                            <androidx.appcompat.widget.SwitchCompat
+                                                style="@style/NeonSwitch"
+                                                android:id="@+id/CBTouchscreenMode"
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:text="@string/simulate_touch_screen" />
+                    </LinearLayout>
+
+                    <TextView
+                        style="@style/NeonSectionLabel"
+                        android:background="?attr/neonSurface"
+                        android:text="@string/input_controls" />
+                </FrameLayout>
+
+                <!--            <FrameLayout-->
+                <!--                android:layout_width="match_parent"-->
+                <!--                android:layout_height="wrap_content"-->
+                <!--                android:layout_marginTop="8dp">-->
+
+                <!--                <LinearLayout style="@style/NeonFieldSet">-->
+
+                <!--                    <LinearLayout-->
+                <!--                        android:id="@+id/LLDinputMapperType"-->
+                <!--                        android:layout_width="match_parent"-->
+                <!--                        android:layout_height="wrap_content"-->
+                <!--                        android:orientation="vertical">-->
+
+                <!--                        <TextView-->
+                <!--                            android:layout_width="wrap_content"-->
+                <!--                            android:layout_height="wrap_content"-->
+                <!--                            android:text="@string/directinput_mapper_type" />-->
+
+                <!--                        <Spinner-->
+                <!--                            style="@style/NeonComboBox"-->
+                <!--                            android:id="@+id/SDInputType"-->
+                <!--                            android:layout_width="match_parent"-->
+                <!--                            android:entries="@array/dinput_mapper_type_entries" />-->
+                <!--                    </LinearLayout>-->
+
+                <!--                    <LinearLayout-->
+                <!--                        android:layout_width="match_parent"-->
+                <!--                        android:layout_height="wrap_content"-->
+                <!--                        android:orientation="horizontal"-->
+                <!--                        android:layout_marginTop="8dp">-->
+
+                <!--                        <androidx.appcompat.widget.SwitchCompat-->
+                <!--                            android:id="@+id/CBEnableXInput"-->
+                <!--                            android:layout_width="wrap_content"-->
+                <!--                            android:layout_height="wrap_content"-->
+                <!--                            android:layout_gravity="center"-->
+                <!--                            android:text="@string/enable_xinput_for_wine_game" />-->
+
+                <!--                        <ImageView-->
+                <!--                            android:id="@+id/BTXInputHelp"-->
+                <!--                            style="@style/HelpButton"-->
+                <!--                            android:layout_gravity="center" />-->
+                <!--                    </LinearLayout>-->
+
+                <!--                    <LinearLayout-->
+                <!--                        android:layout_width="match_parent"-->
+                <!--                        android:layout_height="wrap_content"-->
+                <!--                        android:orientation="horizontal"-->
+                <!--                        android:layout_marginTop="8dp">-->
+
+                <!--                        <androidx.appcompat.widget.SwitchCompat-->
+                <!--                            android:id="@+id/CBEnableDInput"-->
+                <!--                            android:layout_width="wrap_content"-->
+                <!--                            android:layout_height="wrap_content"-->
+                <!--                            android:text="@string/enable_dinput_for_wine_game" />-->
+
+                <!--                        <ImageView-->
+                <!--                            android:id="@+id/BTDInputHelp"-->
+                <!--                            style="@style/HelpButton"-->
+                <!--                            android:layout_gravity="center" />-->
+                <!--                    </LinearLayout>-->
+
+                <!--                    <TextView-->
+                <!--                        android:id="@+id/TVLegacyInputMessage"-->
+                <!--                        android:layout_width="wrap_content"-->
+                <!--                        android:layout_height="wrap_content"-->
+                <!--                        android:text="7.1.2 Legacy Input Mode Enabled in Settings"-->
+                <!--                        android:visibility="gone" />-->
+
+                <!--                </LinearLayout>-->
+
+                <!--                <TextView-->
+                <!--                    style="@style/NeonSectionLabel"-->
+                <!--                    android:background="?attr/neonSurface"-->
+                <!--                    android:text="@string/game_controller" />-->
+                <!--            </FrameLayout>-->
+
+                <!-- Environment variables: moved to the very bottom of this
+                     tab and collapsed by default. Only someone who already
+                     knows exactly what they're doing sets these, so nobody
+                     else should have to scroll past an empty list + Add
+                     button to reach Startup Selection / Input Controls above.
+                     Tapping the header toggles LLEnvVarsBody and flips
+                     IVEnvVarsChevron - see ShortcutSettingsDialog.java.
+                     환경변수: 이 탭의 맨 아래로 옮기고 기본으로 접어 둠. 이미
+                     뭘 하는지 정확히 아는 사람만 이걸 건드리므로, 그 외
+                     사람들은 빈 목록 + Add 버튼을 지나쳐서 위쪽 Startup
+                     Selection / Input Controls까지 스크롤할 필요가 없어야
+                     함. 헤더를 누르면 LLEnvVarsBody가 접히고 펴지며
+                     IVEnvVarsChevron이 뒤집힘 - ShortcutSettingsDialog.java
+                     참고 -->
+                <View style="@style/NeonSeparator" android:layout_marginTop="16dp" android:layout_marginBottom="4dp" />
+
+                <LinearLayout
+                    android:id="@+id/LLEnvVarsHeader"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackground"
+                    android:paddingTop="10dp"
+                    android:paddingBottom="10dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:textColor="?attr/neonAccent"
+                        android:textStyle="bold"
+                        android:textSize="13sp"
+                        android:text="@string/environment_variables" />
+
+                    <ImageView
+                        android:id="@+id/IVEnvVarsChevron"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        app:tint="?attr/neonAccent"
+                        android:src="@drawable/neon_ic_chevron_down" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/LLEnvVarsBody"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <com.winlator.cmod.widget.EnvVarsView
+                        android:id="@+id/EnvVarsView"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingLeft="16dp"
+                        android:paddingRight="16dp"/>
+
+                    <View style="@style/NeonSeparator" />
+
+                    <Button
+                        style="@style/NeonButtonGhost"
+                        android:id="@+id/BTAddEnvVar"
+                        android:layout_width="160dp"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/add" />
+                </LinearLayout>
+
+                <!-- Per-shortcut language locale, below env vars and input
+                     controls / 환경변수와 입력 컨트롤 아래의 바로가기별
+                     언어 로캘 -->
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp">
+
+                    <LinearLayout style="@style/NeonFieldSet">
+
+                        <Spinner
+                            android:id="@+id/SShortcutLocale"
+                            style="@style/NeonComboBox"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:textSize="12sp"
+                            android:textColor="?attr/neonTextDim"
+                            android:text="@string/shortcut_locale_hint" />
+                    </LinearLayout>
+
+                    <TextView
+                        style="@style/NeonSectionLabel"
+                        android:background="?attr/neonSurface"
+                        android:text="@string/shortcut_locale" />
+                </FrameLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/LLTabAdvanced"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="8dp"
+                android:visibility="gone">
+
+                            <FrameLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:id="@+id/box86box64Frame"
+                                android:layout_marginTop="8dp">
+
+                                <LinearLayout style="@style/NeonFieldSet">
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="@string/box64_version" />
+
+                                    <Spinner
+                                        style="@style/NeonComboBox"
+                                        android:id="@+id/SBox64Version"
+                                        android:layout_width="match_parent"
+                                        android:entries="@array/box64_version_entries"
+                                        android:spinnerMode="dialog" />
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="@string/box64_preset" />
+
+                                    <Spinner
+                                        style="@style/NeonComboBox"
+                                        android:id="@+id/SBox64Preset"
+                                        android:layout_width="match_parent" />
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="@string/box86_64_rc_files" />
+
+                                    <Spinner
+                                        style="@style/NeonComboBox"
+                                        android:id="@+id/SRCFile"
+                                        android:layout_width="match_parent" />
+                                </LinearLayout>
+
+                                <TextView
+                                    style="@style/NeonSectionLabel"
+                                    android:background="?attr/neonSurface"
+                                    android:text="@string/box64_section_shortcut" />
+                            </FrameLayout>
+            
+                            <FrameLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:id="@+id/fexcoreFrame"
+                                android:layout_marginTop="8dp">
+                
+                                <LinearLayout style="@style/NeonFieldSet">
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="@string/fexcore_version" />
+
+                                    <Spinner
+                                        style="@style/NeonComboBox"
+                                        android:id="@+id/SFEXCoreVersion"
+                                        android:layout_width="match_parent" />
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="@string/fexcore_tso_preset" />
+                        
+                                    <Spinner
+                                        style="@style/NeonComboBox"
+                                        android:id="@+id/SFEXCoreTSOPreset"
+                                        android:layout_width="match_parent" />
+                        
+                                   <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="@string/fexcore_x87reduced_precision" />
+                        
+                                    <Spinner
+                                        style="@style/NeonComboBox"
+                                        android:id="@+id/SFEXCoreX87ReducedPrecision"
+                                        android:layout_width="match_parent"/>
+                       
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="@string/fexcore_multiblock" />
+                        
+                                   <Spinner
+                                        style="@style/NeonComboBox"
+                                        android:id="@+id/SFEXCoreMultiblock"
+                                        android:layout_width="match_parent"/>
+                                </LinearLayout>
+                    
+                                <TextView
+                                    style="@style/NeonSectionLabel"
+                                    android:background="?attr/neonSurface"
+                                    android:text="@string/fexcore_config" />
+                    
+                            </FrameLayout>
+
+                            <FrameLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp" >
+
+                                <LinearLayout style="@style/NeonFieldSet" >
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="@string/vkbasalt_sharpness_effects" />
+
+                                    <LinearLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="vertical" >
+
+                                        <Spinner
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:id="@+id/SSharpnessEffect"
+                                            style="@style/NeonComboBox"
+                                            android:entries="@array/vkbasalt_sharpness_entries"
+                                            android:spinnerMode="dialog" />
+
+                                        <LinearLayout
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:orientation="horizontal" >
+
+                                            <TextView
+                                                android:layout_width="0dp"
+                                                android:layout_height="wrap_content"
+                                                android:layout_weight="1"
+                                                android:text="@string/vkbasalt_sharpness_level" />
+
+                                            <TextView
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:id="@+id/TVSharpnessLevel" />
+                                        </LinearLayout>
+
+                                        <SeekBar
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:min="0"
+                                            android:id="@+id/SBSharpnessLevel"
+                                            android:max="100" />
+
+                                        <LinearLayout
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:orientation="horizontal" >
+
+                                            <TextView
+                                                android:layout_width="0dp"
+                                                android:layout_height="wrap_content"
+                                                android:layout_weight="1"
+                                                android:text="@string/vkbasalt_sharpness_denoise" />
+
+                                            <TextView
+                                                android:layout_width="wrap_content"
+                                                android:layout_gravity="end"
+                                                android:gravity="end"
+                                                android:layout_height="wrap_content"
+                                                android:id="@+id/TVSharpnessDenoise" />
+
+                                        </LinearLayout>
+
+                                        <SeekBar
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:min="0"
+                                            android:id="@+id/SBSharpnessDenoise"
+                                            android:max="100" />
+
+                                    </LinearLayout>
+
+                                </LinearLayout>
+
+                                <TextView
+                                    style="@style/NeonSectionLabel"
+                                    android:background="?attr/neonSurface"
+                                    android:text="@string/vkbasalt" />
+                            </FrameLayout>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/processor_affinity"
+                                android:layout_marginTop="8dp" />
+
+                            <com.winlator.cmod.widget.CPUListView
+                                android:id="@+id/CPUListView"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center_horizontal"
+                                android:layout_marginTop="4dp" />
+
+                <!--            <TextView-->
+                <!--                android:layout_width="wrap_content"-->
+                <!--                android:layout_height="wrap_content"-->
+                <!--                android:text="@string/processor_affinity_32_bit_apps"-->
+                <!--                android:layout_marginTop="8dp" />-->
+
+                <!--            <com.winlator.cmod.widget.CPUListView-->
+                <!--                android:id="@+id/CPUListViewWoW64"-->
+                <!--                android:layout_width="match_parent"-->
+                <!--                android:layout_height="wrap_content"-->
+                <!--                android:gravity="center_horizontal"-->
+                <!--                android:layout_marginTop="4dp" />-->
+            </LinearLayout>
+
+        </FrameLayout>
+    </ScrollView>
+</LinearLayout>

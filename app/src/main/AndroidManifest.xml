@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" >
+
+    <!-- Declare features that might be needed -->
+    <uses-feature
+        android:glEsVersion="0x00020000"
+        android:required="true" />
+    <!-- Meta Quest VR features removed with XrActivity (VR mode never worked, see
+         cpp/CMakeLists.txt) / 메타 퀘스트 VR 기능 선언을 XrActivity와 함께 제거함
+         (VR 모드는 원래 동작하지 않았음, cpp/CMakeLists.txt 참고) -->
+
+    <!-- Permissions (unique, no duplicates) -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Steam background download service / 스팀 백그라운드 다운로드 서비스 -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT" />
+    <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission
+        android:name="android.permission.WRITE_SECURE_SETTINGS"
+        tools:ignore="ProtectedPermissions" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
+    <!-- largeHeap: Steam downloads crashed with OutOfMemoryError at
+         the default 256MB heap - every decompression thread of the depot
+         downloader keeps its own 8MB buffer
+         largeHeap: 기본 힙 256MB에서 스팀 다운로드가 OutOfMemoryError로
+         종료되었음 - depot 다운로더의 압축 해제 스레드마다 8MB 버퍼를 따로 가짐 -->
+    <application
+        android:largeHeap="true"
+        android:label="@string/app_name"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:theme="@style/Theme.App.Neon.Light"
+        android:appCategory="game"
+        android:isGame="true"
+        android:allowBackup="false"
+        android:allowAudioPlaybackCapture="true"
+        android:hardwareAccelerated="true"
+        android:supportsRtl="true"
+        android:networkSecurityConfig="@xml/network_security_config"
+        tools:ignore="DataExtractionRules,GoogleAppIndexingWarning">
+
+        <!-- Main activity -->
+        <!-- Own process: a game exit ends the main app process, the download
+             keeps running here
+             자체 프로세스: 게임 종료는 메인 앱 프로세스를 끝내지만 다운로드는 여기서
+             계속됨 -->
+        <service
+            android:name="com.winlator.cmod.steam.SteamDownloadService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync"
+            android:process=":download" />
+
+        <activity
+            android:name="com.winlator.cmod.MainActivity"
+            android:theme="@style/Theme.App.Neon.Light"
+            android:screenOrientation="sensor"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|density|navigation">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+
+        <!-- Steam account (sign-in only) / Steam 계정(로그인 전용) -->
+
+        <activity
+            android:name="com.winlator.cmod.TerminalActivity"
+            android:theme="@style/Theme.AppCompat"
+            android:exported="false" />
+
+        <activity
+            android:name="com.winlator.cmod.XServerDisplayActivity"
+            android:theme="@style/Theme.App.Neon.Fullscreen"
+            android:launchMode="singleTask"
+            android:supportsPictureInPicture="true"
+            android:screenOrientation="sensorLandscape"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|density|navigation"
+            android:exported="true" />
+
+        <activity
+            android:name="com.winlator.cmod.ControlsEditorActivity"
+            android:theme="@style/Theme.App.Neon.Fullscreen"
+            android:screenOrientation="sensorLandscape"
+            android:exported="false" />
+
+        <activity
+            android:name="com.winlator.cmod.ExternalControllerBindingsActivity"
+            android:theme="@style/Theme.App.Neon.Light"
+            android:screenOrientation="sensor"
+            android:exported="false" />
+
+        <activity
+            android:name=".saves.CustomFilePickerActivity"
+            android:theme="@style/Theme.App.Neon.Light"
+            android:screenOrientation="sensor"
+            android:exported="false" />
+
+        <!-- FileProvider for sharing files -->
+        <!-- Authorities must be unique per device. The old hardcoded value is the
+             same one Winlator Cmod uses, so installing both would be rejected
+             (INSTALL_FAILED_CONFLICTING_PROVIDER). ${applicationId} fixes that.
+             authority는 기기 전체에서 유일해야 함. 예전 고정값은 Winlator Cmod와
+             같아서 둘을 같이 설치하면 설치 자체가 거부됨. ${applicationId}로 해결함 -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.tileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+        <!-- Provider for Winlator’s DocumentProvider or similar usage -->
+        <provider
+            android:name=".core.WinlatorFilesProvider"
+            android:authorities="${applicationId}.core.WinlatorFilesProvider"
+            android:exported="true"
+            android:grantUriPermissions="true"
+            android:permission="android.permission.MANAGE_DOCUMENTS">
+            <intent-filter>
+                <action android:name="android.content.action.DOCUMENTS_PROVIDER" />
+            </intent-filter>
+        </provider>
+
+        <activity
+            android:name=".restore.RestoreActivity"
+            android:process=":restore_process"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"
+            android:exported="true" />
+
+        <meta-data
+            android:name="com.samsung.android.multidisplay.keep_process_alive"
+            android:value="false"/>
+        <meta-data
+            android:name="android.allow_multiple_resumed_activities"
+            android:value="true" />
+
+
+    </application>
+</manifest>

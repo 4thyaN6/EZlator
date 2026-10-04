@@ -1,0 +1,707 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE resources [
+    <!ENTITY TERMUX_PACKAGE_NAME "com.winlator">
+    <!ENTITY TERMUX_X11_APP_NAME "EZlator:X11">
+    ]>
+<resources>
+    <string name="app_name">EZlator</string>
+    <string name="audio_fallback_notice">Audio failed last time, so this game now uses PulseAudio. You can change it back in the shortcut settings.</string>
+    <string name="steam_account">Steam</string>
+    <string name="steam_username">Steam account name</string>
+    <string name="steam_password">Password</string>
+    <string name="steam_login">Sign in</string>
+    <string name="steam_login_qr">Sign in with QR code</string>
+    <string name="steam_qr_hint">Scan this code in the Steam mobile app (Steam Guard > QR icon).</string>
+    <string name="steam_logout">Sign out</string>
+    <string name="steam_signing_in">Signing in to Steam…</string>
+    <string name="steam_confirm_in_app">Approve the sign-in in the Steam mobile app.</string>
+    <string name="steam_login_failed">Sign-in failed: %1$s</string>
+    <string name="steam_not_signed_in">Not signed in</string>
+    <string name="steam_guard">Steam Guard</string>
+    <string name="steam_guard_app">Enter the code from the Steam mobile app.</string>
+    <string name="steam_guard_email">Enter the code sent to your e-mail.</string>
+    <string name="steam_guard_wrong">The previous code was wrong.</string>
+    <string name="steam_signed_in">Signed in</string>
+    <string name="steamlite_installing">Downloading the Steam agent (SteamLite)…</string>
+    <string name="steamlite_ready">Steam agent ready.</string>
+    <string name="steamlite_failed">Could not download the Steam agent. It will be retried next time.</string>
+    <string name="steam_app_id">Steam AppID (launch through Steam)</string>
+    <string name="steam_app_id_hint">e.g. 730 - leave empty for a normal launch</string>
+    <string name="steam_app_id_find">Find AppID automatically</string>
+    <string name="steam_app_id_pick">Pick the matching game</string>
+    <string name="steam_app_id_not_found">No AppID found. Check the number in the game\'s Steam store URL.</string>
+    <string name="steam_get_game">Get a Steam game</string>
+    <string name="steam_loading_games">Loading your games…</string>
+    <string name="steam_search_games">Search your games</string>
+    <string name="steam_owned_games">Your games (%1$d)</string>
+    <string name="steam_download">Download</string>
+    <string name="steam_preparing">Preparing %1$s… (reading game info)</string>
+    <string name="steam_download_confirm">Download into %1$s? Keep this screen open until it finishes.</string>
+    <string name="steam_downloading">Downloading %1$s… %2$d%%</string>
+    <string name="steam_download_done">Done. \"%1$s\" was added to Main.</string>
+    <string name="steam_download_failed">Download failed: %1$s</string>
+    <string name="steam_launch_notice_title">Launching through Steam</string>
+    <string name="steam_launch_notice">Steam lets an account play in one place at a time. If Steam is open on another device (PC, Steam Deck…), it will be disconnected with \"Logged in elsewhere\". Your account is not affected - just reopen Steam there after you finish playing here.</string>
+    <string name="steam_launch_notice_ok">Launch</string>
+    <string name="steam_launch_notice_hide">Don\'t show again</string>
+    <string name="steam_login_note">Your password is not stored. Only an encrypted sign-in token is kept on this device, used to start Steam games.</string>
+    <string name="borderless_window">Borderless window (off if the image breaks)</string>
+    <string name="borderless_window_note">⚠ When on, title bars and borders are hidden on every window of the game, including in-game pop-ups. Very thick borders may still remain. Turn it off if you need the title bar.</string>
+    <string name="shortcut_move_c_drive_blocked">This program is on the C: drive of the current container, so it cannot run from another container. Install or copy it to D:/E: first.</string>
+    <string name="shortcut_move_name_exists">The target container already has a shortcut with this name.</string>
+    <string name="shortcut_move_failed">Could not move the shortcut.</string>
+    <string name="shortcut_moved_to">Moved to %1$s</string>
+    <string name="driver_source_stevenmxz">StevenMXZ (Recommended)</string>
+    <string name="driver_source_the412banner">The412Banner</string>
+    <string name="run">Run</string>
+    <string name="edit">Edit</string>
+    <string name="remove">Remove</string>
+    <string name="add">Add</string>
+    <string name="shortcuts">Main</string>
+    <string name="containers">Containers</string>
+    <string name="input_controls">Input Controls</string>
+    <string name="no_items_to_display">No items to display.</string>
+    <string name="no_items_to_display_envvars">No environmental variables activated.</string>
+    <string name="no_items_to_display_containers">Create a container to get started!</string>
+    <string name="no_items_to_display_saves">Register a save file directory from one of your containers to get started!</string>
+    <string name="no_items_to_display_input">No external controllers detected.</string>
+    <string name="no_items_to_display_taskmgr">No running processes detected!?</string>
+    <string name="no_items_to_display_drives">No drives assigned!</string>
+    <string name="no_items_to_display_contents">No installed contents to display!</string>
+    <string name="graphic_tools_unsupported_mali">Custom graphics drivers aren\'t supported on Mali GPUs. Mali\'s driver is built into the device firmware by ARM, with no public interface to swap it - unlike Adreno (AdrenoTools) or Xclipse (ExynosTools), which expose a loadable driver layer.</string>
+    <string name="no_items_to_display_logs">No logs to display!</string>
+    <string name="new_container">New Container</string>
+    <string name="edit_container">Edit Container</string>
+    <string name="creating_container">Creating Container…</string>
+    <string name="removing_container">Removing Container…</string>
+    <string name="duplicating_container">Duplicating Container…</string>
+    <string name="installing_system_files">Installing System Files…</string>
+    <string name="starting_up">Starting up…</string>
+    <string name="unable_to_install_system_files">Unable to install system files</string>
+    <string name="keyboard">Keyboard</string>
+    <string name="toggle_fullscreen">Toggle Fullscreen</string>
+    <string name="exit">Exit</string>
+    <string name="no_control_element_selected">No control element selected</string>
+    <string name="scale">Scale</string>
+    <string name="shape">Shape</string>
+    <string name="type">Type</string>
+    <string name="binding">Binding</string>
+    <string name="binding_up">Binding Up</string>
+    <string name="binding_right">Binding Right</string>
+    <string name="binding_down">Binding Down</string>
+    <string name="binding_left">Binding Left</string>
+    <string name="overlay_opacity">Overlay Opacity</string>
+    <string name="profile">Profile</string>
+    <string name="select_profile">Select Profile</string>
+    <string name="profile_name">Profile Name</string>
+    <string name="name">Name</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="untitled">Untitled</string>
+    <string name="no_profile_selected">No profile selected</string>
+    <string name="do_you_want_to_remove_this_profile">Do you want to remove this profile?</string>
+    <string name="do_you_want_to_duplicate_this_profile">Do you want to duplicate this profile?</string>
+    <string name="do_you_want_to_duplicate_this_preset">Do you want to duplicate this preset?</string>
+    <string name="do_you_want_to_remove_this_container">Do you want to remove this container?\n\nGame files in the EZlator folders (D:/E:) are not deleted with the container or the app. Delete them in a file manager if no longer needed.</string>
+    <string name="do_you_want_to_duplicate_this_container">Do you want to duplicate this container?</string>
+    <string name="do_you_want_to_remove_this_shortcut">Do you want to remove this shortcut?</string>
+    <string name="do_you_want_to_remove_this_controller">Do you want to remove this controller?</string>
+    <string name="do_you_want_to_remove_this_preset">Do you want to remove this preset?</string>
+    <string name="do_you_want_to_end_this_process">Do you want to end this process?</string>
+    <string name="controls_editor">Controls Editor</string>
+    <string name="disabled">Disabled</string>
+    <string name="container">Container</string>
+    <string name="screen_size">Screen Size</string>
+    <string name="new_environment_variable">New Environment Variable</string>
+    <string name="environment_variables">Environment Variables</string>
+    <string name="value">Value</string>
+    <string name="processor_affinity">Processor Affinity</string>
+    <string name="processor_affinity_32_bit_apps">Processor Affinity (32-bit apps)</string>
+    <string name="cursor_speed">Cursor Speed</string>
+    <string name="relative_mouse_movement">Relative Mouse Movement</string>
+    <string name="toggle_switch">Toggle Switch</string>
+    <string name="profile_exported_to">Profile exported to</string>
+    <string name="unable_to_import_profile">Unable to import profile</string>
+    <string name="registry_keys">Registry Keys</string>
+    <string name="csmt">CSMT (Command Stream Multi-Thread)</string>
+    <string name="gpu_name">GPU Name</string>
+    <string name="offscreen_rendering_mode">Offscreen Rendering Mode</string>
+    <string name="strict_shader_math">Strict Shader Math</string>
+    <string name="video_memory_size">Video Memory Size</string>
+    <string name="show_fps">Show FPS</string>
+    <string name="none">None</string>
+    <string name="custom_text">Custom Text</string>
+    <string name="icon">Icon</string>
+    <string name="import_profile">Import Profile</string>
+    <string name="export_profile">Export Profile</string>
+    <string name="touchpad_help">Touchpad Help</string>
+    <string name="touchpad_help_mouse_left_click_title">Mouse Left-Click</string>
+    <string name="touchpad_help_mouse_left_click_description">Short tap with one finger</string>
+    <string name="touchpad_help_mouse_right_click_title">Mouse Right-Click</string>
+    <string name="touchpad_help_mouse_right_click_description">Tap with one finger and short tap with another finger</string>
+    <string name="touchpad_help_mouse_scroll_wheel_title">Mouse Scroll Wheel</string>
+    <string name="touchpad_help_mouse_scroll_wheel_description">Two fingers tap and move</string>
+    <string name="touchpad_help_main_menu_title">Main Menu</string>
+    <string name="touchpad_help_main_menu_description">Four fingers tap</string>
+    <string name="duplicate">Duplicate</string>
+    <string name="about">About</string>
+    <string name="credits_and_third_party_apps">Credits and Third-party apps</string>
+    <string name="external_controllers">External Controllers</string>
+    <string name="graphics_driver">Graphics Driver</string>
+    <string name="audio_driver">Audio Driver</string>
+    <string name="loading">Loading…</string>
+    <string name="press_any_button_on_your_controller">Press any button on your controller</string>
+    <string name="bindings">bindings</string>
+    <string name="show_touchscreen_controls">Show Touchscreen Controls</string>
+    <string name="dxwrapper">DX Wrapper</string>
+    <string name="mouse_warp_override">Mouse Warp Override</string>
+    <string name="direct3d">Direct3D</string>
+    <string name="directsound">DirectSound</string>
+    <string name="directmusic">DirectMusic</string>
+    <string name="directplay">DirectPlay</string>
+    <string name="directshow">DirectShow</string>
+    <string name="directx">DirectX</string>
+    <string name="xaudio">XAudio</string>
+    <string name="vcrun2010">Visual C++ 2010</string>
+    <string name="vcrun2015">Visual C++ 2015-2022</string>
+    <string name="opengl">OpenGL</string>
+    <string name="settings">Settings</string>
+    <string name="exec_arguments">Exec Arguments</string>
+    <string name="win_components">Win Components</string>
+    <string name="drives">Drives</string>
+    <string name="force_fullscreen">Force Fullscreen for Windowed Apps</string>
+    <string name="range">Range</string>
+    <string name="enable">Enable</string>
+    <string name="disable">Disable</string>
+    <string name="force">Force</string>
+    <string name="version">Version</string>
+    <string name="DXVK_version">DXVK Version</string>
+    <string name="VKD3D_version">VKD3D Version</string>
+    <string name="wine_version">Wine Version</string>
+    <string name="storage_info">Storage Info</string>
+    <string name="drive_c">Drive C:</string>
+    <string name="cache">Cache</string>
+    <string name="total">Total</string>
+    <string name="clear_cache">Clear Cache</string>
+    <string name="estimated_used_space">Estimated Used Space</string>
+    <string name="advanced">Advanced</string>
+    <string name="system">System</string>
+    <string name="box86_preset">Box86 Preset</string>
+    <string name="box64_preset">Box64 Preset</string>
+    <string name="box64_version">Box64 Version</string>
+    <string name="letter">Letter</string>
+    <string name="target_path">Target Path</string>
+    <string name="xserver">XServer</string>
+    <string name="use_dri3_extension">Use DRI3 extension</string>
+    <string name="width">Width</string>
+    <string name="height">Height</string>
+    <string name="task_manager">Task Manager</string>
+    <string name="process_name">Process Name</string>
+    <string name="pid">PID</string>
+    <string name="memory">Memory</string>
+    <string name="end_process">End Process</string>
+    <string name="new_task">New Task</string>
+    <string name="processes">Processes</string>
+    <string name="orientation">Orientation</string>
+    <string name="horizontal">Horizontal</string>
+    <string name="vertical">Vertical</string>
+    <string name="open_file">Open File</string>
+    <string name="download_file">Download File</string>
+    <string name="do_you_want_to_download_the_selected_profiles">Do you want to download the selected profiles?</string>
+    <string name="downloading_file">Downloading File...</string>
+    <string name="unable_to_load_profile_list">Unable to load profile list</string>
+    <string name="stability">Stability</string>
+    <string name="compatibility">Compatibility</string>
+    <string name="intermediate">Intermediate</string>
+    <string name="performance">Performance</string>
+    <string name="preset">Preset</string>
+    <string name="you_cannot_remove_this_preset">You cannot remove this preset</string>
+    <string name="dxwrapper_help_content"><![CDATA[
+        <i><b>WineD3D</b></i> is a translation layer for DirectX 1-11 to OpenGL.<br /><br />
+        <i><b>DXVK</b></i> is a translation layer for Direct3D 9-11 to Vulkan.<br /><br />
+        <i><b>VKD3D</b></i> is a translation layer for Direct3D 12 API to Vulkan.<br /><br />
+        <i><b>CNC DDraw</b></i> is an implementation of DirectDraw for better compatibility with classic games.
+    ]]></string>
+    <string name="box86_64_env_var_help__dynarec_safeflags"><![CDATA[
+        Handling of flags on CALL/RET opcodes<br /><br />
+        <b>0</b> : Treats CALL/RET as if it never needed flags (faster, unstable)<br />
+        <b>1</b> : Most RET will need flags, most CALLS will not<br />
+        <b>2</b> : All CALL/RET will need flags (slower)
+    ]]></string>
+    <string name="box86_64_env_var_help__dynarec_fastnan">Generation of -NAN like on x86</string>
+    <string name="box86_64_env_var_help__dynarec_fastround">Generation of precise x86 rounding</string>
+    <string name="box86_64_env_var_help__dynarec_x87double">Use of Float/Double for x87 emulation</string>
+    <string name="box86_64_env_var_help__dynarec_bigblock"><![CDATA[
+        Dynarec building BigBlock<br /><br />
+        <b>0</b> : Don\'t try to build block as big as possible<br />
+        <b>1</b> : Build Dynarec block as big as possible<br />
+        <b>2</b> : Build Dynarec block bigger (continue when block overlaps, but only for blocks in elf memory)<br />
+        <b>3</b> : Build Dynarec block bigger (continue when block overlaps, for all types of memory)
+    ]]></string>
+    <string name="box86_64_env_var_help__dynarec_strongmem"><![CDATA[
+        Simulation of Strong Memory model<br /><br />
+        <b>0</b> : Don\'t try anything special<br />
+        <b>1</b> : Enable some Memory Barrier when writing to memory (on some MOV opcode)<br />
+        <b>2</b> : All 1 plus a Memory Barrier on every write to memory using MOV<br />
+        <b>3</b> : All 2 plus Memory Barrier when reading from memory and on some SSE/SSE2 opcodes
+    ]]></string>
+    <string name="box86_64_env_var_help__dynarec_forward">Defines the max allowed forward value when building Block</string>
+    <string name="box86_64_env_var_help__dynarec_callret">Optimization of CALL/RET opcodes</string>
+    <string name="box86_64_env_var_help__dynarec_wait">Defines whether or not Dynarec will wait for the FillBlock to be ready</string>
+    <string name="box86_64_env_var_help__dynarec_weakbarrier"><![CDATA[
+        Tweak memory barriers to reduce performance impact of strong memory emulation<br /><br />
+        <b>0</b> : Use regular safe barriers<br />
+        <b>1</b> : Use weak barriers for mild performance boost<br />
+        <b>2</b> : Use weak barriers, additionally disable last write barriers]]></string>
+    <string name="box86_64_env_var_help__dynarec_aligned_atomics"><![CDATA[
+        Generate aligned atomics only (only available on Arm64 for now).<br /><br />
+        <b>0</b> : Generate unaligned atomics handling code.<br />
+        <b>1</b> : Generate aligned atomics only, which is faster and smaller code size, but will cause SIGBUS for LOCK prefixed opcodes operating on aligned data addresses.]]></string>
+    <string name="box86_64_env_var_help__dynarec_df"><![CDATA[
+        Enable or disable the use of deferred flags.<br /><br />
+        <b>0</b> : Disable the use of deferred flags.<br />
+        <b>1</b> : Enable the use of deferred flags.]]></string>
+    <string name="box86_64_env_var_help__dynarec_dirty"><![CDATA[
+        Allow continue running a block that is unprotected and potentially dirty.<br /><br />
+        <b>0</b> : Do not allow continue running a block that is unprotected and potentially dirty.<br />
+        <b>1</b> : Allow continue to run a dynablock that write data in the same page as code. It can gets faster in loading time of some game but can also get unexpected crashes.<br />
+        <b>2</b> : Will also, when it detect an HotPage, flag that page as NEVERCLEAN, and so it will not be write protected but Block build from that page will always be tested. It can be faster that way (but some SMC case might not be trapped).]]></string>
+    <string name="box86_64_env_var_help__dynarec_nativeflags"><![CDATA[
+        Enable or disable the use of native flags.<br /><br />
+        <b>0</b> : Do not use native flags.<br />
+        <b>1</b> : Use native flags when possible.]]></string>
+    <string name="box86_64_env_var_help__dynarec_pause"><![CDATA[
+        Enable x86 PAUSE emulation, may help the performance of spinlocks.<br /><br />
+        <b>0</b> : Ignore x86 PAUSE instruction.<br />
+        <b>1</b> : Use YIELD to emulate x86 PAUSE instruction.<br />
+        <b>2</b> : Use WFI to emulate x86 PAUSE instruction.<br />
+        <b>3</b> : Use SEVL+WFE to emulate x86 PAUSE instruction.
+    ]]></string>
+    <string name="box86_64_env_var_help__avx"><![CDATA[
+        AVX and AVX2 implemented, along with BMI1, BMI2, ADX, FMA, F16C and RDANDR extension!<br /><br />
+        <b>0</b> : Disable AVX extension<br />
+        <b>1</b> : enable AVX, BMI1, F16C and VAES extension.<br />
+        <b>2</b> : All 1 plus enable AVX2, BMI2, FMA, ADX,VPCLMULQDQ and RDRAND.<br />\
+    ]]></string>
+    <string name="box86_64_env_var_help__maxcpu">Maximum number of CPUs presented to programs by Box64</string>
+    <string name="box86_64_env_var_help__unityplayer">Detect UnityPlayer.dll and apply strongmem settings</string>
+    <string name="box86_64_env_var_help__mmap32">Force every memory allocation in 32bit address spaces</string>
+    <string name="columns">Columns</string>
+    <string name="desktop">Desktop</string>
+    <string name="theme">Theme</string>
+    <string name="background">Background</string>
+    <string name="configuration">Configuration</string>
+    <string name="browse">Browse</string>
+    <string name="magnifier">Magnifier</string>
+    <string name="bring_to_front">Bring to Front</string>
+    <string name="enable_experimental_wow64_mode">Enable experimental WoW64 mode</string>
+    <string name="logs">Logs</string>
+    <string name="enable_wine_debug">Enable Wine debug</string>
+    <string name="enable_box86_64_logs">Enable Box86/Box64 logs</string>
+    <string name="export">Export</string>
+    <string name="general">General</string>
+    <string name="startup_selection">Startup Selection</string>
+    <string name="wine_debug_channel">Wine Debug Channel</string>
+    <string name="game_controller">Game Controller</string>
+    <string name="experimental">Experimental</string>
+    <string name="vkd3d_feature_level">VKD3D Feature Level</string>
+    <string name="box86_64_rc_files">RC File</string>
+    <string name="simulate_touch_screen">Simulate touch screen</string>
+    <string name="install_content">Install It Yourself</string>
+    <string name="contents">Contents</string>
+    <string name="tools">Components &amp; Drivers</string>
+    <string name="do_you_want_to_install_content">Do you want to install this yourself? Only continue if you trust the source.</string>
+    <string name="installing_content">Installing Content…</string>
+    <string name="unable_to_install_content">Unable to install content.</string>
+    <string name="install_failed">Install Failed</string>
+    <string name="file_cannot_be_recognied">File cannot be recognized.</string>
+    <string name="profile_not_found_in_content">Profile not found in content.</string>
+    <string name="profile_cannot_be_recognized">Profile cannot be recognized</string>
+    <string name="content_already_exist">The content you\'re trying to install already exists.</string>
+    <string name="content_info">Content Info</string>
+    <string name="version_code">Version Code</string>
+    <string name="description">Description</string>
+    <string name="file_list">File List</string>
+    <string name="_continue">Continue</string>
+    <string name="content_installed_success">Content installed successfully!</string>
+    <string name="content_cannot_be_trusted">Content cannot be trusted.</string>
+    <string name="content_is_incomplete">Content is incomplete.</string>
+    <string name="warning_content_has_untrusted_files">Warning: The additional content contains untrusted files. Generally, the following files should not be modified. Please decide whether to proceed with the installation.</string>
+    <string name="warning">Warning</string>
+    <string name="do_you_want_to_remove_this_content">Do you want to remove this content?</string>
+    <string name="add_to_home_screen">Add to Home Screen</string>
+    <string name="shortcut_not_available">This shortcut is no longer available. Please delete or recreate it.</string>
+    <string name="enable_file_provider">Enable File Provider</string>
+    <string name="take_effect_next_startup">This option will take effect at the next startup.</string>
+    <string name="imagefs">Imagefs</string>
+    <string name="reinstall_imagefs">Reinstall Imagefs</string>
+    <string name="do_you_want_to_reinstall_imagefs">Do you want to reinstall imagefs? This operation will restore system files, your containers won\'t be changed.</string>
+    <string name="unable_to_remove_content_since_container_using">Unable to remove this content, because a container is currently using this Wine.</string>
+    <string name="graphics_driver_configuration">Graphics Driver Configuration</string>
+    <string name="graphics_driver_version">Graphics Driver Version</string>
+    <string name="graphics_driver_available_extensions">Available Extensions</string>
+    <string name="add_save">Add Save</string>
+    <string name="saves">Saves</string>
+    <string name="manage_saves">Manage Saves</string>
+    <string name="import_save">Import Save</string>
+    <string name="transfer">Transfer</string>
+    <string name="share">Share</string>
+    <string name="unregister">Unregister</string>
+    <string name="new_save">Register a Save</string>
+    <string name="save_path">Save Path</string>
+    <string name="save_title">Save Name</string>
+    <string name="select_save_path">Locate Save Folder</string>
+    <string name="select_container_first">Please select the container containing your save.</string>
+    <string name="fill_all_fields">Path and Save Name are required</string>
+    <string name="invalid_path">Not a valid save directory path</string>
+    <string name="confirm_selection">Confirm Selection</string>
+    <string name="select_directory">Select your save directory</string>
+    <string name="invalid_container">Invalid Path</string>
+    <string name="up_directory">Up Directory</string>
+    <string name="select_storage">Select Storage</string>
+    <string name="edit_save">Save edit</string>
+    <string name="original_save_path">Registered save path</string>
+    <string name="save_transfer">Transfer Save</string>
+    <string name="select_container">Target Container:</string>
+    <string name="name_required">Name is required</string>
+    <string name="exporting_save">Exporting save...</string>
+    <string name="importing_save">Importing save...</string>
+    <string name="backing_up_data">Backing up data...</string>
+    <string name="restoring_data">Restoring data...</string>
+    <string name="midi_sound_font">MIDI SoundFont</string>
+    <string name="sound">Sound</string>
+    <string name="do_you_want_to_remove_this_sound_font">Do you want to remove this soundfont?</string>
+    <string name="sound_font_removed_success">Soundfont removed successfully!</string>
+    <string name="sound_font_removed_failed">Soundfont removed failed!</string>
+    <string name="sound_font_installed_success">Soundfont installed successfully!</string>
+    <string name="sound_font_installed_failed">Soundfont installed failed!</string>
+    <string name="sound_font_already_exist">Soundfont you want to install is already exist.</string>
+    <string name="unable_to_install_soundfont">Unable to install soundfont</string>
+    <string name="sound_font_bad_format">Bad SoundFont Format.</string>
+    <string name="cannot_remove_default_sound_font">Cannot remove default soundfont</string>
+    <string name="lc_all" translatable="false">LC_ALL</string>
+    <string name="help_file_provider"><![CDATA[
+        <i><b>File Provider</b></i> allows access to EZlator\'s internal data through android file manager.<br/><br/>
+    ]]></string>
+    <string name="reconfigure">Reconfigure</string>
+    <string name="do_you_want_to_reconfigure_wine">Do you want to reconfigure this container on the next startup? This will remove the timestamp to trigger Wine Configuration.</string>
+
+    <string name="button_a">Button A</string>
+    <string name="button_b">Button B</string>
+    <string name="button_x">Button X</string>
+    <string name="button_y">Button Y</string>
+    <string name="secondary_executable">Path:</string>
+    <string name="enter_secondary_exec_path"> ex: "D:/Games/My Game/My Game.exe"</string>
+    <string name="exec_delay">Delayed Execution (seconds):</string>
+    <string name="enter_delay_seconds">Enter the delay in seconds:</string>
+    <string name="use_secondary_executable">Use secondary executable?</string>
+    <string name="secondary_exec">Secondary Executable</string>
+    <string name="secondary_exe_path_subtext">(Spaces in paths must be wrapped in quotes)</string>
+    <string name="pip_mode">PiP Mode</string>
+    <string name="enable_touchscreen_timeout">Auto-hide touch controls after 5s idle (off = always visible)</string>
+    <string name="enable_touchscreen_haptics">Enable Touchscreen Haptic Feedback</string>
+    <string name="disable_xinput_for_shortcut">Disable Xinput (For Exclusive M/KB Control)</string>
+    <string name="fullscreen_stretched">Ignore Aspect Ratio (Fullscreen Stretched)</string>
+    <string name="export_container">Backup Container</string>
+    <string name="exporting_container">Exporting Container...</string>
+    <string name="importing_container">Importing Container...</string>
+
+    <string name="brightness">Brightness</string>
+    <string name="contrast">Contrast</string>
+    <string name="gamma">Gamma</string>
+    <string name="color_adjustment">Color Adjustment</string>
+    <string name="enable_fxaa">Enable FXAA</string>
+    <string name="enable_crt_shader">Enable CRT Shader</string>
+
+    <string name="do_you_want_to_add_a_new_profile">Do you want to add a new profile?</string>
+
+    <string name="default_profile">Default Profile</string>
+
+    <string name="reset">Reset</string>
+
+    <string name="screen_effect">Screen Effects</string>
+
+    <string name="enable_toon_shader">Enable Toon Shader</string>
+    <string name="enable_ntsc_effect">Enable NTSC Effect</string>
+
+
+
+
+
+
+
+
+
+
+
+
+    <string name="fexcore_config">FEXCore</string>
+    <string name="fexcore_tso_preset">TSOMode</string>
+    <string name="fexcore_x87reduced_precision">X87Mode</string>
+    <string name="fexcore_multiblock">MultiBlock</string>
+    <string name="dll_emulator">32bit Emulator</string>
+    <string name="open_with_android_browser">Open Android Browser in Wine</string>
+    <string name="share_android_clipboard">Share Android Clipboard with Wine</string>
+    <string name="ddraw_wrapper">DDraw/Glide Wrapper</string>
+    <string name="fexcore_version">FEXCore Version</string>
+    <string name="graphics_driver_max_device_memory">Max Device Memory</string>
+
+    <string name="player_1">Player 1</string>
+    <string name="player_2">Player 2</string>
+    <string name="player_3">Player 3</string>
+    <string name="player_4">Player 4</string>
+    <string name="not_assigned">Not Assigned</string>
+    <string name="assign">Assign</string>
+    <string name="press_any_button_for_player">Press any button on the controller for</string>
+    <string name="restart_required_for_changes">Restart container for changes to take effect</string>
+    <string name="closing_app">Shutting Down...</string>
+    <string name="vibrate">Vibration</string>
+    <string name="gyro_activator_button">Gyroscope Activation Button</string>
+    <string name="hold">Hold</string>
+    <string name="toggle">Toggle</string>
+    <string name="x_sensitivity">X-Axis Sensitivity</string>
+    <string name="y_sensitivity">Y-Axis Sensitivity</string>
+    <string name="smoothing">Smoothing</string>
+    <string name="invert_x">Invert X-Axis</string>
+    <string name="invert_y">Invert Y-Axis</string>
+    <string name="gyro_settings">Motion Controls</string>
+    <string name="percent_fmt">%1$d%%</string>
+    <string name="filtering">Filtering</string>
+    <string name="gyro_deadzone">Deadzone</string>
+    <string name="gyro_sensitivity">Sensitivity</string>
+    <string name="direction">Direction</string>
+    <string name="gyro_mode">Gyroscope Activation Mode</string>
+    <string name="motion_controls">Motion Controls</string>
+    <string name="debug_terminal">Debug Terminal</string>
+    <string name="pause_resume">Pause / Resume</string>
+    <string name="menu_section_system">System</string>
+    <string name="menu_section_display">Display</string>
+    <string name="menu_section_input">Control settings</string>
+    <string name="relative_mouse_disabled">Relative Mouse Disabled</string>
+    <string name="relative_mouse_enabled">Relative Mouse Enabled</string>
+    <string name="disable_touchscreen_mouse">Disable touchscreen mouse</string>
+    <string name="macros_hint">Toggle buttons to enable autofire.</string>
+    <string name="macros">Macros</string>
+    <string name="include_triggers_note">Also apply turbo to L2/R2 as digital presses</string>
+    <string name="enable_all">Enable all</string>
+    <string name="disable_all">Disable all</string>
+    <string name="on">On</string>
+    <string name="off">Off</string>
+    <string name="input_macros">Turbo / Macros</string>
+    <string name="button_lb">LB</string>
+    <string name="button_rb">RB</string>
+    <string name="button_back">Back</string>
+    <string name="button_start">Start</string>
+    <string name="button_l3">L3</string>
+    <string name="button_r3">R3</string>
+    <string name="dpad_up">D‑Pad Up</string>
+    <string name="dpad_down">D‑Pad Down</string>
+    <string name="dpad_left">D‑Pad Left</string>
+    <string name="dpad_right">D‑Pad Right</string>
+    <string name="controller_manager">Controller Manager</string>
+    <string name="gyro_target_stick">Apply gyro to</string>
+    <string name="right_stick">Right stick</string>
+    <string name="left_stick">Left stick</string>
+    <string name="enable_stick_gyro">Enable Analog Stick Gyroscopic Motion</string>
+
+    <string name="graphics_driver_adrenotools_turnip">Use Adrenotools Turnip</string>
+    <string name="graphics_driver_frame_sync">Frame Synchronization</string>
+    <string name="vkbasalt">vkBasalt</string>
+    <string name="vkbasalt_sharpness_effects">Sharpness Effect</string>
+    <string name="vkbasalt_sharpness_level">Sharpness Level</string>
+    <string name="vkbasalt_sharpness_denoise">Sharpeness Denoise</string>
+    <string name="enable_peb_logs">Log Windows PEB Data</string>
+    <string name="enable_gstreamer_workaround">Enable GStreamer Video Decoder Workaround</string>
+    <string name="enable_gstreamer_workaround_alert">Enabling this option will add environmental variables to this container\'s configuration that could impact your ability to launch games. Do not enable this unless you are certain the issue is specific to in-game video playback.</string>
+    <string name="workarounds">Workarounds</string>
+    <string name="installing_contents">Installing contents...</string>
+    <string name="renderer">Renderer</string>
+    <string name="gl">gl</string>
+    <string name="vulkan">vulkan</string>
+    <string name="gdi">gdi</string>
+    <string name="tab_graphics_binaries">그래픽/바이너리</string>
+    <string name="box64_preset_help_content">Stability(안정성): 크래시를 최소화하는 게 우선이라 속도는 느릴 수 있습니다.<br/><br/>Compatibility(호환성): 최대한 많은 게임이 실행되도록 균형을 맞춘 기본 추천값입니다.<br/><br/>Intermediate(중간): 안정성과 속도의 중간 지점입니다.<br/><br/>Performance(성능): 속도를 최우선으로 하며, 일부 게임에서 불안정할 수 있습니다.</string>
+    <string name="fexcore_tso_help_content">TSO(Total Store Ordering)는 x86 CPU의 메모리 접근 순서 규칙입니다.<br/><br/>Fast: 빠르지만 일부 게임에서 멀티스레드 관련 오류가 날 수 있음<br/><br/>Slow(정확): 느리지만 x86 원본과 동일한 메모리 순서를 보장 — 오류가 있을 때 이걸로 바꿔보세요</string>
+    <string name="fexcore_x87_help_content">X87은 옛날 x86의 부동소수점 연산 방식입니다.<br/><br/>Fast: 빠르지만 소수점 정밀도가 약간 떨어질 수 있음<br/><br/>Slow(정확): 느리지만 원본과 동일한 정밀도 — 그래픽 깨짐이나 계산 오류가 있으면 이걸로 바꿔보세요</string>
+    <string name="fexcore_multiblock_help_content">한 번에 더 많은 코드를 번역해서 묶어 실행할지 여부입니다.<br/><br/>Enabled: 성능 향상 가능하나 일부 게임에서 불안정할 수 있음<br/><br/>Disabled: 안정적이지만 상대적으로 느림</string>
+    <string name="rc_file_help_content">특정 실행 파일(.exe) 이름에만 별도의 Box64 환경변수를 적용하고 싶을 때 씁니다.<br/><br/>대부분의 게임은 메인 실행 파일 하나만 잘 돌면 되므로 필요 없는 경우가 많습니다.<br/><br/>다만 게임이 여러 개의 실행 파일(런처, 안티치트 등)을 따로 띄우고 그중 특정 파일만 다른 튜닝이 필요할 때 유용합니다.</string>
+    <!--GPU우회 실패시 대응책-->
+    <string name="tab_wine">Wine</string>
+    <string name="tab_runtime_environment">Runtime Environment</string>
+    <string name="gpu_name_auto">Device (자동)</string>
+    <string name="video_memory_size_auto">자동</string>
+    <string name="gpu_compatibility_mode">게임이 실행되지 않나요? (호환 모드)</string>
+    <string name="gpu_compatibility_mode_hint">GTX 1080 + 4096MB로 자동 위장합니다. 그래도 안 되면 "고급" 탭에서 Box64/FEXCore 프리셋을 바꿔보세요.</string>
+    <!--프레임제한-->
+    <string name="frame_rate_limit">Frame Rate Limit (Hz)</string>
+    <string name="gaming_device_unlimited_fps">게이밍 전용 기기 (프레임 제한 해제)</string>
+    <!-- All files access notice (Steam screen + settings switch), see core/AllFilesAccess -->
+    <!-- 모든 파일 접근 안내창(Steam 화면 + 설정 스위치), core/AllFilesAccess 참고 -->
+    <string name="all_files_access_switch">All files access (Steam downloads, USB storage)</string>
+    <string name="all_files_access_title">All files access</string>
+    <string name="all_files_access_enable_message">Steam games are saved outside the app folder, so downloading needs the \'All files access\' permission. USB storage uses the same permission.\n\nContinue: opens the permission screen. Turn this app on there.\nBack: returns without turning it on.</string>
+    <string name="all_files_access_disable_message">Turning this off stops Steam game downloads and USB storage access. The app cannot turn it off by itself, so it has to be done on the system screen.\n\nContinue: opens the permission screen. Turn this app off there.\nBack: returns and keeps the permission.</string>
+    <string name="all_files_access_continue">Continue</string>
+    <string name="all_files_access_back">Back</string>
+    <!-- Contents > DXVK / VKD3D architecture sub-tabs (ContentsFragment.setupArchTabs) -->
+    <!-- 콘텐츠 > DXVK / VKD3D 아키텍처 하위 탭(ContentsFragment.setupArchTabs) -->
+    <string name="content_arch_arm64ec" translatable="false">ARM64EC</string>
+    <string name="content_arch_x86_64" translatable="false">X86_64</string>
+    <!-- Steam install always targets an ARM64EC container (SteamGameInstaller.arm64ecContainer) -->
+    <!-- Steam 설치는 항상 ARM64EC 컨테이너로 감(SteamGameInstaller.arm64ecContainer) -->
+    <string name="steam_creating_arm64ec_container">Creating an ARM64EC container…</string>
+    <string name="steam_no_arm64ec_wine">No ARM64EC Wine/Proton is installed. Install one in Contents first.</string>
+    <!-- Box64 section titles. Settings edits the shared presets; a
+         container or a shortcut only picks one, so the three titles say which.
+         Box64 영역 제목. 설정은 공용 프리셋을 편집하고, 컨테이너와 바로가기는
+         그중 하나를 고르기만 하므로 세 제목이 이를 구분해서 보여줌 -->
+    <string name="box64_section_settings">Box64 Presets (shared by all containers)</string>
+    <string name="box64_section_container">Box64 (this container)</string>
+    <string name="box64_section_shortcut">Box64 (this shortcut)</string>
+    <!-- EZ mode, shortcut menu, first-run guide -->
+    <!-- EZ 모드, 숏컷 메뉴, 첫 실행 안내창 -->
+    <string name="ez_mode_switch">Beginner mode (EZ mode)</string>
+    <string name="ez_mode_hint">When on, the shortcut detail sheet shows the layer change button.</string>
+    <string name="shortcut_export_frontend">Export for Frontend</string>
+    <string name="shortcut_clone_to_container">Clone to another container</string>
+    <string name="shortcut_properties">Reset play record</string>
+    <string name="shortcut_select_container">Select a container</string>
+    <string name="shortcut_clone_no_other_container">There is no other container to clone to.</string>
+    <string name="shortcut_cloned">Shortcut cloned.</string>
+    <string name="shortcut_clone_failed">Could not clone the shortcut.</string>
+    <string name="shortcut_export_cannot_write">Cannot write to the selected folder.</string>
+    <string name="shortcut_export_dir_failed">Could not create the export folder.</string>
+    <string name="shortcut_export_updated">Frontend shortcut updated: %1$s</string>
+    <string name="shortcut_export_done">Frontend shortcut exported: %1$s</string>
+    <string name="shortcut_export_failed">Export failed.</string>
+    <string name="shortcut_properties_play_count">Times played: %1$d</string>
+    <string name="shortcut_properties_playtime">Playtime: %1$s</string>
+    <string name="shortcut_properties_reset">Reset record</string>
+    <string name="shortcut_properties_reset_done">Record reset.</string>
+    <string name="shortcut_removed">Shortcut removed.</string>
+    <string name="shortcut_remove_failed">Could not remove the shortcut. Please try again.</string>
+    <string name="first_run_welcome_title">Welcome to EZlator</string>
+    <string name="first_run_welcome_body">To run Windows games, components have to be downloaded once.\nWhich one describes you?</string>
+    <string name="first_run_know_nothing">I know nothing</string>
+    <string name="first_run_know_nothing_sub">Everything needed is set up in one go</string>
+    <string name="first_run_know_some">I\'ve done this before</string>
+    <string name="first_run_know_some_sub">Choose what to download yourself</string>
+    <string name="first_run_easy_title">Automatic setup</string>
+    <string name="first_run_easy_body">Setup goes in this order.\n\n1. Storage permission\nNeeded to read and save game files. Tap \'Allow\' when the permission window appears.\n\n2. Download\nSystem files (about 280MB), game components (Proton, DXVK/VKD3D and more) and a graphics driver for this device (if one is detected). Wi-Fi is recommended.\n\n3. Container\nA container is the virtual Windows environment games run in. It is created automatically when the download finishes.\n\nAfter that, add a game\'s program file (.exe) with the + button.</string>
+    <string name="first_run_permission_granted">Storage permission: allowed</string>
+    <string name="first_run_permission_missing">Storage permission: not allowed yet</string>
+    <string name="first_run_permission_denied">The download cannot start without the storage permission. If you denied it, allow Storage in Android Settings > Apps > EZlator > Permissions.</string>
+    <string name="first_run_download">Download</string>
+    <string name="first_run_later">Later</string>
+    <string name="first_run_expert_title">Choose what to download</string>
+    <string name="first_run_expert_body">Essentials only\nOnly the system files (about 280MB). Proton (Wine), DXVK/VKD3D and graphics drivers are picked by hand in Components &amp; Drivers; you can jump there when the install finishes.\n\nEverything\nSystem files plus the recommended components (Proton ARM64EC/X86_64, DXVK, VKD3D, FEXCore, Box64, WOWBox64) and a graphics driver for this device (if one is detected). At the end you are asked whether to create a default container.</string>
+    <string name="first_run_essential_only">Essentials only</string>
+    <string name="first_run_all">Everything</string>
+    <string name="first_run_back">Back</string>
+    <string name="first_run_uninstall_note">※ Uninstalling the app does not delete games, backups or logs saved in the EZlator folder of internal/external storage or in the hidden .EZlator folder in Download. Delete them with a file manager (with hidden files shown) if no longer needed.</string>
+    <string name="first_run_essential_done_title">Essentials installed</string>
+    <string name="first_run_essential_done_message">To run games, download Proton (Wine), DXVK/VKD3D and a graphics driver in Components &amp; Drivers. After that, adding a game with the + button creates the container automatically.</string>
+    <string name="first_run_go_components">Go to Components &amp; Drivers</string>
+    <string name="first_run_container_created">Default container created</string>
+    <string name="touch_mode_touchpad">Touchpad mode</string>
+    <string name="touch_mode_touchscreen">Touchscreen mode</string>
+    <string name="touch_mode_switched_touchpad">Touchpad mode: drag to move the cursor, tap to click</string>
+    <string name="touch_mode_switched_touchscreen">Touchscreen mode: the spot you touch is clicked</string>
+    <string name="hud_starting">Starting…</string>
+    <string name="steam_update">Update</string>
+    <string name="steam_logout_confirm">Sign out of Steam on this device?</string>
+    <string name="steam_cached_list">Saved list (updated %1$s). Tap Update if a new game is missing.</string>
+    <string name="steam_no_games">No games found.</string>
+    <string name="steam_refresh_list">Refresh list</string>
+    <string name="steam_dl_pause">Pause</string>
+    <string name="steam_dl_resume">Resume</string>
+    <string name="steam_dl_stop">Stop</string>
+    <string name="steam_dl_paused">Paused · %1$d%%</string>
+    <string name="steam_dl_info">%1$d%% · %2$s/s</string>
+    <string name="steam_dl_stop_confirm">Stop the download and delete the downloaded files of %1$s?</string>
+    <string name="steam_dl_stopped">Download stopped.</string>
+    <string name="box64_crash_fallback">The game closed unexpectedly. From the next launch it runs with the Box64 %1$s preset.</string>
+    <string name="steam_dl_channel">Steam downloads</string>
+    <string name="steam_dl_waiting_game">Paused while a game runs · %1$d%%</string>
+    <string name="steam_dl_busy">%1$s is downloading. Wait until it finishes or stop it first.</string>
+    <string name="steam_update_game">Update</string>
+    <string name="steam_update_stop_confirm">Stop updating %1$s? The installed game is kept.</string>
+    <string name="steam_dl_pause_during_game">Pause Steam downloads while a game runs</string>
+    <string name="steam_dl_pause_during_game_hint">On: the download pauses while a game runs and resumes when it ends. Off: no limit.</string>
+    <string name="steam_installed_header">Installed (%1$d)</string>
+    <string name="steam_redownload">Download again (verify)</string>
+    <string name="steam_dl_back">Back</string>
+    <string name="steam_update_checking">Checking for updates…</string>
+    <string name="steam_update_unknown">Could not check for updates.</string>
+    <string name="steam_update_available">An update is available.</string>
+    <string name="steam_update_latest">Up to date.</string>
+    <string name="wine_real_locale">Apply the game language to the system locale (LC_ALL)</string>
+    <string name="wine_real_locale_hint">Try this when Korean-patched games show their original text. Turn it off if games in folders with Korean names stop starting.</string>
+    <string name="shortcut_filter_all">All</string>
+    <string name="shortcut_filter_steam">Steam</string>
+    <string name="shortcut_filter_other">Other</string>
+    <string name="steam_installed">Installed</string>
+    <string name="shortcut_view_menu">View ▾</string>
+    <string name="shortcut_view_tile">Tiles</string>
+    <string name="shortcut_view_list">List</string>
+    <string name="shortcut_view_columns_3">3 per row</string>
+    <string name="shortcut_view_columns_5">5 per row</string>
+    <string name="detail_fold">▲ Fold</string>
+    <string name="detail_unfold">▼ More</string>
+    <string name="detail_folded_setting">Open the shortcut details folded</string>
+    <string name="control_settings">Control settings</string>
+    <string name="shortcut_multiplayer">Multiplayer settings</string>
+    <string name="shortcut_close">Close</string>
+    <string name="shortcut_locale">Language locale</string>
+    <string name="shortcut_locale_default">Container default</string>
+    <string name="shortcut_locale_hint">For games that only run or only show text in their own language. Applied to LANG and LC_ALL for this shortcut.</string>
+    <string name="third_party_notices_link">Third-party notices and licenses (full list)</string>
+    <!-- GitHub repository (no trailing slash) / GitHub 저장소 주소(끝에 / 없이) -->
+    <string name="repo_url" translatable="false">https://github.com/4thyaN6/EZlator</string>
+    <string name="trademark_notice">EZlator is not affiliated with or endorsed by Microsoft or Valve. Windows is a trademark of Microsoft Corporation; Steam is a trademark of Valve Corporation.</string>
+    <!-- Layer tier buttons on the Containers screen (LayerTiers) / 컨테이너 화면의 레이어 단계 버튼(LayerTiers) -->
+    <string name="tier_latest">Latest(최신)</string>
+    <string name="tier_stable">Stable(안정)</string>
+    <string name="tier_legacy">Legacy(레거시)</string>
+    <string name="tier_install">Install</string>
+    <string name="tier_installed">Installed</string>
+    <string name="tier_create_title">Create %1$s containers</string>
+    <string name="tier_create_message">This downloads the %1$s layer and its components, then creates the missing containers (about 2 GB per ARM64EC + X86_64 pair).\n\n%2$s</string>
+    <string name="tier_create_ok">Create</string>
+    <string name="tier_preparing">Preparing…</string>
+    <string name="tier_creating_container">Creating container…</string>
+    <string name="tier_done">%1$d container(s) created.</string>
+    <string name="tier_failed">Could not create the containers. Check the connection and try again.</string>
+    <!-- Shared save folder (SharedSaves) / 공용 세이브 폴더(SharedSaves) -->
+    <string name="save_backup">Back up saves</string>
+    <string name="save_restore">Restore saves</string>
+    <string name="save_working">Working on saves…</string>
+    <string name="save_backup_done">Saves backed up: %1$s</string>
+    <string name="save_backup_empty">There are no saves to back up.</string>
+    <string name="save_restore_none">There are no save backups in Download/.EZlator/SaveBackups.</string>
+    <string name="save_restore_confirm">Restore %1$s? The current saves are backed up first.</string>
+    <string name="save_restore_done">Saves restored.</string>
+    <string name="save_restore_failed">Could not restore the saves.</string>
+    <string name="tier_revert">(Revert)</string>
+    <string name="layer_hint_title">Try another layer?</string>
+    <string name="layer_hint_message">%1$s closed right after starting. Move it to the %2$s layer and try again? The missing components are downloaded first.\n\n%3$s</string>
+    <string name="save_export">Export saves</string>
+    <string name="save_export_done">Saves exported: Download/.EZlator/Saves/%1$s</string>
+    <string name="save_export_none">No save files of this game were found. Play it once on this build first.</string>
+    <!-- Steam achievements (SteamAchievementsDialog) -->
+    <string name="steam_achievements">Achievements</string>
+    <string name="steam_achievements_progress">%1$d / %2$d unlocked</string>
+    <string name="steam_achievements_filter_all">All</string>
+    <string name="steam_achievements_filter_unlocked">Unlocked</string>
+    <string name="steam_achievements_filter_locked">Locked</string>
+    <string name="steam_achievements_locked">Locked</string>
+    <string name="steam_achievements_hidden">Hidden achievement</string>
+    <string name="steam_achievements_hidden_desc">Details appear once it is unlocked.</string>
+    <string name="steam_achievements_none">This game has no achievements.</string>
+    <string name="steam_achievements_failed">Could not load the achievements from Steam.</string>
+    <string name="steam_achievements_offline">Steam could not be reached. Showing the last saved list.</string>
+    <string name="steam_achievements_close">Close</string>
+    <!-- Contents list: download state of a row -->
+    <string name="content_status_installed">Installed</string>
+    <string name="content_status_available">Not installed</string>
+</resources>

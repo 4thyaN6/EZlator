@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    First-run guide. One layout, three steps switched from FirstRunGuide.java:
+      welcome  - two big choice buttons (each about two shortcut tiles)
+      easy     - explanation + permission + Download / Later
+      expert   - essentials only / everything
+    The window cannot be dismissed by touching outside or pressing back, so the
+    text cannot vanish before it is read.
+    첫 실행 안내창임. 레이아웃 하나에 단계 3개를 FirstRunGuide.java가 바꿔 보여 줌:
+      welcome  - 큰 선택 버튼 2개(각각 숏컷 타일 2개 정도 크기)
+      easy     - 설명 + 권한 + 다운받기 / 나중에 받기
+      expert   - 필수만 받기 / 전부 받기
+    바깥을 터치하거나 뒤로가기를 눌러도 닫히지 않으므로, 읽기 전에 글이
+    사라지지 않음
+-->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:fadeScrollbars="true"
+    android:overScrollMode="ifContentScrolls">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/neon_dialog_bg"
+        android:orientation="vertical"
+        android:padding="22dp">
+
+        <TextView
+            android:id="@+id/TVGuideTitle"
+            style="@style/NeonTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="?attr/neonText" />
+
+        <TextView
+            android:id="@+id/TVGuideBody"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:lineSpacingMultiplier="1.25"
+            android:textColor="?attr/neonText"
+            android:textSize="14sp" />
+
+        <!-- Step 1: the two big choices. Sizes are set from Java so each
+             button matches two tiles of the current shortcut grid
+             1단계: 큰 선택 버튼 2개. 현재 숏컷 격자의 타일 2개 크기에 맞추도록
+             크기는 Java에서 정함 -->
+        <LinearLayout
+            android:id="@+id/LLGuideWelcome"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:id="@+id/BTGuideKnowNothing"
+                android:layout_width="match_parent"
+                android:layout_height="168dp"
+                android:background="@drawable/neon_button_primary"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="14dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/first_run_know_nothing"
+                    android:textColor="#FFFFFF"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:gravity="center"
+                    android:text="@string/first_run_know_nothing_sub"
+                    android:textColor="#FFFFFF"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/BTGuideKnowSome"
+                android:layout_width="match_parent"
+                android:layout_height="168dp"
+                android:background="@drawable/neon_button_ghost"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="14dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/first_run_know_some"
+                    android:textColor="?attr/neonText"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:gravity="center"
+                    android:text="@string/first_run_know_some_sub"
+                    android:textColor="?attr/neonTextDim"
+                    android:textSize="13sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Steps 2/3: permission status line + action buttons
+             2/3단계: 권한 상태 줄 + 동작 버튼 -->
+        <LinearLayout
+            android:id="@+id/LLGuideActions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/TVGuidePermission"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="?attr/neonAccent"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <!-- Button row: side by side on wide screens, stacked on narrow
+                 ones (orientation and spacing set in FirstRunGuide.java)
+                 버튼 줄: 넓은 화면에서는 가로, 좁은 화면에서는 세로로 놓임(방향과
+                 간격은 FirstRunGuide.java가 정함) -->
+            <LinearLayout
+                android:id="@+id/LLGuideActionRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:orientation="vertical">
+
+                <Button
+                    android:id="@+id/BTGuideBack"
+                    style="@style/NeonButtonGhost"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:text="@string/first_run_back"
+                    android:textColor="?attr/neonTextDim" />
+
+                <Button
+                    android:id="@+id/BTGuideSecondary"
+                    style="@style/NeonButtonGhost"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:textColor="?attr/neonText" />
+
+                <Button
+                    android:id="@+id/BTGuidePrimary"
+                    style="@style/NeonButtonPrimary"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Always shown: uninstall leaves shared-storage folders behind
+             항상 보임: 앱을 지워도 공용 저장소 폴더는 남음 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/first_run_uninstall_note"
+            android:textColor="?attr/neonTextDim"
+            android:textSize="11sp" />
+    </LinearLayout>
+</ScrollView>

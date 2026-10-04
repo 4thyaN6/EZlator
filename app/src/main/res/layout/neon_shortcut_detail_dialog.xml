@@ -1,0 +1,483 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Detail sheet opened by tapping a shortcut.
+    Layering, back to front: cover art -> scrim -> content.
+    Background order: custom cover -> tile image -> faint icon (Java side).
+    The scrim is not optional. Cover art is arbitrary user-supplied imagery,
+    so without a guaranteed dark layer the white text fails on bright covers.
+    숏컷을 눌렀을 때 열리는 상세창임.
+    뒤에서 앞 순서로 겹침: 커버 이미지 -> 어둠 막 -> 내용.
+    배경 순서: 사용자 지정 커버 -> 타일 이미지 -> 연한 아이콘 (Java 쪽).
+    어둠 막은 선택이 아님. 커버는 사용자가 아무 이미지나 넣는 것이라
+    어두운 층을 보장하지 않으면 밝은 커버에서 흰 글자가 안 보임
+-->
+<!--
+    Outer wrapper only exists to give the dialog its side margins, in dp.
+    The Java side sets the window width to MATCH_PARENT (no pixel math), so
+    Android resizes this margin declaratively on every rotation - that is
+    what fixes the landscape clipping: the old code computed a fixed pixel
+    width once with getDisplayMetrics().widthPixels and never recalculated it
+    if the dialog was already open when the device rotated.
+    바깥 틀은 dp 단위의 좌우 여백을 만들기 위한 것만임.
+    Java 쪽은 창 너비를 MATCH_PARENT로 둠(픽셀 계산 없음). 그래서 안드로이드가
+    이 여백을 회전마다 알아서 다시 계산함 - 가로 모드에서 잘리던 문제의 원인이
+    바로 이것임. 기존 코드는 getDisplayMetrics().widthPixels로 고정 픽셀 값을
+    한 번만 계산했고, 창이 열려 있는 채로 기기를 돌려도 다시 계산하지 않았음
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:paddingLeft="24dp"
+    android:paddingRight="24dp">
+
+<!--
+    RelativeLayout instead of FrameLayout: the cover and both scrims are pinned
+    to the top/bottom of the content (SVDetailContent), so the sheet height is
+    decided by the content alone. In a wrap_content FrameLayout a tall cover
+    image would report its own height and stretch the sheet to the screen.
+    FrameLayout 대신 RelativeLayout을 씀: 커버와 막 두 개를 내용(SVDetailContent)의
+    위/아래 끝에 고정해서 창 높이를 내용만으로 정함. wrap_content FrameLayout에서는
+    세로로 긴 커버가 자기 높이를 보고해서 창을 화면 끝까지 늘려 버림
+-->
+<RelativeLayout
+    android:id="@+id/FLShortcutDetail"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/neon_dialog_bg"
+    android:clipToOutline="true">
+
+    <!-- Cover as background / 배경으로 쓰는 커버 -->
+    <ImageView
+        android:id="@+id/IVDetailCover"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignTop="@+id/SVDetailContent"
+        android:layout_alignBottom="@+id/SVDetailContent"
+        android:scaleType="centerCrop"
+        android:contentDescription="@string/neon_cover" />
+
+    <!-- Both veils take their colour from the theme: black in dark mode,
+         white in light mode. That is what lets the cover stay visible as the
+         background while the sheet still matches the rest of the theme.
+         Tune the strength in colors_neon.xml (neon_l_scrim / neon_d_scrim)
+         and in neon_scrim_bottom_light/dark.xml - two values, one line each.
+         두 막 모두 테마에서 색을 가져옴. 다크는 검정, 라이트는 흰색임.
+         덕분에 커버가 배경으로 계속 보이면서도 창이 테마의 나머지와 맞음.
+         세기는 colors_neon.xml의 neon_l_scrim / neon_d_scrim과
+         neon_scrim_bottom_light/dark.xml에서 조절하면 됨. 각각 한 줄씩임 -->
+
+    <!-- Flat scrim first, gradient second. The flat layer guarantees a floor -->
+    <!-- of darkness; the gradient only shapes it toward the bottom -->
+    <!-- 평평한 막을 먼저, 그라데이션을 그 위에. 평평한 층이 최소 어둡기를 -->
+    <!-- 보장하고 그라데이션은 아래쪽으로 모양만 잡아 줌 -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignTop="@+id/SVDetailContent"
+        android:layout_alignBottom="@+id/SVDetailContent"
+        android:id="@+id/VDetailScrim"
+        android:background="?attr/neonScrim" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignTop="@+id/SVDetailContent"
+        android:layout_alignBottom="@+id/SVDetailContent"
+        android:id="@+id/VDetailScrimGradient"
+        android:background="?attr/neonScrimGradient" />
+
+    <!-- Scrolls only when the sheet is taller than the window (landscape
+         phones), since the image row below adds one more line of buttons
+         창보다 시트가 길 때만 스크롤됨(가로 모드 폰 등). 아래 이미지 버튼 줄이
+         한 줄 더 늘었기 때문임 -->
+    <ScrollView
+        android:id="@+id/SVDetailContent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fadeScrollbars="true"
+        android:overScrollMode="ifContentScrolls">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="22dp">
+
+        <!-- Text block (title ~ stats row). The negative margins cancel the
+             22dp sheet padding so the soft veil set from ShortcutsFragment
+             reaches the sheet edges; the padding gives the text its place back.
+             The veil is only applied over real artwork, and it fades out below
+             the stats row so the picture stays visible
+             글자 묶음(제목 ~ 정보 줄)임. 음수 여백이 창의 22dp 안쪽 여백을
+             상쇄해서 ShortcutsFragment에서 넣는 옅은 막이 창 끝까지 닿고, 안쪽
+             여백이 글자 자리를 되돌려 줌. 막은 실제 아트워크 위에만 적용하고
+             정보 줄 아래에서 사라져 그림이 그대로 보임 -->
+        <LinearLayout
+            android:id="@+id/LLDetailTextBlock"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="-22dp"
+            android:layout_marginTop="-22dp"
+            android:layout_marginRight="-22dp"
+            android:orientation="vertical"
+            android:paddingLeft="22dp"
+            android:paddingTop="22dp"
+            android:paddingRight="22dp"
+            android:paddingBottom="14dp">
+
+        <TextView
+            android:id="@+id/TVDetailName"
+            style="@style/NeonTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="?attr/neonText"
+            android:maxLines="2"
+            android:ellipsize="end" />
+
+        <TextView
+            android:id="@+id/TVDetailContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="?attr/neonTextDim"
+            android:textSize="13sp"
+            android:maxLines="1"
+            android:ellipsize="end" />
+
+        <!-- Three-line config summary: Wine/Proton version, DXVK+VKD3D (or
+             WineD3D) version, graphics driver. One TextView with embedded
+             newlines rather than three separate views - the line count is
+             fixed and always exactly 3, so there is nothing per-line to
+             style differently, and one view keeps this simple to update from
+             one place in ShortcutsFragment.showShortcutDetail().
+             구성 3줄 요약임: Wine/Proton 버전, DXVK+VKD3D(또는 WineD3D) 버전,
+             그래픽 드라이버. 뷰 3개 대신 줄바꿈이 들어간 TextView 하나로 처리함
+             - 줄 수가 항상 정확히 3으로 고정이라 줄마다 다르게 꾸밀 이유가
+             없고, 뷰 하나여야 ShortcutsFragment.showShortcutDetail() 한 곳에서
+             갱신하기 쉬움 -->
+        <TextView
+            android:id="@+id/TVDetailVersions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:textColor="?attr/neonTextDim"
+            android:textSize="12sp"
+            android:lineSpacingMultiplier="1.3"
+            android:fontFamily="monospace"
+            android:maxLines="3" />
+
+        <!-- Three stats on one row, equal weight. Equal weight keeps the -->
+        <!-- columns aligned no matter how long the values turn out -->
+        <!-- 정보 3개를 한 줄에 같은 비중으로 둠. 비중이 같아야 값 길이가 -->
+        <!-- 제각각이어도 열이 안 틀어짐 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="22dp"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/TVPlaytimeValue"
+                    style="@style/NeonStatValue"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="?attr/neonText"
+                    android:text="00:00" />
+
+                <TextView
+                    style="@style/NeonStatLabel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:textColor="?attr/neonTextDim"
+                    android:text="@string/neon_playtime" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/TVLastPlayedValue"
+                    style="@style/NeonStatValue"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="?attr/neonText"
+                    android:text="@string/neon_never_played" />
+
+                <TextView
+                    style="@style/NeonStatLabel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:textColor="?attr/neonTextDim"
+                    android:text="@string/neon_last_played" />
+            </LinearLayout>
+
+            <!-- Layer button (replaces the old Size stat). Same value/label
+                 stack as the stats beside it, but tappable: switches the
+                 shortcut between the ARM64EC and X86_64 containers. Hidden when
+                 beginner mode (EZ mode) is off and for Steam games, which are
+                 fixed to ARM64EC
+                 레이어 버튼임(예전 용량 칸 자리). 옆의 정보 칸과 같은 값/이름
+                 2줄 구성이지만 누를 수 있음: 숏컷을 ARM64EC와 X86_64 컨테이너
+                 사이에서 옮김. 초보자 모드(EZ mode)가 꺼져 있거나, ARM64EC로
+                 고정된 Steam 게임이면 숨김 -->
+            <LinearLayout
+                android:id="@+id/LLLayerSwitch"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/neon_button_ghost"
+                android:clickable="true"
+                android:focusable="true"
+                android:orientation="vertical"
+                android:paddingLeft="8dp"
+                android:paddingRight="8dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp">
+
+                <TextView
+                    android:id="@+id/TVLayerValue"
+                    style="@style/NeonStatValue"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="?attr/neonText"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:text="-" />
+
+                <TextView
+                    style="@style/NeonStatLabel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:textColor="?attr/neonTextDim"
+                    android:text="@string/neon_layer_change" />
+            </LinearLayout>
+        </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- START is the only filled button in this sheet. Edit and Remove are -->
+        <!-- outlines so the primary action is unmistakable at a glance -->
+        <!-- 이 창에서 꽉 찬 버튼은 시작뿐임. 편집과 삭제는 테두리형이라 -->
+        <!-- 주 동작이 한눈에 구분됨 -->
+        <!-- Start row. Steam games get an Achievements button on the left
+             (shown from ShortcutsFragment); Start takes the rest of the width -->
+        <!-- 시작 줄. 스팀 게임은 왼쪽에 도전과제 버튼이 생김(ShortcutsFragment에서
+             보이게 함). 시작 버튼은 남은 너비를 모두 씀 -->
+        <LinearLayout
+            android:id="@+id/LLStartRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/BTAchievements"
+                style="@style/NeonButtonGhost"
+                android:layout_width="wrap_content"
+                android:layout_height="54dp"
+                android:layout_marginEnd="10dp"
+                android:text="@string/steam_achievements"
+                android:visibility="gone" />
+
+            <Button
+                android:id="@+id/BTStart"
+                style="@style/NeonButtonPrimary"
+                android:layout_width="0dp"
+                android:layout_height="54dp"
+                android:layout_weight="1"
+                android:text="@string/neon_start" />
+        </LinearLayout>
+
+        <!-- Steam games only: update progress in place of Start
+             스팀 게임 전용: 시작 버튼 자리에 업데이트 진행 상황을 보여 줌 -->
+        <include
+            android:id="@+id/LLShortcutDlPanel"
+            layout="@layout/steam_download_panel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp" />
+
+        <!-- Steam update check result / 스팀 업데이트 확인 결과 -->
+        <TextView
+            android:id="@+id/TVSteamUpdateStatus"
+            style="@style/NeonCaption"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:gravity="center"
+            android:visibility="gone" />
+
+        <!-- Fold / unfold bar for the part below Start. Starts
+             unfolded unless Settings say otherwise; folding shortens the sheet,
+             so the folded part never lies over the artwork
+             시작 아래 부분의 접기 / 펼치기 줄. 설정에서 바꾸지 않으면 펼친 상태로
+             시작함. 접으면 창이 짧아지므로 접힌 부분이 아트워크 위에 걸리지 않음 -->
+        <TextView
+            android:id="@+id/TVDetailMoreToggle"
+            android:layout_width="match_parent"
+            android:layout_height="32dp"
+            android:layout_marginTop="6dp"
+            android:background="?attr/selectableItemBackground"
+            android:gravity="center"
+            android:textColor="?attr/neonTextDim"
+            android:textSize="13sp" />
+
+        <LinearLayout
+            android:id="@+id/LLDetailMore"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Image row: left = tile picture on the shortcut grid, right = this
+                 sheet's background cover. Same two-column split as Edit/Remove
+                 이미지 줄: 왼쪽 = 숏컷 격자의 타일 그림, 오른쪽 = 이 창의 배경 커버.
+                 편집/삭제와 같은 2열 분할임 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/BTTileImage"
+                    style="@style/NeonButtonGhost"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="1"
+                    android:layout_marginRight="5dp"
+                    android:textColor="?attr/neonText"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:text="@string/neon_tile_image" />
+
+                <Button
+                    android:id="@+id/BTBackgroundCover"
+                    style="@style/NeonButtonGhost"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="1"
+                    android:layout_marginLeft="5dp"
+                    android:textColor="?attr/neonText"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:text="@string/neon_background_cover" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/BTEditShortcut"
+                    style="@style/NeonButtonGhost"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="1"
+                    android:layout_marginRight="5dp"
+                    android:textColor="?attr/neonText"
+                    android:text="@string/neon_edit" />
+
+                <Button
+                    android:id="@+id/BTRemoveShortcut"
+                    style="@style/NeonButtonGhost"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="1"
+                    android:layout_marginLeft="5dp"
+                    android:textColor="?attr/neonText"
+                    android:text="@string/neon_remove" />
+            </LinearLayout>
+
+            <!-- Quick toggles for beginners. Box is match_parent so both outer edges
+                 line up exactly with the Edit/Remove row above. Left half sits under
+                 Edit (desktop GPU), right half under Remove (GStreamer). Both are
+                 per-shortcut and saved immediately; the same values stay editable
+                 in the full settings dialog.
+                 초보자용 빠른 토글임. 상자를 match_parent로 둬서 양 바깥 끝이 위의
+                 Edit/Remove 줄과 딱 맞음. 왼쪽 칸은 Edit 아래(데스크탑 GPU), 오른쪽
+                 칸은 Remove 아래(GStreamer)임. 둘 다 숏컷별 설정이고 즉시 저장되며,
+                 전체 설정창에서도 같은 값을 그대로 고칠 수 있음 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal"
+                android:background="@drawable/neon_quick_toggle_box">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:padding="10dp">
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/SWDesktopGpu"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="?attr/neonText"
+                        android:textSize="13sp"
+                        android:text="@string/neon_gpu_spoof" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:textColor="?attr/neonTextDim"
+                        android:textSize="11sp"
+                        android:text="@string/neon_gpu_spoof_hint" />
+                </LinearLayout>
+
+                <!-- Divider stops 10dp short of the top and bottom edges
+                     구분선은 위아래 끝에서 10dp씩 떨어져 있음 -->
+                <View
+                    android:layout_width="1dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="10dp"
+                    android:background="?attr/neonGlowMid" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:padding="10dp">
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/SWGStreamer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="?attr/neonText"
+                        android:textSize="13sp"
+                        android:text="@string/neon_gstreamer" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:textColor="?attr/neonTextDim"
+                        android:textSize="11sp"
+                        android:text="@string/neon_gstreamer_hint" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+    </ScrollView>
+</RelativeLayout>
+</FrameLayout>

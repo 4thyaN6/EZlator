@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Shortcuts screen - the app's home surface.
+    Structure: header (title + view toggle) / download strip / list / add FAB.
+    숏컷 화면임. 앱의 첫 화면 역할을 함.
+    구성: 머리말(제목 + 보기 전환) / 다운로드 띠 / 목록 / 추가 FAB
+
+    The RecyclerView carries no LayoutManager here on purpose - the fragment
+    swaps GridLayoutManager and LinearLayoutManager at runtime for the two
+    view modes, and a layout-declared manager would fight that.
+    RecyclerView에 LayoutManager를 일부러 안 박아 둠 - 프래그먼트가 두 보기
+    모드에 맞춰 실행 중에 GridLayoutManager와 LinearLayoutManager를 갈아
+    끼우는데, 레이아웃에 박아 두면 충돌함
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/neonBg">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <!-- Header row removed: the title now sits in the toolbar next to the
+             hamburger, and the Tile/List toggle is placed in the toolbar's
+             action slot by ShortcutsFragment - one line, same as every screen.
+             헤더 줄을 없앰: 제목은 이제 툴바의 햄버거 옆에 있고, 타일/리스트
+             전환은 ShortcutsFragment가 툴바 동작 슬롯에 넣음 - 모든 화면과
+             같은 한 줄 구성임 -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="8dp" />
+
+        <!-- ===== Download strip ===== -->
+        <!-- Shown only while something is downloading. Determinate bar plus a -->
+        <!-- label; the ring spinner is reserved for work with no known length -->
+        <!-- 다운로드 중일 때만 보임. 퍼센트 막대와 라벨을 씀. 고리 스피너는 -->
+        <!-- 길이를 모르는 작업용으로 남겨 둠 -->
+        <LinearLayout
+            android:id="@+id/LLDownloadStrip"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingLeft="18dp"
+            android:paddingRight="18dp"
+            android:paddingBottom="10dp"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/TVDownloadLabel"
+                    style="@style/NeonCaption"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:text="@string/neon_downloading" />
+
+                <TextView
+                    android:id="@+id/TVDownloadPercent"
+                    style="@style/NeonCaption"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="?attr/neonAccent"
+                    android:text="0%" />
+            </LinearLayout>
+
+            <ProgressBar
+                android:id="@+id/PBDownload"
+                style="@style/NeonProgressLinear"
+                android:layout_marginTop="6dp" />
+        </LinearLayout>
+
+        <!-- ===== List ===== -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <!-- clipToPadding false keeps the last row from hiding under the -->
+            <!-- FAB while still allowing it to scroll into free space -->
+            <!-- clipToPadding을 false로 두면 마지막 행이 FAB 밑에 가려지지 -->
+            <!-- 않으면서도 여백까지 스크롤됨 -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/RVShortcuts"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingLeft="6dp"
+                android:paddingRight="6dp"
+                android:paddingBottom="96dp"
+                android:clipToPadding="false"
+                android:scrollbars="none" />
+
+            <TextView
+                android:id="@+id/TVEmpty"
+                style="@style/NeonCaption"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:visibility="gone"
+                android:text="@string/neon_no_shortcuts" />
+        </FrameLayout>
+    </LinearLayout>
+
+    <!-- ===== Add button ===== -->
+    <!-- Stays bottom-right as requested. backgroundTint is cleared to null so -->
+    <!-- the sweep-gradient drawable is not flattened to a single colour -->
+    <!-- 요청대로 오른쪽 아래 유지함. backgroundTint를 null로 비워야 스윕 -->
+    <!-- 그라데이션 드로어블이 단색으로 뭉개지지 않음 -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/BTAddShortcut"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right|bottom"
+        android:layout_margin="18dp"
+        android:background="@drawable/neon_fab_bg"
+        android:backgroundTint="@null"
+        android:src="@drawable/icon_add"
+        android:tint="#FFFFFF"
+        android:contentDescription="@string/neon_add_shortcut" />
+</FrameLayout>

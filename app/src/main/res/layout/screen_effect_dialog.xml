@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    BUG FIX (phone clipping): the two columns used to sit side by side inside
+    a fixed 520dp row - same class of bug as the download dialog's 460dp.
+    Stacked vertically instead, at match_parent width, so it fits any screen.
+    The VerticalLine divider became a NeonSeparator (horizontal) to match.
+    버그 수정(폰 잘림): 두 칸이 고정 520dp 가로 줄 안에 나란히 있었음 -
+    다운로드 다이얼로그의 460dp와 같은 종류의 버그임. 세로로 쌓는 방식으로
+    바꾸고 match_parent 폭을 써서 어떤 화면에도 맞게 함. VerticalLine
+    구분선은 그에 맞춰 NeonSeparator(가로)로 바뀜
+
+    Note: com.winlator.cmod.widget.SeekBar paints its own colours in Java
+    (SeekBar.java) with no XML-exposed colour attrs, so its track/thumb stay
+    the old palette here - flagged separately, not silently skipped.
+    참고: com.winlator.cmod.widget.SeekBar는 Java(SeekBar.java) 안에서 색을
+    직접 칠하고 XML로 노출된 색 속성이 없어서, 여기 막대/손잡이는 옛 팔레트
+    그대로임 - 조용히 넘기지 않고 따로 표시해 둠
+-->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout style="@style/NeonFieldSet">
+
+                <TextView
+                    style="@style/NeonBody"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/brightness" />
+                <com.winlator.cmod.widget.SeekBar
+                    android:id="@+id/SBBrightness"
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                    app:maxValue="50" app:minValue="-50" />
+
+                <TextView
+                    style="@style/NeonBody"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/contrast" />
+                <com.winlator.cmod.widget.SeekBar
+                    android:id="@+id/SBContrast"
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                    app:maxValue="100" app:minValue="-100" />
+
+                <TextView
+                    style="@style/NeonBody"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/gamma" />
+                <com.winlator.cmod.widget.SeekBar
+                    android:id="@+id/SBGamma"
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                    app:maxValue="3.0" app:minValue="0.5" app:step="0.01" />
+            </LinearLayout>
+
+            <!-- android:background dropped: NeonSectionLabel's own style
+                 already carries ?attr/neonBg, and a locally-set attribute
+                 always wins over the style's - the old hardcoded #ffffffff
+                 would have blocked the theme colour from ever showing.
+                 android:background을 뺌: NeonSectionLabel 스타일 자체에 이미
+                 ?attr/neonBg가 있고, 직접 지정한 속성이 스타일보다 항상
+                 우선함 - 옛 고정값 #ffffffff를 두면 테마 색이 절대 안 보임 -->
+            <TextView
+                style="@style/NeonSectionLabel"
+                android:id="@+id/LBLColorAdjustment"
+                android:text="@string/color_adjustment" />
+        </FrameLayout>
+
+        <View style="@style/NeonSeparator" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                style="@style/NeonBody"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/profile" />
+
+            <LinearLayout
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <Spinner
+                    android:id="@id/SProfile"
+                    style="@style/NeonComboBox"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
+
+                <ImageButton
+                    android:id="@id/BTAddProfile"
+                    style="@style/NeonIconMenuButton"
+                    android:src="@drawable/icon_add" />
+                <ImageButton
+                    android:id="@id/BTRemoveProfile"
+                    style="@style/NeonIconMenuButton"
+                    android:layout_marginRight="0dp"
+                    android:src="@drawable/icon_remove" />
+            </LinearLayout>
+
+            <androidx.appcompat.widget.SwitchCompat
+                style="@style/NeonSwitch"
+                android:id="@+id/CBEnableFXAA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/enable_fxaa" />
+            <androidx.appcompat.widget.SwitchCompat
+                style="@style/NeonSwitch"
+                android:id="@+id/CBEnableCRTShader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/enable_crt_shader" />
+            <androidx.appcompat.widget.SwitchCompat
+                style="@style/NeonSwitch"
+                android:id="@+id/CBEnableToonShader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/enable_toon_shader" />
+            <androidx.appcompat.widget.SwitchCompat
+                style="@style/NeonSwitch"
+                android:id="@+id/CBEnableNTSCEffect"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/enable_ntsc_effect" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- @id -> @+id: this file overrides the androidx.preference layout of the same name,
+     so the library layout that used to declare switchWidget no longer exists, and the
+     release build failed with "resource id/... not found". Declaring the ids here
+     fixes the link error.
+     @id -> @+id로 바꿈: 이 파일이 androidx.preference의 같은 이름 레이아웃을 덮어써서
+     switchWidget를 선언하던 라이브러리 레이아웃이 사라짐. 그래서 릴리즈 빌드가
+     "resource id/... not found"로 실패했음. 여기서 id를 직접 선언해 해결함 -->
+<androidx.appcompat.widget.SwitchCompat android:id="@+id/switchWidget" android:background="@null" android:focusable="false" android:clickable="false" android:layout_width="wrap_content" android:layout_height="wrap_content"
+  xmlns:android="http://schemas.android.com/apk/res/android" />

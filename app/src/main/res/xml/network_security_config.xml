@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Network policy: plain http (cleartext) is allowed for the whole app.
+    Some Steam content servers (e.g. alibaba.cdn.steampipe.steamcontent.com) are handed
+    out as http only, and with the default policy every chunk from them failed with
+    "CLEARTEXT communication ... not permitted". The chunks are encrypted with the
+    depot key and checked against the manifest, so plain http does not expose or alter
+    game data.
+    No domain-config on purpose: once any domain-specific entry exists, Android's
+    trust manager refuses the certificate check that does not pass a host name
+    ("Domain specific configurations require that hostname aware checkServerTrusted
+    ... is used"). The Steam login WebSocket client does exactly that check, so with a
+    domain-config every WebSocket connection to a Steam server failed and downloads
+    stopped at "Disconnected before log on".
+    네트워크 정책: 앱 전체에서 암호화되지 않은 http(cleartext)를 허용함.
+    일부 스팀 콘텐츠 서버(예: alibaba.cdn.steampipe.steamcontent.com)는 http로만 배정되는데,
+    기본 정책에서는 그 서버의 조각이 모두 "CLEARTEXT communication ... not permitted"로
+    실패했음. 조각은 depot 키로 암호화되어 있고 매니페스트와 대조되므로, http여도 게임
+    데이터가 노출되거나 바뀌지 않음.
+    domain-config는 일부러 두지 않음: 도메인별 항목이 하나라도 있으면 안드로이드 신뢰
+    관리자가 호스트 이름 없이 하는 인증서 검사를 거부함("Domain specific configurations
+    require that hostname aware checkServerTrusted ... is used"). 스팀 로그인용 WebSocket
+    클라이언트가 바로 그 검사를 쓰므로, domain-config가 있으면 스팀 서버로의 WebSocket
+    연결이 모두 실패하고 다운로드가 "Disconnected before log on"에서 멈췄음
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

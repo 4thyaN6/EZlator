@@ -1,0 +1,965 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/neonBg"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- Tabs sit at the very top of the screen, right below the toolbar,
+         Chrome-tab style — the user picks a tab first, then sees only that
+         section's fields. This replaces the old layout where Name/Wine
+         Version/Screen Size/FPS sat above the tabs for every tab.
+         탭이 화면 최상단(툴바 바로 아래)에 옴 — 크롬 탭처럼 먼저 탭을 고르고
+         그 섹션 내용만 보임. 예전엔 이름/Wine버전/화면크기/FPS가 모든 탭
+         위에 항상 떠 있었는데 이제 전부 탭 안으로 들어감 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <!-- Tab colours come from the theme. The indicator is sized to the
+             label rather than the full tab so the lit bar reads as a highlight
+             under the word, not as a divider.
+             탭 색은 테마에서 가져옴. 표시줄을 탭 전체가 아니라 글자 너비에 맞춰서,
+             빛나는 막대가 구분선이 아니라 글자 밑 강조처럼 보이게 함 -->
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/TabLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/neon_tab_bg"
+            app:tabGravity="center"
+            app:tabMode="auto"
+            app:tabTextColor="?attr/neonTextDim"
+            app:tabSelectedTextColor="?attr/neonAccent"
+            app:tabIndicatorColor="?attr/neonAccent"
+            app:tabIndicatorHeight="3dp"
+            app:tabIndicatorFullWidth="false"
+            app:tabRippleColor="?attr/neonGlowSoft">
+
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/tab_wine" />
+
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/tab_graphics_binaries" />
+
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/advanced" />
+
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/win_components" />
+
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/drives" />
+
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/environment_variables" />
+        </com.google.android.material.tabs.TabLayout>
+
+        <!-- height 0 + weight 1: the ScrollView takes whatever is left after
+             the tabs and the pinned save bar, instead of claiming the full
+             height and pushing the bar off screen.
+             높이 0 + weight 1: ScrollView가 탭과 하단 저장 바를 뺀 나머지 공간만
+             차지함. 전체 높이를 잡으면 저장 바가 화면 밖으로 밀려남 -->
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+        <!-- ================= TAB 1: Wine =================
+             Container identity + how Wine itself runs + desktop look +
+             audio/MIDI/locale. Everything a user sets ONCE per container
+             and rarely touches again.
+             컨테이너 정체성 + Wine 자체 실행 방식 + 데스크톱 외형 +
+             오디오/MIDI/로케일. 컨테이너 만들 때 한 번 정하고 잘 안
+             건드리는 것들을 모음 -->
+        <LinearLayout
+            android:id="@+id/LLTabWine"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/name" />
+
+            <EditText
+                style="@style/AppTheme"
+                android:id="@+id/ETName"
+                android:inputType="textCapSentences"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <LinearLayout
+                android:id="@+id/LLWineVersion"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="8dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/wine_version" />
+
+                <Spinner
+                    style="@style/NeonComboBox"
+                    android:layout_width="match_parent"
+                    android:id="@+id/SWineVersion" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="8dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/screen_size" />
+
+                    <Spinner
+                        style="@style/NeonComboBox"
+                        android:layout_width="match_parent"
+                        android:id="@+id/SScreenSize"
+                        android:entries="@array/screen_size_entries"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:clickable="true"
+                        android:spinnerMode="dialog" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/LLCustomScreenSize"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/width" />
+
+                        <EditText
+                            style="@style/AppTheme"
+                            android:layout_width="78dp"
+                            android:layout_height="wrap_content"
+                            android:id="@+id/ETScreenWidth"
+                            android:inputType="number" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textStyle="bold"
+                        android:textSize="18dp"
+                        android:layout_gravity="bottom"
+                        android:layout_marginLeft="2dp"
+                        android:layout_marginRight="2dp"
+                        android:layout_marginBottom="4dp"
+                        android:text="x" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/height" />
+
+                        <EditText
+                            style="@style/AppTheme"
+                            android:layout_width="78dp"
+                            android:layout_height="wrap_content"
+                            android:id="@+id/ETScreenHeight"
+                            android:inputType="number" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+
+            <androidx.appcompat.widget.SwitchCompat
+                style="@style/NeonSwitch"
+                android:id="@+id/CBShowFPS"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/show_fps"
+                android:layout_marginTop="8dp" />
+
+            <androidx.appcompat.widget.SwitchCompat
+                style="@style/NeonSwitch"
+                android:id="@+id/CBFullscreenStretched"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/fullscreen_stretched"
+                android:layout_marginTop="8dp" />
+
+            <!-- Desktop look — moved here from the old "Wine Configuration"
+                 tab, since it's about how Wine's own desktop is presented,
+                 not about the graphics/rendering stack.
+                 Desktop 외형 설정 — 예전 "Wine Configuration" 탭에서
+                 옮겨옴. 그래픽/렌더링이 아니라 Wine 데스크톱 자체가
+                 어떻게 보이는지에 관한 설정이라 여기가 맞음 -->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp">
+
+                <LinearLayout style="@style/NeonFieldSet">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/theme" />
+
+                    <Spinner
+                        style="@style/NeonComboBox"
+                        android:id="@+id/SDesktopTheme"
+                        android:layout_width="match_parent"
+                        android:entries="@array/desktop_theme_entries" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/background" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <Spinner
+                            android:id="@+id/SDesktopBackgroundType"
+                            style="@style/NeonComboBox"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:entries="@array/desktop_background_type_entries" />
+
+                        <com.winlator.cmod.widget.ColorPickerView
+                            android:id="@+id/CPVDesktopBackgroundColor"
+                            android:layout_width="84dp"
+                            android:layout_height="wrap_content"
+                            android:visibility="gone" />
+
+                        <com.winlator.cmod.widget.ImagePickerView
+                            android:id="@+id/IPVDesktopBackgroundImage"
+                            android:layout_width="84dp"
+                            android:layout_height="wrap_content"
+                            android:visibility="gone" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <TextView
+                    style="@style/NeonSectionLabel"
+                    android:id="@+id/TVDesktop"
+                    android:text="@string/desktop" />
+            </FrameLayout>
+
+            <!-- Audio/MIDI/locale — moved here from the old, now-retired
+                 "기타 설정" tab. These are one-time-per-container settings
+                 like everything else in this tab, so folding them in here
+                 removes a whole tab without losing anything.
+                 오디오/MIDI/로케일 — 이제 없앤 "기타 설정" 탭에서 옮겨옴.
+                 이 탭의 다른 항목들처럼 컨테이너당 한 번 정하는 설정이라
+                 여기로 합쳐도 기능 손실 없이 탭 하나를 줄일 수 있음 -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/audio_driver"
+                android:layout_marginTop="8dp" />
+
+            <Spinner
+                style="@style/NeonComboBox"
+                android:layout_width="match_parent"
+                android:id="@+id/SAudioDriver"
+                android:entries="@array/audio_driver_entries" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/midi_sound_font" />
+
+            <Spinner
+                style="@style/NeonComboBox"
+                android:layout_width="match_parent"
+                android:id="@+id/SMIDISoundFont" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/lc_all" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <EditText
+                    style="@style/AppTheme"
+                    android:layout_gravity="center"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:id="@+id/ETlcall" />
+
+                <ImageButton
+                    style="@style/NeonIconMenuButton"
+                    android:id="@+id/BTShowLCALL"
+                    android:layout_gravity="center"
+                    android:src="@drawable/icon_menu" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- ================= TAB 2: 그래픽/바이너리 =================
+             Everything that decides whether a game renders correctly:
+             driver, DX translation layer, and the low-level renderer
+             knobs that used to live in a separate "Wine Configuration"
+             tab. This is the first place to look when a game won't run.
+             게임이 제대로 렌더링되는지를 결정하는 모든 것: 드라이버,
+             DX 번역 계층, 그리고 예전 "Wine Configuration" 탭에 있던
+             저수준 렌더러 옵션들. 게임이 안 될 때 제일 먼저 볼 곳 -->
+        <LinearLayout
+            android:id="@+id/LLTabGraphicsBinaries"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/graphics_driver" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <Spinner
+                    style="@style/NeonComboBox"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:id="@+id/SGraphicsDriver"
+                    android:entries="@array/graphics_driver_entries" />
+
+                <ImageButton
+                    style="@style/NeonIconMenuButton"
+                    android:id="@+id/BTGraphicsDriverConfig"
+                    android:src="@drawable/icon_settings"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/dxwrapper" />
+
+                <ImageView
+                    android:id="@+id/BTHelpDXWrapper"
+                    style="@style/HelpButton" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <Spinner
+                    android:id="@+id/SDXWrapper"
+                    style="@style/NeonComboBox"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:entries="@array/dxwrapper_entries" />
+
+                <ImageButton
+                    style="@style/NeonIconMenuButton"
+                    android:id="@+id/BTDXWrapperConfig"
+                    android:src="@drawable/icon_settings"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/ddraw_wrapper" />
+
+            <Spinner
+                android:id="@+id/SDDrawrapper"
+                style="@style/NeonComboBox"
+                android:layout_width="match_parent"
+                android:layout_weight="1"
+                android:entries="@array/ddrawrapper_entries" />
+
+                    <!-- Hidden per an earlier decision to drop the manual DLL-emulator
+             picker from the UI (Box86/Box64/FEXCore/Wine selection here).
+             visibility="gone" rather than deleted - the spinners
+             (SEmulator64/SEmulator) still exist and still write whatever
+             their default selection is, so check that default is sane
+             before this is ever deleted outright.
+             UI에서 수동 DLL 에뮬레이터 선택기를 빼기로 한 이전 결정에 따라
+             숨김(Box86/Box64/FEXCore/Wine 선택). 지우지 않고 visibility="gone"만
+             줌 - 스피너(SEmulator64/SEmulator)는 여전히 존재하고 기본 선택값을
+             그대로 기록하므로, 나중에 완전히 지우기 전에 그 기본값이 맞는지
+             확인해야 함 -->
+<LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:id="@+id/LLEmulator"
+            android:visibility="gone">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="64bit Emulator" />
+
+                <Spinner
+                    style="@style/NeonComboBox"
+                    android:layout_width="match_parent"
+                    android:id="@+id/SEmulator64"
+                    android:entries="@array/emulator_entries"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/dll_emulator" />
+
+                <Spinner
+                    style="@style/NeonComboBox"
+                    android:layout_width="match_parent"
+                    android:id="@+id/SEmulator"
+                    android:entries="@array/emulator_entries"/>
+            </LinearLayout>
+
+            <!-- Low-level renderer settings — moved here from the old
+                 "Wine Configuration" tab, since these are all genuinely
+                 graphics-stack knobs (renderer backend, threading, VRAM
+                 reporting), not Wine-identity settings.
+                 저수준 렌더러 설정 — 예전 "Wine Configuration" 탭에서
+                 옮겨옴. 전부 그래픽 스택 관련 설정(렌더러 백엔드,
+                 스레딩, VRAM 보고값)이지 Wine 정체성 설정이 아니라서 -->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp">
+
+                <LinearLayout style="@style/NeonFieldSet">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/renderer" />
+
+                    <Spinner
+                        style="@style/NeonComboBox"
+                        android:id="@+id/SRenderer"
+                        android:layout_width="match_parent" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/csmt" />
+
+                    <Spinner
+                        style="@style/NeonComboBox"
+                        android:id="@+id/SCSMT"
+                        android:layout_width="match_parent" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/gpu_name" />
+
+                    <Spinner
+                        style="@style/NeonComboBox"
+                        android:id="@+id/SGPUName"
+                        android:layout_width="match_parent"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:clickable="true"
+                        android:spinnerMode="dialog" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/video_memory_size" />
+
+                    <Spinner
+                        style="@style/NeonComboBox"
+                        android:id="@+id/SVideoMemorySize"
+                        android:layout_width="match_parent"
+                        android:entries="@array/video_memory_size_entries" />
+
+                    <!-- One-tap compatibility fallback: spoof as a
+                         GTX 1080 with 4096MB VRAM, a very widely
+                         recognized "safe" card for older compatibility
+                         checks, since GPU Name/Video Memory default to
+                         "auto" (no spoofing) otherwise.
+                         원클릭 호환 모드: GPU이름/비디오메모리가 기본은
+                         "자동"(위장 안 함)인데, 그래도 게임이 안 되면
+                         널리 인식되는 "안전한" 카드인 GTX 1080 +
+                         4096MB로 즉시 위장 전환 -->
+                    <androidx.appcompat.widget.SwitchCompat
+                        style="@style/NeonSwitch"
+                        android:id="@+id/CBGPUCompatibilityMode"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/gpu_compatibility_mode"
+                        android:layout_marginTop="8dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/gpu_compatibility_mode_hint"
+                        android:textSize="12sp"
+                        android:layout_marginTop="2dp" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/TVRegistryKeys"
+                    style="@style/NeonSectionLabel"
+                    android:text="@string/registry_keys" />
+            </FrameLayout>
+        </LinearLayout>
+
+        <!-- ================= TAB 3: 고급 =================
+             Box64/FEXCore fine-tuning, WoW64, the remaining renderer
+             knobs that are rarely touched (offscreen mode, shader math,
+             mouse warp), RC File, startup selection, CPU affinity.
+             Everything here is "second thing to try" material, not
+             "first thing a beginner sees."
+             Box64/FEXCore 세부 튜닝, WoW64, 자주 안 건드리는 나머지
+             렌더러 옵션(오프스크린 모드/셰이더 수학/마우스 워프),
+             RC 파일, 시작 선택, CPU 선호도. 전부 "1차로 안 되면 2차로
+             시도해볼" 것들이지 초심자가 처음 볼 필요는 없는 것들 -->
+        <LinearLayout
+            android:id="@+id/LLTabAdvanced"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:visibility="gone">
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/box86box64Frame">
+
+                <LinearLayout style="@style/NeonFieldSet">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/box64_version" />
+
+                    <Spinner
+                        style="@style/NeonComboBox"
+                        android:id="@+id/SBox64Version"
+                        android:layout_width="match_parent"
+                        android:spinnerMode="dialog" />
+
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/box64_preset" />
+                        <ImageView android:id="@+id/BTHelpBox64Preset" style="@style/HelpButton" />
+                    </LinearLayout>
+
+                    <Spinner
+                        style="@style/NeonComboBox"
+                        android:id="@+id/SBox64Preset"
+                        android:layout_width="match_parent"
+                        android:spinnerMode="dialog" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/box86_64_rc_files" />
+
+                        <ImageView
+                            android:id="@+id/BTHelpRCFile"
+                            style="@style/HelpButton" />
+                    </LinearLayout>
+
+                    <Spinner
+                        style="@style/NeonComboBox"
+                        android:id="@+id/SRCFile"
+                        android:layout_width="match_parent" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/TVBox86Box64"
+                    style="@style/NeonSectionLabel"
+                    android:text="@string/box64_section_container" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/fexcoreFrame"
+                android:layout_marginTop="8dp">
+
+                <LinearLayout style="@style/NeonFieldSet">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/fexcore_version" />
+
+                    <Spinner
+                        style="@style/NeonComboBox"
+                        android:id="@+id/SFEXCoreVersion"
+                        android:layout_width="match_parent" />
+
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/fexcore_tso_preset" />
+                        <ImageView android:id="@+id/BTHelpTSOMode" style="@style/HelpButton" />
+                    </LinearLayout>
+
+                    <Spinner
+                        style="@style/NeonComboBox"
+                        android:id="@+id/SFEXCoreTSOPreset"
+                        android:layout_width="match_parent" />
+
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/fexcore_x87reduced_precision" />
+                        <ImageView android:id="@+id/BTHelpX87Mode" style="@style/HelpButton" />
+                    </LinearLayout>
+
+                    <Spinner
+                        style="@style/NeonComboBox"
+                        android:id="@+id/SFEXCoreX87ReducedPrecision"
+                        android:layout_width="match_parent"/>
+
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/fexcore_multiblock" />
+                        <ImageView android:id="@+id/BTHelpMultiBlock" style="@style/HelpButton" />
+                    </LinearLayout>
+
+                    <Spinner
+                        style="@style/NeonComboBox"
+                        android:id="@+id/SFEXCoreMultiblock"
+                        android:layout_width="match_parent"/>
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/TVFEXCore"
+                    style="@style/NeonSectionLabel"
+                    android:text="@string/fexcore_config" />
+
+            </FrameLayout>
+
+            <!-- The rest of the old renderer FieldSet that isn't
+                 graphics-critical enough for tab 2 — offscreen mode,
+                 shader math, mouse warp. Second-tier troubleshooting.
+                 그래픽 탭(2번)에 둘 만큼 핵심은 아닌 나머지 렌더러
+                 옵션들 — 오프스크린 모드, 셰이더 수학, 마우스 워프.
+                 2차 문제해결용 -->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp">
+
+                <LinearLayout style="@style/NeonFieldSet">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/offscreen_rendering_mode" />
+
+                    <Spinner
+                        style="@style/NeonComboBox"
+                        android:id="@+id/SOffscreenRenderingMode"
+                        android:layout_width="match_parent" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/strict_shader_math" />
+
+                    <Spinner
+                        style="@style/NeonComboBox"
+                        android:id="@+id/SStrictShaderMath"
+                        android:layout_width="match_parent" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/mouse_warp_override" />
+
+                    <Spinner
+                        style="@style/NeonComboBox"
+                        android:id="@+id/SMouseWarpOverride"
+                        android:layout_width="match_parent" />
+                </LinearLayout>
+
+                <TextView
+                    style="@style/NeonSectionLabel"
+                    android:text="@string/registry_keys" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp">
+
+                <LinearLayout style="@style/NeonFieldSet">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/startup_selection" />
+
+                    <Spinner
+                        style="@style/NeonComboBox"
+                        android:layout_width="match_parent"
+                        android:id="@+id/SStartupSelection"
+                        android:entries="@array/startup_selection_entries" />
+
+                    <!-- WoW64 mode — moved here from the old "System"
+                         block, since it's an execution-mode toggle that
+                         belongs with the other advanced/experimental
+                         switches, not with everyday container identity.
+                         WoW64 모드 — 예전 "System" 블록에서 옮겨옴.
+                         실행 방식을 바꾸는 실험적 토글이라 매일 쓰는
+                         컨테이너 정체성 설정이 아니라 여기(고급)가 맞음 -->
+                    <androidx.appcompat.widget.SwitchCompat
+                        style="@style/NeonSwitch"
+                        android:id="@+id/CBWoW64Mode"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/enable_experimental_wow64_mode"
+                        android:checked="true"
+                        android:enabled="false"
+                        android:layout_marginTop="8dp" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        style="@style/NeonSwitch"
+                        android:id="@+id/CBGStreamerWorkaroundToggle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/enable_gstreamer_workaround" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/TVSystem"
+                    style="@style/NeonSectionLabel"
+                    android:text="@string/system" />
+            </FrameLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/processor_affinity"
+                android:layout_marginTop="8dp" />
+
+            <com.winlator.cmod.widget.CPUListView
+                android:id="@+id/CPUListView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:layout_marginTop="4dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/processor_affinity_32_bit_apps"
+                android:layout_marginTop="8dp" />
+
+            <com.winlator.cmod.widget.CPUListView
+                android:id="@+id/CPUListViewWoW64"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:layout_marginTop="4dp" />
+        </LinearLayout>
+
+        <!-- ================= TAB 4: 구성요소 (unchanged) ================= -->
+        <LinearLayout
+            android:id="@+id/LLTabWinComponents"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:visibility="gone">
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <LinearLayout
+                    style="@style/NeonFieldSet"
+                    android:id="@+id/LLWinComponentsDirectX" />
+
+                <TextView
+                    android:id="@+id/TVDirectX"
+                    style="@style/NeonSectionLabel"
+                    android:text="@string/directx" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp">
+
+                <LinearLayout
+                    style="@style/NeonFieldSet"
+                    android:id="@+id/LLWinComponentsGeneral" />
+
+                <TextView
+                    android:id="@+id/TVGeneral"
+                    style="@style/NeonSectionLabel"
+                    android:text="@string/general" />
+            </FrameLayout>
+        </LinearLayout>
+
+        <!-- ================= TAB 5: 드라이브 (unchanged) ================= -->
+        <LinearLayout
+            android:id="@+id/LLTabDrives"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingLeft="20dp"
+                android:paddingRight="20dp"
+                android:layout_marginBottom="4dp">
+
+                <TextView
+                    android:layout_width="100dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/letter" />
+
+                <TextView
+                    android:layout_width="100dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/target_path" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/LLDrives"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingLeft="16dp"
+                android:paddingRight="16dp"/>
+
+            <TextView
+                android:id="@+id/TVDrivesEmptyText"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="@string/no_items_to_display_drives"
+                android:padding="16dp"
+                android:visibility="gone" />
+
+            <View style="@style/NeonSeparator" />
+
+            <Button
+                style="@style/NeonButtonGhost"
+                android:id="@+id/BTAddDrive"
+                android:layout_width="160dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:text="@string/add" />
+        </LinearLayout>
+
+        <!-- ================= TAB 6: 환경변수 (unchanged) ================= -->
+        <LinearLayout
+            android:id="@+id/LLTabEnvVars"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:visibility="gone">
+
+            <com.winlator.cmod.widget.EnvVarsView
+                android:id="@+id/EnvVarsView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
+            <View style="@style/NeonSeparator" />
+
+            <Button
+                style="@style/NeonButtonGhost"
+                android:id="@+id/BTAddEnvVar"
+                android:layout_width="160dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:text="@string/add" />
+        </LinearLayout>
+
+        </FrameLayout>
+        </ScrollView>
+
+        <!-- Pinned save bar, same as the settings screen. The old floating
+             button sat over the scroll area and covered the last field on
+             every tab. BTConfirm keeps its id, so the listener at
+             ContainerDetailFragment line 568 binds without a change.
+             하단 고정 저장 바임. 설정 화면과 같은 방식임. 예전 플로팅 버튼은
+             스크롤 영역 위에 떠서 모든 탭의 마지막 항목을 가렸음. BTConfirm이
+             id를 유지하므로 ContainerDetailFragment 568번째 줄의 리스너가 수정
+             없이 붙음 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="?attr/neonSurface">
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="?attr/neonGlowMid" />
+
+            <Button
+                android:id="@+id/BTConfirm"
+                style="@style/NeonButtonPrimary"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_margin="12dp"
+                android:text="@string/neon_save" />
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

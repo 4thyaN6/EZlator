@@ -1,0 +1,357 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Widget styles for the neon system. Every name is prefixed "Neon" so this
+    file can sit next to the existing styles.xml without a duplicate-name build
+    failure. The old FieldSet / FieldSetLabel / ComboBox styles stay untouched
+    until each screen is migrated.
+    네온 시스템용 위젯 스타일임. 이름에 전부 "Neon"을 붙여서 기존 styles.xml
+    옆에 그대로 둬도 이름 중복 빌드 오류가 안 남. 각 화면을 옮기기 전까지는
+    기존 FieldSet / FieldSetLabel / ComboBox 스타일이 그대로 살아 있음
+-->
+<resources>
+
+    <!-- Toolbar title for every screen. Theme-attr based so one style serves
+         both palettes, and bold + glow so the title on the toolbar reads as
+         the same heading that used to sit inline on the Shortcuts screen.
+         모든 화면 공용 툴바 제목임. 테마 속성 기반이라 스타일 하나로 두
+         팔레트를 다 처리하고, 굵게 + 발광을 넣어서 예전에 숏컷 화면 안에
+         있던 큰 제목과 같은 헤더로 읽히게 함 -->
+    <style name="NeonToolbarTitleText" parent="TextAppearance.AppCompat.Widget.ActionBar.Title">
+        <item name="android:textColor">?attr/neonText</item>
+        <item name="android:textSize">21sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:shadowColor">?attr/neonGlowMid</item>
+        <item name="android:shadowRadius">10</item>
+        <item name="android:shadowDx">0</item>
+        <item name="android:shadowDy">0</item>
+    </style>
+
+    <!-- ============ Text ============ -->
+
+    <!-- Screen-level heading. The glow lives here and almost nowhere else - -->
+    <!-- neon works by scarcity, and glowing body text is simply unreadable -->
+    <!-- 화면 대제목임. 발광은 거의 여기에만 씀 - 네온은 드물게 써야 살고, -->
+    <!-- 본문에 발광을 넣으면 그냥 안 읽힘 -->
+    <style name="NeonTitle">
+        <item name="android:textColor">?attr/neonText</item>
+        <item name="android:textSize">22sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:letterSpacing">0.02</item>
+        <item name="android:shadowColor">?attr/neonGlowMid</item>
+        <item name="android:shadowRadius">12</item>
+        <item name="android:shadowDx">0</item>
+        <item name="android:shadowDy">0</item>
+    </style>
+
+    <!-- Section label that replaces FieldSetLabel. The old one was recoloured -->
+    <!-- from Java (SettingsFragment lines 604-616) with hardcoded #bdbdbd / -->
+    <!-- #cccccc; this pulls the colour from the theme instead, so that whole -->
+    <!-- method becomes dead code -->
+    <!-- FieldSetLabel을 대체하는 구역 라벨임. 기존 것은 Java에서 -->
+    <!-- (SettingsFragment 604~616번째 줄) #bdbdbd / #cccccc를 박아 칠했는데, -->
+    <!-- 이건 테마에서 색을 가져오므로 그 메서드 전체가 죽은 코드가 됨 -->
+    <style name="NeonSectionLabel">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">?attr/neonAccent</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:letterSpacing">0.12</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:paddingLeft">6dp</item>
+        <item name="android:paddingRight">6dp</item>
+        <item name="android:paddingTop">2dp</item>
+        <item name="android:paddingBottom">2dp</item>
+        <item name="android:layout_marginLeft">14dp</item>
+        <item name="android:background">?attr/neonBg</item>
+        <item name="android:shadowColor">?attr/neonGlowMid</item>
+        <item name="android:shadowRadius">8</item>
+        <item name="android:shadowDx">0</item>
+        <item name="android:shadowDy">0</item>
+    </style>
+
+    <style name="NeonBody">
+        <item name="android:textColor">?attr/neonText</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:lineSpacingMultiplier">1.25</item>
+    </style>
+
+    <!-- Secondary text. 13sp is the floor - anything smaller on a dim colour -->
+    <!-- fails at arm's length on a phone -->
+    <!-- 보조 글자임. 13sp가 하한선 - 흐린 색에 이보다 작으면 폰을 팔 뻗은 -->
+    <!-- 거리에서 못 읽음 -->
+    <style name="NeonCaption">
+        <item name="android:textColor">?attr/neonTextDim</item>
+        <item name="android:textSize">13sp</item>
+    </style>
+
+    <!-- Numeric readout in the detail sheet (playtime, size, last played) -->
+    <!-- 상세창 숫자 표시용(플레이시간, 용량, 마지막 실행일) -->
+    <style name="NeonStatValue">
+        <item name="android:textColor">?attr/neonText</item>
+        <item name="android:textSize">17sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:singleLine">true</item>
+    </style>
+
+    <style name="NeonStatLabel">
+        <item name="android:textColor">?attr/neonTextDim</item>
+        <item name="android:textSize">11sp</item>
+        <item name="android:letterSpacing">0.08</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:singleLine">true</item>
+    </style>
+
+    <!-- ============ Containers ============ -->
+
+    <!-- Replacement for the FieldSet style used throughout settings_fragment -->
+    <!-- settings_fragment 전반에서 쓰던 FieldSet 스타일의 대체품임 -->
+    <style name="NeonFieldSet">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:background">@drawable/neon_field_bg</item>
+        <item name="android:padding">16dp</item>
+        <item name="android:layout_marginTop">14dp</item>
+    </style>
+
+    <style name="NeonSeparator">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">1dp</item>
+        <item name="android:background">?attr/neonDivider</item>
+        <item name="android:layout_marginTop">12dp</item>
+        <item name="android:layout_marginBottom">12dp</item>
+    </style>
+
+    <!-- ============ Controls ============ -->
+
+    <style name="NeonButtonPrimary" parent="Widget.AppCompat.Button.Borderless">
+        <item name="android:background">@drawable/neon_button_primary</item>
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:letterSpacing">0.04</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:paddingLeft">24dp</item>
+        <item name="android:paddingRight">24dp</item>
+        <item name="android:stateListAnimator">@null</item>
+    </style>
+
+    <style name="NeonButtonGhost" parent="Widget.AppCompat.Button.Borderless">
+        <item name="android:background">@drawable/neon_button_ghost</item>
+        <item name="android:textColor">?attr/neonAccent</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="android:paddingLeft">18dp</item>
+        <item name="android:paddingRight">18dp</item>
+        <item name="android:stateListAnimator">@null</item>
+    </style>
+
+    <!-- Tile / list view toggle and any small filter pill -->
+    <!-- 타일/리스트 전환 버튼과 작은 필터 알약 버튼용 -->
+    <style name="NeonChip">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">34dp</item>
+        <item name="android:background">@drawable/neon_chip_bg</item>
+        <item name="android:textColor">?attr/neonText</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:paddingLeft">16dp</item>
+        <item name="android:paddingRight">16dp</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
+
+    <style name="NeonCheckBox" parent="Widget.AppCompat.CompoundButton.CheckBox">
+        <item name="android:textColor">?attr/neonText</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="android:paddingLeft">8dp</item>
+    </style>
+
+    <!-- Replaces NeonCheckBox app-wide per an explicit decision to use
+         toggles instead of checkboxes. SwitchCompat is a CompoundButton
+         just like CheckBox (isChecked/setChecked/setOnCheckedChangeListener
+         all match), so every Java call site keeps working once its
+         declared type is changed from CheckBox to SwitchCompat.
+         NeonCheckBox를 앱 전체에서 대체함 - 체크박스 대신 토글을 쓰기로
+         한 결정에 따름. SwitchCompat도 CheckBox와 똑같이 CompoundButton임
+         (isChecked/setChecked/setOnCheckedChangeListener 전부 동일하게
+         있음). 그래서 선언 타입만 CheckBox에서 SwitchCompat로 바꾸면
+         모든 Java 호출부가 그대로 동작함 -->
+    <!-- No Material3 parent on purpose: the app's base theme chain is
+         Theme.MaterialComponents (not Theme.Material3), and the M3 default
+         switch style pulls in M3-only theme attributes that may not resolve
+         there. SwitchCompat's own thumbTint/trackTint attributes work
+         regardless of parent, so a safe generic parent is enough.
+         Material3 부모를 일부러 안 씀: 앱의 기본 테마 체계가
+         Theme.MaterialComponents(Theme.Material3가 아님)라서, M3 기본
+         스위치 스타일이 거기서 해석 안 될 수 있는 M3 전용 테마 속성을
+         끌어옴. SwitchCompat 자체의 thumbTint/trackTint 속성은 부모와
+         무관하게 동작하므로 안전한 범용 부모면 충분함 -->
+    <style name="NeonSwitch" parent="Widget.AppCompat.CompoundButton.Switch">
+        <item name="android:textColor">?attr/neonText</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="thumbTint">@color/neon_switch_thumb</item>
+        <item name="trackTint">@color/neon_switch_track</item>
+        <!-- trackDecorationTint removed: that attribute belongs to a newer
+             Material Components version than the one this project bundles
+             (build.gradle pins 1.6.1) - aapt2 failed to link it because the
+             attr flat-out doesn't exist in this AAR. thumbTint + trackTint
+             alone are enough for the look; the decoration ring is a minor
+             M3 detail this library version doesn't have anyway.
+             trackDecorationTint를 뺌: 이 속성은 프로젝트가 물고 있는 Material
+             버전(build.gradle에 1.6.1로 고정)보다 최신 버전에 있는 것이라,
+             이 AAR에는 속성 자체가 없어서 aapt2가 링크에 실패함. thumbTint +
+             trackTint만으로 원하는 모양은 충분하고, 장식용 고리는 이 버전
+             라이브러리에 애초에 없는 M3의 자잘한 디테일일 뿐임 -->
+    </style>
+
+
+    <!-- Inherits ComboBox on purpose. All 37 spinners in
+         container_detail_fragment.xml declare no layout_height and take their
+         48dp from the style - a parent without that height would make every
+         one of them fail to inflate.
+         일부러 ComboBox를 상속함. container_detail_fragment.xml의 스피너 37개가
+         전부 layout_height를 선언하지 않고 스타일의 48dp를 받아 씀 - 그 높이가
+         없는 부모를 쓰면 전부 인플레이트에 실패함 -->
+    <!-- Replaces ListMenuButton (which had a white square background and a
+         dark-blue tint - the exact same 37-white-box problem the combo boxes
+         had). Used for the small add/edit/duplicate/remove icon row next to
+         a spinner.
+         ListMenuButton을 대체함(흰 사각 배경 + 남색 틴트라 콤보박스와 똑같이
+         하얀 상자 문제를 겪던 스타일임). 스피너 옆 추가/편집/복제/삭제 아이콘
+         행에 씀 -->
+    <style name="NeonIconMenuButton" parent="Widget.AppCompat.ImageButton">
+        <item name="android:layout_width">40dp</item>
+        <item name="android:layout_height">40dp</item>
+        <item name="android:padding">8dp</item>
+        <item name="android:background">@drawable/neon_icon_button_bg</item>
+        <!-- ImageButton defaults to scaleType="center", which draws a PNG at its
+             own size and ignores the padding - large PNGs (the three-dot menu)
+             spilled out of the circle. fitCenter keeps every glyph inside the
+             padded area
+             ImageButton 기본값은 scaleType="center"라서 PNG를 원래 크기로 그리고
+             여백을 무시함 - 큰 PNG(점 3개 메뉴)가 원 밖으로 넘쳤음. fitCenter는
+             모든 그림을 여백 안쪽에 맞춤 -->
+        <item name="android:scaleType">fitCenter</item>
+        <item name="android:tint">?attr/neonAccent</item>
+        <item name="android:layout_marginLeft">4dp</item>
+        <item name="android:layout_marginRight">4dp</item>
+    </style>
+
+    <style name="NeonComboBox" parent="ComboBox">
+        <item name="android:background">@drawable/neon_combo_bg</item>
+        <item name="android:popupBackground">@drawable/neon_popup_bg</item>
+        <item name="android:textColor">?attr/neonText</item>
+        <!-- Floor height for spinners that declare layout_height="wrap_content"
+             (the two in settings_fragment). ComboBox zeroes vertical padding and
+             neon_combo_bg has none, so without this they collapse to text height.
+             layout_height="wrap_content"를 선언한 스피너(settings_fragment의 2개)용
+             최소 높이임. ComboBox가 상하 여백을 0으로 두고 neon_combo_bg에도 여백이
+             없어서, 이게 없으면 글자 높이로 쪼그라듦 -->
+        <item name="android:minHeight">46dp</item>
+    </style>
+
+    <!--
+        BUG FIX (crash: "You must supply a layout_width/layout_height
+        attribute"): the old EditText style this replaced provided both as
+        style items (match_parent / 42dp), so every XML tag using it could
+        skip them. NeonEditText never did, and several tags that switched
+        from EditText to NeonEditText were never given their own explicit
+        values - LinearLayout requires both on every direct child, with no
+        framework fallback, so inflation threw immediately. Adding safe
+        defaults here fixes every current callsite at once and any future
+        one, while a tag's own explicit android:layout_width/height (like
+        content_dialog.xml's 280dp) still overrides these as normal.
+        버그 수정(크래시: "layout_width/layout_height 속성을 반드시 줘야
+        함"): 이걸 대체한 예전 EditText 스타일은 둘 다 스타일 항목으로 제공했음
+        (match_parent / 42dp). 그래서 그 스타일을 쓰는 모든 XML 태그가 이 둘을
+        안 적어도 됐음. NeonEditText는 그걸 준 적이 없었고, EditText에서
+        NeonEditText로 바뀐 태그 여럿이 자기만의 명시적 값을 받은 적이 없었음
+        - LinearLayout은 모든 직계 자식에 이 둘을 요구하고 프레임워크
+        기본값도 없어서, 인플레이트가 바로 예외를 던짐. 여기 안전한 기본값을
+        추가하면 지금 있는 모든 호출부와 앞으로 생길 호출부까지 한 번에
+        해결되고, 태그 자신의 명시적 android:layout_width/height(예:
+        content_dialog.xml의 280dp)는 평소처럼 이 값을 그대로 덮어씀
+    -->
+    <style name="NeonEditText" parent="Widget.AppCompat.EditText">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">?attr/neonText</item>
+        <item name="android:textColorHint">?attr/neonDisabled</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:minHeight">46dp</item>
+    </style>
+
+    <style name="NeonSeekBar" parent="Widget.AppCompat.SeekBar">
+        <item name="android:thumb">@drawable/neon_seekbar_thumb</item>
+        <item name="android:progressDrawable">@drawable/neon_progress_horizontal</item>
+        <item name="android:minHeight">6dp</item>
+        <item name="android:maxHeight">6dp</item>
+    </style>
+
+    <!-- ============ Progress ============ -->
+
+    <style name="NeonProgressLinear" parent="Widget.AppCompat.ProgressBar.Horizontal">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">6dp</item>
+        <item name="android:progressDrawable">@drawable/neon_progress_horizontal</item>
+        <item name="android:max">100</item>
+    </style>
+
+    <style name="NeonProgressRing" parent="Widget.AppCompat.ProgressBar">
+        <item name="android:layout_width">44dp</item>
+        <item name="android:layout_height">44dp</item>
+        <item name="android:indeterminateDrawable">@drawable/neon_progress_indeterminate</item>
+        <item name="android:indeterminateDuration">900</item>
+    </style>
+
+    <!-- ============ Controls Editor toolbar ============ -->
+
+    <!-- Scoped copy of ToolButton, not an override - the original stays for
+         reference and this only touches the Controls Editor.
+         ToolButton을 덮어쓰지 않고 별도로 복제함 - 원본은 참고용으로 남고
+         이건 컨트롤러 에디터에만 영향을 줌 -->
+    <style name="NeonToolButton" parent="BaseImageButton">
+        <item name="android:layout_marginLeft">2dp</item>
+        <item name="android:layout_marginRight">2dp</item>
+        <item name="android:tint">?attr/neonAccent</item>
+    </style>
+
+    <style name="NeonVerticalLine">
+        <item name="android:layout_width">1dp</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:background">?attr/neonDivider</item>
+        <item name="android:layout_marginTop">2dp</item>
+        <item name="android:layout_marginBottom">2dp</item>
+        <item name="android:layout_marginLeft">4dp</item>
+        <item name="android:layout_marginRight">4dp</item>
+    </style>
+
+    <!-- ============ Shortcut item pieces ============ -->
+
+    <style name="NeonShortcutCard">
+        <item name="android:background">@drawable/neon_card_selector</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
+
+    <!-- Title drawn on top of cover art. A hard black shadow, not a neon one: -->
+    <!-- over an arbitrary image only a dark shadow guarantees legibility -->
+    <!-- 커버 이미지 위에 얹는 제목임. 네온이 아니라 검은 그림자를 씀: -->
+    <!-- 어떤 그림이 깔릴지 모르는 상황에선 어두운 그림자만 가독성을 보장함 -->
+    <style name="NeonShortcutTitleOverCover">
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:maxLines">2</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:shadowColor">#CC000000</item>
+        <item name="android:shadowRadius">6</item>
+        <item name="android:shadowDx">0</item>
+        <item name="android:shadowDy">1</item>
+    </style>
+
+</resources>

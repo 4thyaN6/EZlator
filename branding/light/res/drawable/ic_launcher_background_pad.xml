@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- App icon background: light theme background colour behind
+     the neon joypad (sky blue + pink pill). Same file name in the light set
+     (branding/light) so switching is a plain copy
+     앱 아이콘 배경: 네온 조이패드(하늘 + 분홍 알약) 뒤의 light 테마 배경색임.
+     라이트 세트(branding/light)도 같은 파일 이름이라 복사만으로 바꿀 수 있음 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="#F5F6FB" />
+</shape>

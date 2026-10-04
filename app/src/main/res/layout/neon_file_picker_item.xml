@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Row for the file/folder picker. Replaces android.R.layout.simple_list_item_1,
+    which had no icon and used the system's own text colour (invisible on a
+    dark theme in some OEM skins, since it isn't tied to our neon attrs at all).
+    파일/폴더 피커의 행임. android.R.layout.simple_list_item_1을 대체함.
+    그건 아이콘이 없고 시스템 자체 글자색을 썼음(우리 네온 속성과 무관해서
+    일부 제조사 스킨의 다크 테마에서는 아예 안 보이기도 했음)
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:minHeight="48dp"
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp"
+    android:background="?android:attr/selectableItemBackground">
+
+    <ImageView
+        android:id="@+id/IVFileIcon"
+        android:layout_width="22dp"
+        android:layout_height="22dp"
+        android:layout_marginEnd="16dp"
+        app:tint="?attr/neonTextDim"
+        xmlns:app="http://schemas.android.com/apk/res-auto" />
+
+    <TextView
+        android:id="@android:id/text1"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textColor="?attr/neonText"
+        android:textSize="15sp"
+        android:ellipsize="middle"
+        android:singleLine="true" />
+</LinearLayout>

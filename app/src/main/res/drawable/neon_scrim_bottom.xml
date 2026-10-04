@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Bottom-up dark gradient laid over cover art so the title stays readable
+    no matter how bright the image is. Transparent at the top so the artwork
+    is not needlessly dulled.
+    커버 이미지 위에 아래에서 위로 덮는 어둠 그라데이션임. 그림이 아무리
+    밝아도 제목이 읽히게 함. 위쪽은 투명이라 그림을 쓸데없이 죽이지 않음
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <gradient
+        android:angle="90"
+        android:startColor="#E6000000"
+        android:centerColor="#73000000"
+        android:endColor="#00000000"
+        android:type="linear" />
+</shape>

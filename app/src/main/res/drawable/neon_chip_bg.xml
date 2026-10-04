@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Segmented toggle pill (tile / list) and the stat chips in the detail sheet.
+    Selected state is filled, unselected is a bare outline - no third state,
+    because a three-way visual scale on a two-way toggle confuses people.
+    타일/리스트 전환 알약 버튼과 상세창 정보 칩에 씀.
+    선택은 채움, 비선택은 테두리만. 3단계는 안 씀 - 2단계 토글에 3단계
+    시각 차이를 주면 헷갈림
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_selected="true">
+        <shape android:shape="rectangle">
+            <corners android:radius="999dp" />
+            <solid android:color="?attr/neonGlowSoft" />
+            <stroke android:width="1dp" android:color="?attr/neonGlow" />
+        </shape>
+    </item>
+    <item android:state_checked="true">
+        <shape android:shape="rectangle">
+            <corners android:radius="999dp" />
+            <solid android:color="?attr/neonGlowSoft" />
+            <stroke android:width="1dp" android:color="?attr/neonGlow" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="999dp" />
+            <solid android:color="@android:color/transparent" />
+            <stroke android:width="1dp" android:color="?attr/neonDivider" />
+        </shape>
+    </item>
+</selector>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Theme attribute slots for the neon design system.
+    Every layout references these (?attr/neonXxx) instead of a hardcoded hex,
+    so one layout file serves both the light and the dark palette.
+    네온 디자인 시스템의 테마 속성 슬롯임.
+    모든 레이아웃이 헥사값 대신 이걸(?attr/neonXxx) 참조하므로
+    레이아웃 한 벌로 라이트/다크 두 팔레트를 모두 커버함
+-->
+<resources>
+
+    <!-- Base surfaces, from furthest back to closest to the user -->
+    <!-- 바탕면 - 뒤에서 앞 순서임 -->
+    <attr name="neonBg" format="color" />
+    <attr name="neonSurface" format="color" />
+    <attr name="neonSurfaceAlt" format="color" />
+
+    <!-- Three accent hues. accent is the primary neon, 2 and 3 build gradients -->
+    <!-- 강조색 3종. accent가 주 네온이고 2, 3은 그라데이션을 만드는 데 씀 -->
+    <attr name="neonAccent" format="color" />
+    <attr name="neonAccent2" format="color" />
+    <attr name="neonAccent3" format="color" />
+
+    <!-- Text tiers -->
+    <!-- 글자 단계 -->
+    <attr name="neonText" format="color" />
+    <attr name="neonTextDim" format="color" />
+
+    <!-- Glow ramp. XML shapes cannot blur, so a glow is faked by stacking -->
+    <!-- strokes of these three alpha levels. Alpha cannot be computed from -->
+    <!-- another attr in XML, so each level is declared literally per theme. -->
+    <!-- 발광 단계. XML 도형은 블러가 안 되므로 이 3단계 알파의 테두리를 -->
+    <!-- 겹쳐 쌓아 발광을 흉내냄. XML에서는 다른 속성의 알파를 계산할 수 -->
+    <!-- 없으므로 테마마다 단계별로 직접 적어 줌 -->
+    <attr name="neonGlow" format="color" />
+    <attr name="neonGlowMid" format="color" />
+    <attr name="neonGlowSoft" format="color" />
+
+    <!-- Hairline separators and disabled states -->
+    <!-- 얇은 구분선과 비활성 상태 -->
+    <attr name="neonDivider" format="color" />
+    <attr name="neonDisabled" format="color" />
+
+    <!-- Scrim laid over cover art so text stays readable on any image -->
+    <!-- 커버 이미지 위에 덮는 어둡기 막. 어떤 그림 위에서도 글자가 읽히게 함 -->
+    <attr name="neonScrim" format="color" />
+
+    <!-- Bottom-up veil drawable. Kept as a drawable rather than a colour -->
+    <!-- because a gradient needs alpha stops, and XML cannot derive an alpha -->
+    <!-- from another attribute - so each theme points at its own file -->
+    <!-- 아래에서 위로 덮는 막 드로어블임. 색이 아니라 드로어블로 둔 이유는 -->
+    <!-- 그라데이션에 알파 단계가 필요한데 XML에서는 다른 속성의 알파를 -->
+    <!-- 계산할 수 없어서임. 그래서 테마마다 자기 파일을 가리킴 -->
+    <attr name="neonScrimGradient" format="reference" />
+
+</resources>

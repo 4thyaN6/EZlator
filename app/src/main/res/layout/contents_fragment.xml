@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Contents (Tools) screen, rebuilt with tabs instead of a spinner - one tab
+    per ContentType, scrollable since there are 8 of them. Tapping
+    GraphicTools needs no further choice: the list is auto-filtered by
+    GpuInfo (vendor + model + manufacturer), the same idea as the first-run
+    recommended-download flow in MainActivity.
+    Contents(Tools) 화면임. 스피너 대신 탭으로 다시 만듦 - ContentType마다
+    탭 하나씩이고 8개라 가로 스크롤됨. GraphicTools를 누르면 더 고를 게 없음:
+    GpuInfo(벤더 + 모델 + 제조사)가 목록을 자동으로 걸러 줌. MainActivity의
+    최초 실행 추천 다운로드 흐름과 같은 발상임
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="?attr/neonBg">
+
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/TLContentType"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/neon_tab_bg"
+        app:tabMode="scrollable"
+        app:tabGravity="start"
+        app:tabTextColor="?attr/neonTextDim"
+        app:tabSelectedTextColor="?attr/neonAccent"
+        app:tabIndicatorColor="?attr/neonAccent"
+        app:tabIndicatorHeight="3dp"
+        app:tabIndicatorFullWidth="false"
+        app:tabRippleColor="?attr/neonGlowSoft" />
+
+    <!-- Driver source sub-tabs, shown only on the GraphicTools tab.
+         StevenMXZ is first and selected by default (slower releases, more
+         stable builds); The412Banner lists its frequently-updated builds.
+         드라이버 배포처 하위 탭임. GraphicTools 탭에서만 보임.
+         StevenMXZ가 첫 번째이자 기본 선택임(릴리즈는 느리지만 상대적으로 안정적).
+         The412Banner는 자주 갱신되는 빌드를 보여줌 -->
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/TLDriverSource"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/neon_tab_bg"
+        android:visibility="gone"
+        app:tabMode="fixed"
+        app:tabGravity="fill"
+        app:tabTextColor="?attr/neonTextDim"
+        app:tabSelectedTextColor="?attr/neonAccent"
+        app:tabIndicatorColor="?attr/neonAccent"
+        app:tabIndicatorHeight="2dp"
+        app:tabRippleColor="?attr/neonGlowSoft" />
+
+    <!-- Architecture sub-tabs, shown only on the DXVK and VKD3D tabs.
+         ARM64EC and X86_64 builds are different files and only work with a
+         container of the same architecture, so they are listed apart.
+         ARM64EC is first and selected by default.
+         아키텍처 하위 탭임. DXVK와 VKD3D 탭에서만 보임.
+         ARM64EC와 X86_64 빌드는 서로 다른 파일이고 같은 아키텍처의 컨테이너에서만
+         동작하므로 따로 보여줌. ARM64EC가 첫 번째이자 기본 선택임 -->
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/TLArch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/neon_tab_bg"
+        android:visibility="gone"
+        app:tabMode="fixed"
+        app:tabGravity="fill"
+        app:tabTextColor="?attr/neonTextDim"
+        app:tabSelectedTextColor="?attr/neonAccent"
+        app:tabIndicatorColor="?attr/neonAccent"
+        app:tabIndicatorHeight="2dp"
+        app:tabRippleColor="?attr/neonGlowSoft" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/RecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:clipToPadding="false"
+        android:scrollbars="none"
+        app:layoutManager="LinearLayoutManager" />
+
+    <!-- android:text left as the generic fallback; ContentsFragment swaps it
+         to the Mali-specific string at runtime when that case applies.
+         Padding added since the Mali message runs several lines.
+         android:text는 일반용 기본값으로 둠. ContentsFragment가 Mali인
+         경우에만 런타임에 문자열을 바꿔 끼움. Mali 안내문이 여러 줄이라
+         여백을 넣음 -->
+    <TextView
+        android:id="@+id/TVEmptyText"
+        style="@style/NeonCaption"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:paddingLeft="32dp"
+        android:paddingRight="32dp"
+        android:lineSpacingMultiplier="1.3"
+        android:text="@string/no_items_to_display_contents"
+        android:visibility="gone" />
+
+    <!-- Pinned bottom bar, same pattern as settings/container-detail: a
+         floating button here would cover the last row of whichever tab is
+         longest, and Contents can have long lists.
+         설정/컨테이너 상세와 같은 하단 고정 바 방식임. 여기서 플로팅 버튼을
+         쓰면 목록이 긴 탭의 마지막 행을 가리는데, Contents는 목록이 길어질 수
+         있음 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="?attr/neonSurface">
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?attr/neonGlowMid" />
+
+        <Button
+            android:id="@+id/BTInstallContent"
+            style="@style/NeonButtonGhost"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_margin="12dp"
+            android:text="@string/install_content" />
+    </LinearLayout>
+</LinearLayout>

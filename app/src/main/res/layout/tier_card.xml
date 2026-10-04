@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    One layer tier button on the Containers screen (EZ mode): name, state per
+    architecture, the components each architecture uses, and an Install button
+    that turns into "Installed" once both containers exist. Filled in by
+    ContainersFragment.createTierCard().
+    컨테이너 화면(EZ 모드)의 레이어 단계 버튼 하나: 이름, 아키텍처별 상태, 아키텍처마다
+    쓰는 구성요소, 두 컨테이너가 다 생기면 "설치됨"으로 바뀌는 설치하기 버튼.
+    ContainersFragment.createTierCard()가 채움
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    android:layout_margin="6dp"
+    android:layout_weight="1"
+    android:background="@drawable/neon_card_bg"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/TVTierTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="?attr/neonAccent"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/TVTierState"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingTop="4dp"
+        android:paddingBottom="8dp"
+        android:textColor="?attr/neonText"
+        android:textSize="13sp" />
+
+    <!-- Takes the free height so the buttons line up at the bottom -->
+    <!-- 남는 높이를 차지해서 버튼들이 아래쪽에 나란히 놓이게 함 -->
+    <TextView
+        android:id="@+id/TVTierDesc"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:lineSpacingExtra="2dp"
+        android:textColor="?attr/neonTextDim"
+        android:textSize="12sp" />
+
+    <Button
+        android:id="@+id/BTTierInstall"
+        style="@style/NeonButtonGhost"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:layout_marginTop="12dp" />
+</LinearLayout>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Containers screen. EZ mode shows only the layer tier buttons, as a compact
+    panel centred on the screen (ContainersFragment.applyMode() sizes it); with
+    EZ mode off it shows only the container list. The list ids are unchanged
+    (RecyclerView / TVEmptyText).
+    컨테이너 화면. EZ 모드에서는 레이어 단계 버튼만 화면 가운데 작은 판으로 보여
+    주고(크기는 ContainersFragment.applyMode()가 정함), EZ 모드를 끄면 컨테이너 목록만
+    보여 줌. 목록 id는 그대로임(RecyclerView / TVEmptyText)
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/neonBg">
+
+    <!-- EZ mode: tier buttons, centred, scrollable when the screen is short -->
+    <!-- EZ 모드: 단계 버튼. 가운데 배치, 화면이 짧으면 스크롤됨 -->
+    <ScrollView
+        android:id="@+id/SVTierPanel"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:visibility="gone">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:id="@+id/LLTierRow"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:orientation="horizontal"
+                android:padding="12dp" />
+        </FrameLayout>
+    </ScrollView>
+
+    <!-- EZ mode off: container list -->
+    <!-- EZ 모드 꺼짐: 컨테이너 목록 -->
+    <FrameLayout
+        android:id="@+id/FLContainerList"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/RecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingTop="8dp"
+            android:paddingBottom="16dp"
+            android:scrollbars="none"
+            app:layoutManager="LinearLayoutManager" />
+
+        <TextView
+            android:id="@+id/TVEmptyText"
+            style="@style/NeonCaption"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="@string/no_items_to_display_containers"
+            android:visibility="gone" />
+    </FrameLayout>
+</FrameLayout>

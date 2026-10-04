@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Primary action button. Gradient runs accent3 -> accent so the two-hue
+    neon reads even on a small button.
+    주 동작 버튼임. 그라데이션이 accent3에서 accent로 흐르므로
+    작은 버튼에서도 두 색 네온이 살아남
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Pressed: hues swap, which reads as a flash without an animation -->
+    <!-- 눌림: 색 순서가 뒤집힘. 애니메이션 없이도 번쩍이는 느낌을 줌 -->
+    <item android:state_pressed="true">
+        <shape android:shape="rectangle">
+            <corners android:radius="12dp" />
+            <gradient android:angle="0"
+                android:startColor="?attr/neonAccent"
+                android:endColor="?attr/neonAccent3"
+                android:type="linear" />
+        </shape>
+    </item>
+
+    <item android:state_enabled="false">
+        <shape android:shape="rectangle">
+            <corners android:radius="12dp" />
+            <solid android:color="?attr/neonDisabled" />
+        </shape>
+    </item>
+
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="12dp" />
+            <gradient android:angle="0"
+                android:startColor="?attr/neonAccent3"
+                android:endColor="?attr/neonAccent"
+                android:type="linear" />
+        </shape>
+    </item>
+</selector>

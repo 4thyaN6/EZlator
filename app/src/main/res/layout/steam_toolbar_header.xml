@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Toolbar action slot for the Steam page: Tile/List chips (same as Main)
+     and the profile block. Tapping the profile asks before logging out.
+     스팀 페이지의 툴바 동작 슬롯: 타일/목록 칩(메인과 같음)과 프로필 묶음.
+     프로필을 누르면 확인 후 로그아웃함 -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <include
+        android:id="@+id/LLSteamViewToggle"
+        layout="@layout/neon_view_toggle" />
+
+    <LinearLayout
+        android:id="@+id/LLSteamProfileHeader"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="4dp">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/TVSteamHeaderNick"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:maxWidth="160dp"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:textColor="?attr/neonText"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/steam_signed_in"
+                android:textColor="?attr/neonAccent"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/IVSteamHeaderAvatar"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginLeft="8dp"
+            android:background="@drawable/steam_avatar_circle"
+            android:scaleType="centerCrop"
+            android:contentDescription="@string/steam_logout" />
+    </LinearLayout>
+</LinearLayout>

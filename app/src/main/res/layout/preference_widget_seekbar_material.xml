@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- @id -> @+id: this file overrides the androidx.preference layout of the same name,
+     so the library layout that used to declare seekbar / seekbar_value no longer
+     exists, and the release build failed with "resource id/seekbar not found".
+     Declaring the ids here fixes the link error.
+     @id -> @+id로 바꿈: 이 파일이 androidx.preference의 같은 이름 레이아웃을 덮어써서
+     seekbar / seekbar_value를 선언하던 라이브러리 레이아웃이 사라짐. 그래서 릴리즈 빌드가
+     "resource id/seekbar not found"로 실패했음. 여기서 id를 직접 선언해 해결함 -->
+<LinearLayout android:gravity="center_vertical" android:background="?android:selectableItemBackground" android:paddingLeft="?android:listPreferredItemPaddingLeft" android:paddingRight="?android:listPreferredItemPaddingRight" android:clipChildren="false" android:clipToPadding="false" android:layout_width="fill_parent" android:layout_height="wrap_content" android:baselineAligned="false" android:minHeight="?android:listPreferredItemHeightSmall" android:paddingStart="?android:listPreferredItemPaddingStart" android:paddingEnd="?android:listPreferredItemPaddingEnd"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <include layout="@layout/image_frame" />
+    <LinearLayout android:orientation="vertical" android:clipChildren="false" android:clipToPadding="false" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_marginTop="8.0dip" android:layout_marginBottom="8.0dip">
+        <RelativeLayout android:layout_width="wrap_content" android:layout_height="0.0dip" android:layout_weight="1.0">
+            <TextView android:textAppearance="?android:textAppearanceListItem" android:ellipsize="marquee" android:id="@android:id/title" android:layout_width="wrap_content" android:layout_height="wrap_content" android:singleLine="true" />
+            <TextView android:textColor="?android:textColorSecondary" android:layout_gravity="start" android:id="@android:id/summary" android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxLines="4" android:layout_below="@android:id/title" android:layout_alignLeft="@android:id/title" android:textAlignment="viewStart" android:layout_alignStart="@android:id/title" style="@style/PreferenceSummaryTextStyle" />
+        </RelativeLayout>
+        <androidx.preference.UnPressableLinearLayout android:gravity="center_vertical" android:paddingLeft="0.0dip" android:paddingRight="16.0dip" android:clipChildren="false" android:clipToPadding="false" android:layout_width="fill_parent" android:layout_height="wrap_content" android:paddingStart="0.0dip" android:paddingEnd="16.0dip">
+            <SeekBar android:id="@+id/seekbar" android:background="@null" android:paddingLeft="@dimen/preference_seekbar_padding_horizontal" android:paddingTop="@dimen/preference_seekbar_padding_vertical" android:paddingRight="@dimen/preference_seekbar_padding_horizontal" android:paddingBottom="@dimen/preference_seekbar_padding_vertical" android:layout_width="0.0dip" android:layout_height="wrap_content" android:layout_weight="1.0" android:paddingStart="@dimen/preference_seekbar_padding_horizontal" android:paddingEnd="@dimen/preference_seekbar_padding_horizontal" />
+            <TextView android:textAppearance="?android:textAppearanceListItem" android:ellipsize="marquee" android:gravity="right" android:id="@+id/seekbar_value" android:paddingLeft="8.0dip" android:paddingRight="0.0dip" android:scrollbars="none" android:fadingEdge="horizontal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minWidth="@dimen/preference_seekbar_value_minWidth" android:singleLine="true" android:paddingStart="8.0dip" android:paddingEnd="0.0dip" />
+        </androidx.preference.UnPressableLinearLayout>
+    </LinearLayout>
+</LinearLayout>

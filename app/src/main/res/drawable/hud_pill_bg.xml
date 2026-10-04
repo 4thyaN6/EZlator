@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Semi-transparent dark pill behind the in-game HUD, readable on any picture
+     게임 중 HUD 뒤의 반투명 어두운 알약임. 어떤 화면 위에서도 읽힘 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="#80000000" />
+    <corners android:radius="10dp" />
+</shape>

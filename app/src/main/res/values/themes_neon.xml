@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    The two neon themes inherit from the project's existing AppTheme /
+    AppTheme.Dark, so every attribute this file does not mention keeps its
+    current value. Only overrides, no redefinitions - this file can sit next
+    to styles.xml without touching it.
+    네온 테마 2종은 프로젝트에 이미 있는 AppTheme / AppTheme.Dark를 상속함.
+    여기서 언급하지 않은 속성은 지금 값 그대로 유지됨. 재정의가 아니라 덮어쓰기라
+    styles.xml을 건드리지 않고 옆에 두면 됨
+
+    Two things verified against styles.xml before writing this file:
+    1. The dark theme is declared as <style name="AppTheme.Dark">. In XML the
+       parent must be written with the dot; only Java sees it as
+       R.style.AppTheme_Dark. Writing parent="AppTheme_Dark" fails to build.
+    2. Both base themes are *.NoActionBar.Bridge, and MainActivity line 134
+       calls setSupportActionBar(findViewById(R.id.Toolbar)). So there is no
+       ActionBar to style - the Toolbar in the activity layout is the bar,
+       and toolbarStyle is what reaches it.
+    이 파일을 쓰기 전에 styles.xml에서 확인한 사실 두 가지:
+    1. 다크 테마는 <style name="AppTheme.Dark">로 선언돼 있음. XML에서는 점을
+       찍어야 하고, R.style.AppTheme_Dark는 Java에서만 보이는 이름임.
+       parent="AppTheme_Dark"로 쓰면 빌드가 실패함
+    2. 두 기본 테마가 전부 *.NoActionBar.Bridge이고 MainActivity 134번째 줄이
+       setSupportActionBar(findViewById(R.id.Toolbar))를 호출함. 즉 꾸밀
+       ActionBar가 없고, 액티비티 레이아웃의 Toolbar가 그 역할이라
+       toolbarStyle이 실제로 먹히는 속성임
+-->
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- ================= LIGHT ================= -->
+    <style name="Theme.App.Neon.Light" parent="AppTheme">
+
+        <!-- AppCompat / Material slots. Setting these is what makes CheckBox, -->
+        <!-- Spinner, SeekBar and EditText pick up the neon colour with zero -->
+        <!-- layout edits -->
+        <!-- AppCompat / Material 표준 슬롯임. 이걸 지정해야 CheckBox, Spinner, -->
+        <!-- SeekBar, EditText가 레이아웃 수정 없이 네온 색을 따라감 -->
+        <item name="colorPrimary">@color/neon_l_accent</item>
+        <item name="colorPrimaryDark">@color/neon_l_bg</item>
+        <item name="colorAccent">@color/neon_l_accent</item>
+        <item name="colorControlNormal">@color/neon_l_text_dim</item>
+        <item name="colorControlActivated">@color/neon_l_accent</item>
+        <item name="colorControlHighlight">@color/neon_l_glow_soft</item>
+        <item name="android:textColorPrimary">@color/neon_l_text</item>
+        <item name="android:textColorSecondary">@color/neon_l_text_dim</item>
+        <item name="android:textColorHint">@color/neon_l_disabled</item>
+        <item name="android:windowBackground">@color/neon_l_bg</item>
+        <item name="android:colorBackground">@color/neon_l_bg</item>
+
+        <!-- Status bar is light here, so its icons must be dark to stay legible -->
+        <!-- 여기선 상태바가 밝으므로 아이콘을 어둡게 해야 보임 -->
+        <item name="android:statusBarColor">@color/neon_l_bg</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">true</item>
+
+        <item name="toolbarStyle">@style/NeonToolbar.Light</item>
+
+        <!-- Custom slots / 커스텀 슬롯 -->
+        <item name="neonBg">@color/neon_l_bg</item>
+        <item name="neonSurface">@color/neon_l_surface</item>
+        <item name="neonSurfaceAlt">@color/neon_l_surface_alt</item>
+        <item name="neonAccent">@color/neon_l_accent</item>
+        <item name="neonAccent2">@color/neon_l_accent2</item>
+        <item name="neonAccent3">@color/neon_l_accent3</item>
+        <item name="neonText">@color/neon_l_text</item>
+        <item name="neonTextDim">@color/neon_l_text_dim</item>
+        <item name="neonGlow">@color/neon_l_glow</item>
+        <item name="neonGlowMid">@color/neon_l_glow_mid</item>
+        <item name="neonGlowSoft">@color/neon_l_glow_soft</item>
+        <item name="neonDivider">@color/neon_l_divider</item>
+        <item name="neonDisabled">@color/neon_l_disabled</item>
+
+        <!-- Light mode veils the cover with white instead of black, so the -->
+        <!-- detail sheet stays white like the rest of the light theme while -->
+        <!-- the artwork still shows through as a tint -->
+        <!-- 라이트 모드는 커버를 검정이 아니라 흰색으로 덮음. 덕분에 상세창이 -->
+        <!-- 라이트 테마의 나머지와 같은 흰색이면서도 그림이 옅게 비쳐 보임 -->
+        <item name="neonScrim">@color/neon_l_scrim</item>
+        <item name="neonScrimGradient">@drawable/neon_scrim_bottom_light</item>
+    </style>
+
+    <!-- ================= DARK ================= -->
+    <style name="Theme.App.Neon.Dark" parent="AppTheme.Dark">
+
+        <item name="colorPrimary">@color/neon_d_accent</item>
+        <item name="colorPrimaryDark">@color/neon_d_bg</item>
+        <item name="colorAccent">@color/neon_d_accent</item>
+        <item name="colorControlNormal">@color/neon_d_text_dim</item>
+        <item name="colorControlActivated">@color/neon_d_accent</item>
+        <item name="colorControlHighlight">@color/neon_d_glow_soft</item>
+        <item name="android:textColorPrimary">@color/neon_d_text</item>
+        <item name="android:textColorSecondary">@color/neon_d_text_dim</item>
+        <item name="android:textColorHint">@color/neon_d_disabled</item>
+        <item name="android:windowBackground">@color/neon_d_bg</item>
+        <item name="android:colorBackground">@color/neon_d_bg</item>
+
+        <item name="android:statusBarColor">@color/neon_d_bg</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
+
+        <item name="toolbarStyle">@style/NeonToolbar.Dark</item>
+
+        <item name="neonBg">@color/neon_d_bg</item>
+        <item name="neonSurface">@color/neon_d_surface</item>
+        <item name="neonSurfaceAlt">@color/neon_d_surface_alt</item>
+        <item name="neonAccent">@color/neon_d_accent</item>
+        <item name="neonAccent2">@color/neon_d_accent2</item>
+        <item name="neonAccent3">@color/neon_d_accent3</item>
+        <item name="neonText">@color/neon_d_text</item>
+        <item name="neonTextDim">@color/neon_d_text_dim</item>
+        <item name="neonGlow">@color/neon_d_glow</item>
+        <item name="neonGlowMid">@color/neon_d_glow_mid</item>
+        <item name="neonGlowSoft">@color/neon_d_glow_soft</item>
+        <item name="neonDivider">@color/neon_d_divider</item>
+        <item name="neonDisabled">@color/neon_d_disabled</item>
+        <item name="neonScrim">@color/neon_d_scrim</item>
+        <item name="neonScrimGradient">@drawable/neon_scrim_bottom_dark</item>
+    </style>
+
+    <!-- ================= FULLSCREEN VARIANTS ================= -->
+    <!-- The fullscreen screens use AppThemeFullscreen / .Dark. These keep -->
+    <!-- that behaviour and only add the neon slots, so those screens do not -->
+    <!-- end up with unresolved ?attr/neon* references after the switch -->
+    <!-- 전체화면 화면들은 AppThemeFullscreen / .Dark를 씀. 그 동작은 그대로 -->
+    <!-- 두고 네온 슬롯만 추가해서, 테마를 바꾼 뒤 그쪽에서 ?attr/neon* 참조가 -->
+    <!-- 해석되지 않는 일이 없게 함 -->
+    <style name="Theme.App.Neon.Fullscreen" parent="AppThemeFullscreen">
+        <item name="colorAccent">@color/neon_l_accent</item>
+        <item name="neonBg">@color/neon_l_bg</item>
+        <item name="neonSurface">@color/neon_l_surface</item>
+        <item name="neonSurfaceAlt">@color/neon_l_surface_alt</item>
+        <item name="neonAccent">@color/neon_l_accent</item>
+        <item name="neonAccent2">@color/neon_l_accent2</item>
+        <item name="neonAccent3">@color/neon_l_accent3</item>
+        <item name="neonText">@color/neon_l_text</item>
+        <item name="neonTextDim">@color/neon_l_text_dim</item>
+        <item name="neonGlow">@color/neon_l_glow</item>
+        <item name="neonGlowMid">@color/neon_l_glow_mid</item>
+        <item name="neonGlowSoft">@color/neon_l_glow_soft</item>
+        <item name="neonDivider">@color/neon_l_divider</item>
+        <item name="neonDisabled">@color/neon_l_disabled</item>
+        <item name="neonScrim">@color/neon_l_scrim</item>
+        <item name="neonScrimGradient">@drawable/neon_scrim_bottom_light</item>
+    </style>
+
+
+    <!-- ================= TOOLBAR ================= -->
+    <!-- elevation 0 removes the grey drop shadow under the bar. That shadow -->
+    <!-- is what makes a neon layout look like a stock app with recoloured -->
+    <!-- widgets instead of a designed screen -->
+    <!-- elevation 0으로 바 아래 회색 그림자를 없앰. 이 그림자가 남아 있으면 -->
+    <!-- 설계된 화면이 아니라 기본 앱에 색만 칠한 것처럼 보임 -->
+    <style name="NeonToolbar.Light" parent="Widget.MaterialComponents.Toolbar">
+        <item name="android:background">@color/neon_l_bg</item>
+        <item name="android:elevation" tools:targetApi="lollipop">0dp</item>
+        <item name="titleTextAppearance">@style/NeonToolbarTitle.Light</item>
+        <item name="titleTextColor">@color/neon_l_text</item>
+    </style>
+
+    <style name="NeonToolbar.Dark" parent="Widget.MaterialComponents.Toolbar">
+        <item name="android:background">@color/neon_d_bg</item>
+        <item name="android:elevation" tools:targetApi="lollipop">0dp</item>
+        <item name="titleTextAppearance">@style/NeonToolbarTitle.Dark</item>
+        <item name="titleTextColor">@color/neon_d_text</item>
+    </style>
+
+    <!-- shadowRadius is the only real blur Android gives for free and it only -->
+    <!-- works on text. That is why titles glow and boxes merely stack strokes -->
+    <!-- shadowRadius는 안드로이드가 공짜로 주는 유일한 진짜 블러인데 글자에만 -->
+    <!-- 먹힘. 제목만 빛나고 상자는 테두리를 쌓기만 하는 이유가 이것임 -->
+    <style name="NeonToolbarTitle.Light" parent="TextAppearance.MaterialComponents.Headline6">
+        <item name="android:textColor">@color/neon_l_text</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:shadowColor">@color/neon_l_glow_mid</item>
+        <item name="android:shadowRadius">10</item>
+        <item name="android:shadowDx">0</item>
+        <item name="android:shadowDy">0</item>
+    </style>
+
+    <style name="NeonToolbarTitle.Dark" parent="TextAppearance.MaterialComponents.Headline6">
+        <item name="android:textColor">@color/neon_d_text</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:shadowColor">@color/neon_d_glow_mid</item>
+        <item name="android:shadowRadius">10</item>
+        <item name="android:shadowDx">0</item>
+        <item name="android:shadowDy">0</item>
+    </style>
+
+</resources>

@@ -1,0 +1,181 @@
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+    dependencies {
+        // Adjust Gradle plugin versions if needed
+        classpath 'com.android.tools.build:gradle:8.8.0'
+        // Kotlin Gradle plugin classpath removed: the project has no .kt sources and
+        // never applies the Kotlin plugin. JavaSteam still brings kotlin-stdlib as
+        // its own runtime dependency, so nothing changes at run time.
+        // Kotlin Gradle 플러그인 classpath 삭제함: 프로젝트에 .kt 소스가 없고 Kotlin
+        // 플러그인도 적용하지 않음. kotlin-stdlib은 JavaSteam이 자체 런타임 의존성으로
+        // 가져오므로 실행 시 달라지는 것 없음
+    }
+
+}
+
+plugins {
+    id 'com.android.application'
+}
+
+
+
+tasks.register("prepareKotlinBuildScriptModel"){}
+
+android {
+    namespace 'com.winlator.cmod'
+
+    compileSdk 34
+
+    defaultConfig {
+        // Install ID only. The Java namespace above stays com.winlator.cmod on purpose:
+        // JNI symbols (Java_com_winlator_cmod_...) are bound to it, so renaming it
+        // would break every native call. A different applicationId is what lets
+        // EZlator sit next to Winlator Cmod on the same device.
+        // 설치 식별자만 바꿈. 위 namespace(com.winlator.cmod)는 일부러 유지함:
+        // JNI 심볼(Java_com_winlator_cmod_...)이 여기에 묶여 있어 바꾸면 네이티브
+        // 호출이 전부 깨짐. applicationId만 달라도 Cmod와 한 기기에 같이 설치 가능함
+        applicationId "com.ezlator.app"
+        minSdkVersion 26
+
+        targetSdkVersion 28
+
+        // Version rule: major.minor.patch. major = large overhaul, minor = feature
+        // change, patch = small fix (bug fix, trying a new build). versionCode only
+        // ever goes up (Android refuses to install a lower one over the app)
+        // 버전 규칙: 앞.중간.뒤. 앞 = 대규모 패치, 중간 = 기능 변화, 뒤 = 소규모 수정
+        // (오류 수정, 신기술 적용 시험). versionCode는 올리기만 함(안드로이드는 더 낮은
+        // 값으로 덮어쓰기 설치를 거부함)
+        versionCode 21
+        versionName "EZlator-0.1.1"
+
+        // External native build from Winlator
+        externalNativeBuild {
+            cmake {
+                cppFlags ''
+            }
+        }
+
+
+        ndk {
+            abiFilters 'arm64-v8a'
+        }
+    }
+
+
+    // Java versions: Winlator uses Java 17, Termux-X11 used 1.9
+    // Using 17 is typically fine (covers 1.9 features).
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    // Keep Winlator’s buildTypes
+    buildTypes {
+        debug {
+            minifyEnabled false
+        }
+        release {
+            // shrinkResources only works when minifyEnabled is on - the
+            // resource shrinker relies on R8's reachability analysis.
+            // shrinkResources는 minifyEnabled가 켜져 있어야 동작함.
+            // 리소스 축소기가 R8의 도달 가능성 분석 결과를 그대로 쓰기 때문임
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+
+    ndkVersion '27.0.12077973'
+    externalNativeBuild {
+        cmake {
+            path 'src/main/cpp/CMakeLists.txt'
+        }
+    }
+
+
+    // values-ko only covers part of the UI on purpose (input controls + new
+    // features); untranslated strings fall back to English. Without this, lint
+    // reports every untranslated string as MissingTranslation.
+    // values-ko는 의도적으로 UI 일부만 번역함(입력 컨트롤 + 신규 기능). 번역 안 된
+    // 문자열은 영문으로 대체됨. 이게 없으면 lint가 번역 안 된 문자열마다
+    // MissingTranslation을 보고함
+    lint {
+        disable 'MissingTranslation'
+        // targetSdkVersion stays 28 on purpose (see defaultConfig). Android 10+
+        // blocks apps that target 29 or higher from running programs stored in
+        // the app's own writable folders, and the whole emulation stack (box64,
+        // FEXCore, Wine in imagefs) runs exactly that way - Winlator keeps 28 for
+        // the same reason. This lint check only reflects Google Play's rule, so it
+        // is turned off to let release APKs build for direct (non-Play) installs.
+        // Google Play upload is still refused while target is 28.
+        // targetSdkVersion은 일부러 28로 둠(defaultConfig 참고). 안드로이드 10부터
+        // target 29 이상 앱은 자기 쓰기 가능 폴더에 있는 프로그램을 실행할 수 없는데,
+        // 에뮬레이션 전체(imagefs의 box64, FEXCore, Wine)가 바로 그 방식으로 돎.
+        // Winlator가 28을 유지하는 것도 같은 이유임. 이 lint 검사는 구글 플레이
+        // 규정만 반영하므로, 직접 설치용(플레이 외) 릴리즈 APK가 빌드되도록 끔.
+        // target이 28인 동안 구글 플레이 업로드는 여전히 거부됨
+        disable 'ExpiredTargetSdkVersion'
+    }
+
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging = true
+        }
+    }
+}
+
+dependencies {
+    // Winlator’s dependencies
+    implementation 'androidx.appcompat:appcompat:1.4.0'
+    implementation 'androidx.preference:preference:1.2.1'
+    // material 1.4.0 line removed: material 1.6.1 is declared below, and Gradle
+    // always resolves to the higher one, so the 1.4.0 line had no effect
+    // material 1.4.0 줄 삭제함: 아래에 1.6.1이 선언되어 있고 Gradle은 항상
+    // 높은 버전으로 결정하므로 1.4.0 줄은 효과가 없었음
+    implementation 'com.github.luben:zstd-jni:1.5.2-3@aar'
+    implementation 'org.tukaani:xz:1.7'
+    implementation 'org.apache.commons:commons-compress:1.20'
+    // -ktx variants swapped for the plain artifacts at the same version. The -ktx
+    // ones only add Kotlin extension functions on top, which Java code cannot use.
+    // -ktx 버전을 같은 버전의 일반 라이브러리로 바꿈. -ktx는 그 위에 Kotlin 확장
+    // 함수만 더한 것이라 Java 코드에서는 쓸 수 없음
+    implementation 'androidx.activity:activity:1.4.0'
+    implementation 'androidx.fragment:fragment:1.4.0'
+    implementation files('libs/MidiSynth/MidiSynth.jar')
+    implementation 'androidx.recyclerview:recyclerview:1.2.0'
+    // Pull-to-refresh on the Steam library / 스팀 라이브러리 당겨서 새로고침
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
+    implementation 'org.bouncycastle:bcprov-jdk15on:1.68'
+    // Steam sign-in for the headless-agent path (MIT). Bouncy Castle above
+    // covers its crypto requirement, so no second BC artifact is added.
+    // 헤드리스 에이전트 경로용 Steam 로그인 라이브러리(MIT). 위 Bouncy Castle이
+    // 암호화 의존성을 채우므로 BC를 따로 추가하지 않음
+    implementation 'in.dragonbra:javasteam:1.8.0'
+    // Phase 3 (game download): JavaSteam's depot downloader, a separate artifact
+    // since 1.8.0. Same version as the core library.
+    // 3단계(게임 다운로드): JavaSteam의 depot 다운로더. 1.8.0부터 별도 라이브러리로
+    // 분리됨. 코어 라이브러리와 같은 버전을 씀
+    implementation 'in.dragonbra:javasteam-depotdownloader:1.8.0'
+    // QR image for Steam QR sign-in (Apache-2.0) / Steam QR 로그인용 QR 이미지 생성(Apache-2.0)
+    implementation 'com.google.zxing:core:3.5.3'
+    // Removed, none of them is referenced by app code (Java or native):
+    //  - conscrypt-android, openjsse: TLS providers. Android's own TLS is used.
+    //  - junixsocket (2 artifacts): Unix sockets are made by our own JNI
+    //    (xconnector_epoll.c), not by this library.
+    //  - androidx.core 1.0.1: appcompat already pulls a newer androidx.core.
+    // 삭제함. 앱 코드(Java, 네이티브) 어디서도 참조하지 않음:
+    //  - conscrypt-android, openjsse: TLS 공급자임. 안드로이드 자체 TLS를 씀
+    //  - junixsocket(2개): Unix 소켓은 이 라이브러리가 아니라 자체 JNI
+    //    (xconnector_epoll.c)로 만듦
+    //  - androidx.core 1.0.1: appcompat이 더 새 버전의 androidx.core를 이미 가져옴
+    implementation 'com.google.android.flexbox:flexbox:3.0.0'
+    implementation 'com.google.android.material:material:1.6.1'
+}
+
+
+

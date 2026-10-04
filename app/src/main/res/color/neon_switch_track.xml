@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- MaterialSwitch track tint by state -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:color="?attr/neonGlowMid" android:state_checked="true" />
+    <item android:color="?attr/neonDivider" android:state_enabled="false" />
+    <item android:color="?attr/neonSurfaceAlt" />
+</selector>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Round filled button for the primary row action (run container).
+    Filled so it outranks the menu button beside it at a glance.
+    행 안의 주 동작용 둥근 채움 버튼임(컨테이너 실행).
+    채워져 있어서 옆의 메뉴 버튼보다 한눈에 우선순위가 높아 보임
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true">
+        <shape android:shape="oval">
+            <gradient android:angle="0"
+                android:startColor="?attr/neonAccent"
+                android:endColor="?attr/neonAccent3"
+                android:type="linear" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="oval">
+            <gradient android:angle="0"
+                android:startColor="?attr/neonAccent3"
+                android:endColor="?attr/neonAccent"
+                android:type="linear" />
+        </shape>
+    </item>
+</selector>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- @id -> @+id: this file overrides the androidx.preference layout of the same name,
+     so the library layout that used to declare spinner no longer exists, and the
+     release build failed with "resource id/... not found". Declaring the ids here
+     fixes the link error.
+     @id -> @+id로 바꿈: 이 파일이 androidx.preference의 같은 이름 레이아웃을 덮어써서
+     spinner를 선언하던 라이브러리 레이아웃이 사라짐. 그래서 릴리즈 빌드가
+     "resource id/... not found"로 실패했음. 여기서 id를 직접 선언해 해결함 -->
+<FrameLayout android:layout_width="fill_parent" android:layout_height="wrap_content"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <Spinner android:id="@+id/spinner" android:visibility="invisible" android:layout_width="0.0dip" android:layout_height="wrap_content" android:layout_marginLeft="@dimen/preference_dropdown_padding_start" android:layout_marginStart="@dimen/preference_dropdown_padding_start" />
+    <include layout="@layout/preference_material" />
+</FrameLayout>

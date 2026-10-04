@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Neon ring spinner for work with no measurable length (extracting, scanning).
+    ProgressBar rotates a plain <rotate> drawable itself using
+    android:indeterminateDuration, so no AnimationDrawable frames are needed.
+    길이를 잴 수 없는 작업(압축 해제, 검색)용 네온 고리 스피너임.
+    ProgressBar가 android:indeterminateDuration 값으로 <rotate> 드로어블을
+    직접 돌려 주므로 AnimationDrawable 프레임을 따로 만들 필요가 없음
+
+    Use with: android:indeterminateDrawable="@drawable/neon_progress_indeterminate"
+              android:indeterminateDuration="900"
+    사용법: ProgressBar에 위 두 속성을 지정하면 됨
+-->
+<rotate xmlns:android="http://schemas.android.com/apk/res/android"
+    android:fromDegrees="0"
+    android:toDegrees="360"
+    android:pivotX="50%"
+    android:pivotY="50%">
+
+    <!-- innerRadiusRatio 3 = hole is 1/3 of the width, thicknessRatio 9 = -->
+    <!-- ring is 1/9 of the width. Those two numbers set the stroke weight -->
+    <!-- innerRadiusRatio 3 = 가운데 구멍이 너비의 1/3, thicknessRatio 9 = -->
+    <!-- 고리 두께가 너비의 1/9임. 이 두 값이 굵기를 결정함 -->
+    <shape
+        android:shape="ring"
+        android:innerRadiusRatio="3"
+        android:thicknessRatio="9"
+        android:useLevel="false">
+        <gradient
+            android:type="sweep"
+            android:startColor="@android:color/transparent"
+            android:centerColor="?attr/neonAccent3"
+            android:endColor="?attr/neonAccent"
+            android:useLevel="false" />
+    </shape>
+</rotate>

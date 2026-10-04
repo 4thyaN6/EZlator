@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Compact HUD pill: [spinner] engine | FPS. Ids TVFPS / TVRenderer
+     are kept; GPU / RAM / CPU boxes were removed.
+     간단 HUD 알약: [스피너] 엔진 | FPS. TVFPS / TVRenderer id는 유지하고,
+     GPU / RAM / CPU 칸은 지움 -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@drawable/hud_pill_bg"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingLeft="8dp"
+    android:paddingTop="3dp"
+    android:paddingRight="8dp"
+    android:paddingBottom="3dp">
+
+    <ProgressBar
+        android:id="@+id/PBHudLoading"
+        style="?android:attr/progressBarStyleSmall"
+        android:layout_width="12dp"
+        android:layout_height="12dp"
+        android:layout_marginRight="6dp"
+        android:indeterminateTint="#FFFFFF"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/TVRenderer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:includeFontPadding="false"
+        android:maxLines="1"
+        android:textColor="#B3E5FC"
+        android:textSize="11sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/TVHudDivider"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="6dp"
+        android:layout_marginRight="6dp"
+        android:includeFontPadding="false"
+        android:text="|"
+        android:textColor="#80FFFFFF"
+        android:textSize="11sp"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/TVFPS"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:includeFontPadding="false"
+        android:maxLines="1"
+        android:textColor="#FFFFFF"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
+</LinearLayout>

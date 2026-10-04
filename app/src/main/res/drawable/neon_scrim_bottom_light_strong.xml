@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Earlier bottom veil (light), kept for shortcuts without artwork
+     예전 아래쪽 막(라이트)임. 아트워크가 없는 바로가기에 씀 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <gradient
+        android:angle="90"
+        android:startColor="#CCFFFFFF"
+        android:centerColor="#4DFFFFFF"
+        android:endColor="#00FFFFFF"
+        android:type="linear" />
+</shape>
