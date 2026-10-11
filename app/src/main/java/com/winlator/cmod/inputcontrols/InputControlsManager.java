@@ -6,6 +6,7 @@ import android.content.res.AssetManager;
 import android.media.MediaScannerConnection;
 import android.os.Environment;
 import android.util.JsonReader;
+import android.util.Log;
 
 import androidx.preference.PreferenceManager;
 
@@ -26,6 +27,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 public class InputControlsManager {
+    // Log tag used for profile load diagnostics
+    // 프로필 로드 진단 로그용 태그임
+    private static final String TAG = "InputControlsManager";
+
     private final Context context;
     private ArrayList<ControlsProfile> profiles;
     private int maxProfileId;
@@ -70,13 +75,32 @@ public class InputControlsManager {
         try {
             AssetManager assetManager = context.getAssets();
             String[] assetFiles = assetManager.list("inputcontrols/profiles");
+            if (assetFiles == null) return;
             for (String assetFile : assetFiles) {
                 String assetPath = "inputcontrols/profiles/"+assetFile;
-                ControlsProfile originProfile = loadProfile(context, assetManager.open(assetPath));
+
+                // One unreadable asset must not abort the remaining assets
+                // 읽을 수 없는 asset 하나가 나머지 처리를 막지 않게 asset 단위로 예외 처리함
+                ControlsProfile originProfile;
+                try {
+                    originProfile = loadProfile(context, assetManager.open(assetPath));
+                }
+                catch (IOException e) {
+                    Log.w(TAG, "skip unreadable asset profile: "+assetPath, e);
+                    continue;
+                }
+
+                // Asset that cannot be parsed as a profile is skipped (null guard)
+                // 프로필로 해석되지 않는 asset은 건너뜀(null 방어)
+                if (originProfile == null) {
+                    Log.w(TAG, "skip invalid asset profile: "+assetPath);
+                    continue;
+                }
 
                 File targetFile = null;
                 for (File file : files) {
                     ControlsProfile targetProfile = loadProfile(context, file);
+                    if (targetProfile == null) continue;
                     if (originProfile.id == targetProfile.id && originProfile.getName().equals(targetProfile.getName())) {
                         targetFile = file;
                         break;
@@ -100,6 +124,14 @@ public class InputControlsManager {
         if (files != null) {
             for (File file : files) {
                 ControlsProfile profile = loadProfile(context, file);
+
+                // Skip files that are not valid profiles (empty, broken JSON, directory, ...)
+                // 유효한 프로필이 아닌 파일(빈 파일, 깨진 JSON, 폴더 등)은 건너뜀
+                if (profile == null) {
+                    Log.w(TAG, "skip invalid profile file: "+file.getName());
+                    continue;
+                }
+
                 if (!(ignoreTemplates && profile.isTemplate())) profiles.add(profile);
                 maxProfileId = Math.max(maxProfileId, profile.id);
             }
@@ -145,7 +177,10 @@ public class InputControlsManager {
         catch (JSONException e) {}
 
         ControlsProfile profile = loadProfile(context, newFile);
-        profiles.add(profile);
+
+        // Do not put a null profile into the list
+        // null 프로필은 목록에 넣지 않음
+        if (profile != null) profiles.add(profile);
         return profile;
     }
 
@@ -162,6 +197,13 @@ public class InputControlsManager {
             data.put("id", newId);
             FileUtils.writeString(newFile, data.toString());
             ControlsProfile newProfile = loadProfile(context, newFile);
+
+            // Imported data that cannot be read back is discarded
+            // 다시 읽을 수 없는 가져오기 데이터는 파일을 지우고 실패 처리함
+            if (newProfile == null) {
+                newFile.delete();
+                return null;
+            }
 
             int foundIndex = -1;
             for (int i = 0; i < profiles.size(); i++) {
@@ -196,6 +238,7 @@ public class InputControlsManager {
             return loadProfile(context, new FileInputStream(file));
         }
         catch (FileNotFoundException e) {
+            Log.w(TAG, "profile file not found or not a file: "+file.getName());
             return null;
         }
     }
@@ -229,12 +272,25 @@ public class InputControlsManager {
                 }
             }
 
+            // A profile without a name is treated as invalid (getName() is dereferenced elsewhere)
+            // 이름이 없는 프로필은 다른 곳에서 getName()을 바로 쓰므로 유효하지 않은 것으로 처리함
+            if (profileName == null) {
+                Log.w(TAG, "profile has no name field, id="+profileId);
+                return null;
+            }
+
             ControlsProfile profile = new ControlsProfile(context, profileId);
             profile.setName(profileName);
-            profile.setCursorSpeed(cursorSpeed);
+
+            // Keep the default cursor speed when the field is missing (NaN means not read)
+            // cursorSpeed 항목이 없으면(NaN) 기본값을 유지함
+            if (!Float.isNaN(cursorSpeed)) profile.setCursorSpeed(cursorSpeed);
             return profile;
         }
-        catch (IOException e) {
+        catch (IOException | RuntimeException e) {
+            // Broken JSON, wrong value type, empty file, non-object root, ...
+            // 깨진 JSON, 값 형식 오류, 빈 파일, 최상위가 객체가 아닌 경우 등
+            Log.w(TAG, "failed to parse profile: "+e);
             return null;
         }
     }

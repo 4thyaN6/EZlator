@@ -51,6 +51,12 @@ release 서명 키는 저장소에 포함되지 않습니다. `app/testkey_untru
 
 `app/src/main/assets/wincomponents/`의 Windows 구성요소 파일(`opengl.tzst`, `ddraw.tzst` 제외)은 저장소에 포함되지 않습니다. 이 저장소만으로 빌드한 APK에는 Win Components를 Native(Windows)로 바꿀 때 쓰는 파일이 들어가지 않습니다.
 
+## AI 사용 안내
+
+이 앱의 개발 과정(소스 코드 수정, 문서와 릴리즈 노트 작성)에서 AI 도구(Anthropic의 Claude)를 사용했습니다. 결과물은 개발자가 직접 적용하고 Lenovo TB323FU(Android 16)에서 실행해 확인했습니다.
+
+This app was developed with the help of an AI tool (Anthropic's Claude) for source code changes and for writing documentation and release notes. The results were applied by the developer and checked on a Lenovo TB323FU (Android 16).
+
 ## 라이선스
 
 - 앱 코드: MIT (원본 Winlator의 [LICENSE](LICENSE)를 따름)

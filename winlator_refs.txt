@@ -1,0 +1,14 @@
+﻿app\src\main\java\com\winlator\cmod\container\ContainerManager.java:282: // Proton AND Wine types: the proton-wine 11.0-2 package for Winlator CMOD
+app\src\main\java\com\winlator\cmod\container\ContainerManager.java:284: // Proton과 Wine 타입 모두 봄: Winlator CMOD용 proton-wine 11.0-2 패키지가
+app\src\main\java\com\winlator\cmod\container\LayerTiers.java:24: // catalog), GameNative's Winlator CMOD package only where The412Banner has no
+app\src\main\java\com\winlator\cmod\container\LayerTiers.java:32: // Winlator CMOD용 패키지를 씀. GameNative의 "Proton 타입" 패키지는 GameNative 앱
+app\src\main\java\com\winlator\cmod\contents\ContentsManager.java:295: // GameNative's Winlator CMOD layer packages (proton-wine-*.wcp.xz) declare
+app\src\main\java\com\winlator\cmod\contents\ContentsManager.java:298: // GameNative의 Winlator CMOD용 레이어 패키지(proton-wine-*.wcp.xz)는 스스로를
+app\src\main\java\com\winlator\cmod\core\PackagePathFixer.java:12: * The imagefs archive is shared with Winlator Cmod, so config/script files may
+app\src\main\java\com\winlator\cmod\core\PackagePathFixer.java:15: * imagefs 압축본은 Winlator Cmod와 공용이라 설정/스크립트 파일이
+app\src\main\java\com\winlator\cmod\MainActivity.java:916: tvWebpage.setText(Html.fromHtml("<a href=\"https://www.winlator.org\">winlator.org</a>", Html.FROM_HTML_MODE_LEGACY));
+app\src\main\java\com\winlator\cmod\MainActivity.java:944: "Winlator Cmod by <a href=\"https://github.com/coffincolors/winlator\">coffincolors</a>, <a href=\"https://github.com/Pipetto-crypto/winlator\">Pipetto-crypto</a>",
+app\src\main\java\com\winlator\cmod\ShortcutsFragment.java:1165: writer.write("Player app: Select Winlator Cmod (or whichever fork you are using that has adopted this code)\n");
+app\src\main\res\layout\about_dialog.xml:36: android:text="Winlator Cmod" />
+app\src\main\AndroidManifest.xml:115: same one Winlator Cmod uses, so installing both would be rejected
+app\src\main\AndroidManifest.xml:117: authority는 기기 전체에서 유일해야 함. 예전 고정값은 Winlator Cmod와

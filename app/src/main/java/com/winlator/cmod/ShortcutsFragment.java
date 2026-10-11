@@ -1162,7 +1162,9 @@ public class ShortcutsFragment extends Fragment {
                     writer.write("Platform Type: Custom\n");
                     writer.write("Name: Windows (or Winlator, whatever you prefer)\n");
                     writer.write("Short name: windows\n");
-                    writer.write("Player app: Select Winlator Cmod (or whichever fork you are using that has adopted this code)\n");
+                    // Exported guide names this app as the player app
+                    // 내보내는 안내문에 실행 앱으로 이 앱(EZlator)을 표기함
+                    writer.write("Player app: Select EZlator\n");
                     writer.write("ROMs folder: Use Android FilePicker to select the Downloads\\Winlator\\Frontend directory\n");
                     writer.write("Expand Advanced:\n");
                     writer.write("File handling: Default\n");

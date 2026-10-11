@@ -49,8 +49,8 @@ android {
         // 버전 규칙: 앞.중간.뒤. 앞 = 대규모 패치, 중간 = 기능 변화, 뒤 = 소규모 수정
         // (오류 수정, 신기술 적용 시험). versionCode는 올리기만 함(안드로이드는 더 낮은
         // 값으로 덮어쓰기 설치를 거부함)
-        versionCode 20
-        versionName "EZlator-0.1.0"
+        versionCode 21
+        versionName "EZlator-0.1.1"
 
         // External native build from Winlator
         externalNativeBuild {

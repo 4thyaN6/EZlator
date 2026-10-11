@@ -913,7 +913,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             final PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
 
             TextView tvWebpage = dialog.findViewById(R.id.TVWebpage);
-            tvWebpage.setText(Html.fromHtml("<a href=\"https://www.winlator.org\">winlator.org</a>", Html.FROM_HTML_MODE_LEGACY));
+            // About dialog link points to the EZlator repository instead of the upstream site
+            // 정보 창 링크를 원본 사이트 대신 EZlator 저장소로 연결함
+            tvWebpage.setText(Html.fromHtml("<a href=\"https://github.com/4thyaN6/EZlator\">github.com/4thyaN6/EZlator</a>", Html.FROM_HTML_MODE_LEGACY));
             tvWebpage.setMovementMethod(LinkMovementMethod.getInstance());
 
             ((TextView) dialog.findViewById(R.id.TVAppVersion)).setText(getString(R.string.version) + " " + pInfo.versionName);

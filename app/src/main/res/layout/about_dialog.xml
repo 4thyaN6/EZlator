@@ -28,12 +28,14 @@
 
                 <!-- Title glows like every other screen heading in the app -->
                 <!-- 제목은 앱의 다른 화면 헤더와 같이 빛남 -->
+                <!-- About dialog title shows this app's name -->
+                <!-- 정보 창 제목에 이 앱 이름을 표시함 -->
                 <TextView
                     style="@style/NeonTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textSize="20sp"
-                    android:text="Winlator Cmod" />
+                    android:text="EZlator" />
 
                 <TextView
                     android:id="@+id/TVWebpage"
