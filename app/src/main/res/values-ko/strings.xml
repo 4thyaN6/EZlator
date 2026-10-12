@@ -628,6 +628,10 @@
     <string name="add_game_archive_reading">압축 파일 확인 중…</string>
     <string name="add_game_archive_parts">%1$s (%2$d개로 나뉨)</string>
     <string name="add_game_archive_message">압축 파일: %1$s\n풀 위치: %2$s\n풀었을 때 크기: %3$s (파일 %4$d개)\n남은 공간: %5$s</string>
+    <string name="add_game_archive_exists">같은 이름의 게임 폴더가 이미 있습니다. 업데이트하면 새 파일을 그 위에 덮어씁니다: 바로가기, 플레이 시간, 설정, 폴더 안의 세이브는 그대로이고, 새 버전에 없는 파일도 남습니다. 새 폴더를 고르면 그 옆에 "(2)"로 풉니다.</string>
+    <string name="add_game_archive_update">업데이트</string>
+    <string name="add_game_archive_new_folder">새 폴더</string>
+    <string name="add_game_archive_updated">업데이트했습니다: %1$s (기존 바로가기 유지)</string>
     <string name="relocate_title">위치가 바뀐 게임</string>
     <string name="relocate_message">다음 게임이 바로가기가 가리키는 곳에 없고, 새 위치에서 찾았습니다. 바로가기를 새 위치로 고칠 수 있습니다(플레이 시간과 설정은 유지됩니다):\n\n%1$s</string>
     <string name="relocate_missing">그 밖에 바로가기 %1$d개는 파일이 없고 다른 곳에서도 찾지 못해 그대로 둡니다.</string>

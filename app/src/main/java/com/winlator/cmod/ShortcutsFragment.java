@@ -999,7 +999,10 @@ public class ShortcutsFragment extends Fragment {
                     .show();
             return;
         }
-        File target = GameArchiveExtractor.targetFolderFor(unpackParent, archive, info);
+        // Same game folder already there (an update or the same archive again)
+        // 같은 게임 폴더가 이미 있음(업데이트나 같은 압축 파일을 다시 받은 경우)
+        final File existing = GameArchiveExtractor.existingFolderFor(unpackParent, archive, info);
+        File target = existing != null ? existing : GameArchiveExtractor.targetFolderFor(unpackParent, archive, info);
         String targetPath = toWindowsPath(target, container);
         String archiveName = info.volumes.size() > 1
                 ? getString(R.string.add_game_archive_parts, archive.getName(), info.volumes.size())
@@ -1021,18 +1024,32 @@ public class ShortcutsFragment extends Fragment {
         box.setPadding(pad, pad / 2, pad, 0);
         box.addView(deleteBox);
 
-        new AlertDialog.Builder(activity)
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity)
                 .setTitle(R.string.add_game_archive_title)
-                .setMessage(message)
                 .setView(box)
-                .setPositiveButton(R.string.add_game_archive_unpack,
-                        (d, w) -> runArchiveExtraction(archive, info, memoryLimitKb, container, deleteBox.isChecked(), unpackParent))
-                .setNegativeButton(android.R.string.cancel, null)
-                .show();
+                .setNegativeButton(android.R.string.cancel, null);
+        if (existing != null) {
+            // Update over the existing folder (default) or a new folder beside it.
+            // Updating keeps the shortcut, play time, settings and saves in the
+            // folder; files the new version dropped stay behind
+            // 기존 폴더 위에 업데이트(기본) 또는 그 옆 새 폴더. 업데이트하면 바로가기, 플레이
+            // 시간, 설정, 폴더 안 세이브가 유지됨. 새 버전에서 빠진 파일은 남음
+            builder.setMessage(message + "\n\n" + getString(R.string.add_game_archive_exists))
+                    .setPositiveButton(R.string.add_game_archive_update,
+                            (d, w) -> runArchiveExtraction(archive, info, memoryLimitKb, container, deleteBox.isChecked(), unpackParent, existing))
+                    .setNeutralButton(R.string.add_game_archive_new_folder,
+                            (d, w) -> runArchiveExtraction(archive, info, memoryLimitKb, container, deleteBox.isChecked(), unpackParent, null));
+        } else {
+            builder.setMessage(message)
+                    .setPositiveButton(R.string.add_game_archive_unpack,
+                            (d, w) -> runArchiveExtraction(archive, info, memoryLimitKb, container, deleteBox.isChecked(), unpackParent, null));
+        }
+        builder.show();
     }
 
     private void runArchiveExtraction(File archive, GameArchiveExtractor.Info info, int memoryLimitKb,
-                                      Container container, boolean deleteArchive, File unpackParent) {
+                                      Container container, boolean deleteArchive, File unpackParent,
+                                      @Nullable File updateInto) {
         final Activity activity = getActivity();
         if (activity == null) return;
         final java.util.concurrent.atomic.AtomicBoolean cancel = new java.util.concurrent.atomic.AtomicBoolean();
@@ -1050,7 +1067,7 @@ public class ShortcutsFragment extends Fragment {
             IOException error = null;
             List<File> candidates = null;
             try {
-                folder = GameArchiveExtractor.extract(archive, info, unpackParent, memoryLimitKb, cancel,
+                folder = GameArchiveExtractor.extract(archive, info, unpackParent, updateInto, memoryLimitKb, cancel,
                         (doneBytes, totalBytes, doneFiles, totalFiles, name) -> {
                             // At most a few UI updates a second, also for thousands of tiny files
                             // 작은 파일이 수천 개여도 화면 갱신은 1초에 몇 번만 함
@@ -1086,8 +1103,20 @@ public class ShortcutsFragment extends Fragment {
                     AppUtils.showToast(activity, getString(R.string.add_game_archive_cancelled));
                     return;
                 }
-                Log.i("ShortcutCreation", "unpacked " + archive.getName() + " -> " + unpacked
+                Log.i("ShortcutCreation", (updateInto != null ? "updated " : "unpacked ") + archive.getName() + " -> " + unpacked
                         + ", game exe candidates " + (exes != null ? exes.size() : 0));
+                // Update: a shortcut that already points into this folder is kept as
+                // it is (no second shortcut)
+                // 업데이트: 이 폴더 안을 이미 가리키는 바로가기는 그대로 둠(두 번째 바로가기 없음)
+                if (updateInto != null) {
+                    Shortcut kept = shortcutInside(unpacked);
+                    if (kept != null) {
+                        if (deleteArchive) deleteArchiveVolumes(info.volumes);
+                        AppUtils.showToast(activity, getString(R.string.add_game_archive_updated, kept.name));
+                        loadShortcutsList();
+                        return;
+                    }
+                }
                 if (exes != null && exes.size() == 1) {
                     // One game exe: no question needed / 게임 exe가 하나면 물을 필요 없음
                     boolean ok = addShortcutForExe(exes.get(0), container);
@@ -1102,6 +1131,18 @@ public class ShortcutsFragment extends Fragment {
                 launchExePicker(container, unpacked, true);
             });
         });
+    }
+
+    // A shortcut (any container) whose exe is inside the folder, or null
+    // exe가 이 폴더 안에 있는 바로가기(모든 컨테이너), 없으면 null
+    @Nullable
+    private Shortcut shortcutInside(File folder) {
+        if (manager == null) return null;
+        for (Shortcut sc : manager.loadShortcuts()) {
+            File exe = sc.resolveExeFile();
+            if (exe != null && isInside(exe, folder)) return sc;
+        }
+        return null;
     }
 
     private void showArchiveError(IOException e) {

@@ -734,6 +734,10 @@
     <string name="add_game_archive_reading">Reading the archive…</string>
     <string name="add_game_archive_parts">%1$s (%2$d parts)</string>
     <string name="add_game_archive_message">Archive: %1$s\nUnpack to: %2$s\nSize after unpacking: %3$s (%4$d files)\nFree space: %5$s</string>
+    <string name="add_game_archive_exists">A game folder with this name is already there. Update writes the new files over it: the shortcut, play time, settings and saves in the folder stay; files the new version no longer has stay too. New folder unpacks next to it as "(2)".</string>
+    <string name="add_game_archive_update">Update</string>
+    <string name="add_game_archive_new_folder">New folder</string>
+    <string name="add_game_archive_updated">Updated: %1$s (the existing shortcut is kept)</string>
     <string name="relocate_title">Games that were moved</string>
     <string name="relocate_message">These games are no longer where their shortcuts point. They were found in a new place; the shortcuts can point there (play time and settings stay):\n\n%1$s</string>
     <string name="relocate_missing">%1$d other shortcut(s) point at a file that is gone and was not found anywhere else; they are left as they are.</string>

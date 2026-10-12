@@ -193,12 +193,19 @@ public class GLRenderer implements GLSurfaceView.Renderer, WindowManager.OnWindo
         // 원래 renderWindows(xrImmersive)였음. XR 모드를 제거해서 항상 false임
         renderWindows(false);
 
-        // Render cursor if enabled
-        // The X cursor is not drawn while the fullscreen mapping is active: it
-        // would sit at its unscaled position
-        // 전체화면 변환 중에는 X 커서를 그리지 않음: 배율이 적용되지 않은 자리에
-        // 그려지기 때문임
-        if (cursorVisible && !rootWindowDownsized) renderCursor();
+        // Render cursor if enabled. With the fullscreen mapping active the cursor
+        // is drawn through the same mapping (renderCursor), also when the root
+        // window is smaller than the screen: a game whose window is smaller than
+        // the desktop (e.g. 1260x700 on 1280x720) set rootWindowDownsized and the
+        // cursor vanished in fullscreen with the touchpad (mouse) mode. Only the
+        // old single-window stretch (no mapping) still hides it, as its position
+        // would not match there
+        // 커서가 켜져 있으면 그림. 전체화면 변환이 켜져 있으면 커서도 같은 변환으로 그림
+        // (renderCursor). 루트 창이 화면보다 작을 때도 그럼: 창이 데스크톱보다 작은
+        // 게임(예: 1280x720에 1260x700)은 rootWindowDownsized가 켜져서 전체화면 + 터치패드
+        // (마우스) 모드에서 커서가 사라졌음. 변환 없이 창 하나만 늘리는 예전 방식에서만
+        // 위치가 맞지 않아 계속 숨김
+        if (cursorVisible && (!rootWindowDownsized || FullscreenMapping.active)) renderCursor();
 
         // Disable scissor test if magnifier is disabled and not in fullscreen mode
         if (!magnifierEnabled && !fullscreen) {

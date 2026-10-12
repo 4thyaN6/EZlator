@@ -171,6 +171,9 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
     // 이번 실행의 Visual C++ 2015~2022: 켜짐 여부, 게임별 DLL 사본을 쓰고 보관할 게임의
     // 키·이름(VCRedistInstaller.gameKey 참고)
     private boolean vcrunOn = false;
+    // Current state of the in-game fullscreen (menu toggle), saved per shortcut
+    // 게임 화면 전체화면(메뉴 토글)의 현재 상태. 바로가기별로 저장함
+    private boolean fullscreenOn = false;
     private String vcrunGameKey = null;
     private String vcrunGameLabel = null;
     private String graphicsDriver = Container.DEFAULT_GRAPHICS_DRIVER;
@@ -1649,6 +1652,16 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
 
             // ---- DISPLAY group ----
             case R.id.main_menu_toggle_fullscreen:
+                // Remembered per game: the next launch of this shortcut starts the
+                // same way (off is stored as "0" so the container default does not
+                // turn it back on)
+                // 게임별로 기억함: 이 바로가기의 다음 실행은 같은 상태로 시작함(끔은 "0"으로
+                // 저장해서 컨테이너 기본값이 다시 켜지 않게 함)
+                fullscreenOn = !fullscreenOn;
+                if (shortcut != null) {
+                    shortcut.putExtra("fullscreenStretched", fullscreenOn ? "1" : "0");
+                    shortcut.saveData();
+                }
                 renderer.toggleFullscreen();
                 // Keep the HUD above everything after the picture is restretched
                 // 화면을 다시 늘린 뒤에도 HUD가 맨 위에 오게 함
@@ -2746,8 +2759,14 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             frameRating.postDelayed(frameRating::finishLoading, 120_000);
         }
 
-        // Get the fullscreen stretched extra from the shortcut if available
+        // Get the fullscreen stretched extra from the shortcut if available.
+        // getExtra() gives "" when the key is missing, which used to count as
+        // "set to off" and hid the container's default; "" now means not set
+        // 바로가기에 전체화면 값이 있으면 가져옴. getExtra()는 키가 없으면 ""를 주는데,
+        // 예전에는 이것을 "끔으로 설정됨"으로 봐서 컨테이너 기본값이 가려졌음. 이제 ""는
+        // 설정 안 됨으로 봄
         String shortcutFullscreenStretched = shortcut != null ? shortcut.getExtra("fullscreenStretched") : null;
+        if (shortcutFullscreenStretched != null && shortcutFullscreenStretched.isEmpty()) shortcutFullscreenStretched = null;
 
         // Proceed based on container and shortcut settings
         boolean shouldStretch = false;
@@ -2762,6 +2781,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
 
         if (shouldStretch) {
             // Toggle fullscreen mode based on the final decision
+            fullscreenOn = true;
             renderer.toggleFullscreen();
             touchpadView.toggleFullscreen();
         }

@@ -529,10 +529,27 @@ public final class GameArchiveExtractor {
      * 만듦(예: 압축 파일은 내장 메모리, 게임은 E:)
      */
     public static File targetFolderFor(File parent, File archive, Info info) {
-        String base = info.topDir != null ? info.topDir : archiveBaseName(archive);
+        String base = folderBaseName(archive, info);
         File target = new File(parent, base);
         for (int i = 2; target.exists(); i++) target = new File(parent, base + " (" + i + ")");
         return target;
+    }
+
+    // Name of the game folder: the archive's top folder, else the archive name
+    // 게임 폴더 이름: 압축 안의 최상위 폴더, 없으면 압축 파일 이름
+    private static String folderBaseName(File archive, Info info) {
+        return info.topDir != null ? info.topDir : archiveBaseName(archive);
+    }
+
+    /**
+     * The game folder this archive would update: a folder in parent with the
+     * same name (an update or the same download again), or null when there is none.
+     * 이 압축 파일이 업데이트할 게임 폴더: parent 안의 같은 이름 폴더(업데이트나 같은
+     * 파일을 다시 받은 경우). 없으면 null
+     */
+    public static File existingFolderFor(File parent, File archive, Info info) {
+        File f = new File(parent, folderBaseName(archive, info));
+        return f.isDirectory() ? f : null;
     }
 
     static String archiveBaseName(File archive) {
@@ -575,7 +592,22 @@ public final class GameArchiveExtractor {
      */
     public static File extract(File archive, Info info, File destParent, int memoryLimitKb,
                                AtomicBoolean cancel, Progress progress) throws IOException {
-        File target = targetFolderFor(destParent, archive, info);
+        return extract(archive, info, destParent, null, memoryLimitKb, cancel, progress);
+    }
+
+    /**
+     * updateInto != null: the archive is unpacked over that existing game folder
+     * (an update). Everything is first unpacked into the hidden work folder, so a
+     * cancel or an error leaves the game as it was; only then are the files moved
+     * in, replacing those with the same name. Files the archive does not have
+     * (saves, files the new version dropped) stay.
+     * updateInto != null: 그 기존 게임 폴더 위에 풂(업데이트). 먼저 숨김 작업 폴더에 모두
+     * 풀어서, 취소하거나 오류가 나면 게임은 그대로 남음. 그다음에야 파일을 옮겨 넣고 같은
+     * 이름 파일을 바꿈. 압축에 없는 파일(세이브, 새 버전에서 빠진 파일)은 남음
+     */
+    public static File extract(File archive, Info info, File destParent, File updateInto, int memoryLimitKb,
+                               AtomicBoolean cancel, Progress progress) throws IOException {
+        File target = updateInto != null ? updateInto : targetFolderFor(destParent, archive, info);
         File work = new File(target.getParentFile(), WORK_PREFIX + System.currentTimeMillis());
         if (!work.mkdirs()) throw new IOException("cannot create " + work);
         try {
@@ -590,12 +622,44 @@ public final class GameArchiveExtractor {
                 // 압축 안의 최상위 폴더가 게임 폴더가 됨(폴더가 두 겹이 되지 않게)
                 content = new File(work, sanitizeSegment(info.topDir));
             }
-            if (!content.renameTo(target)) throw new IOException("cannot rename " + content + " -> " + target);
+            if (updateInto != null) {
+                mergeInto(content, target);
+            } else if (!content.renameTo(target)) {
+                throw new IOException("cannot rename " + content + " -> " + target);
+            }
             return target;
         } finally {
             // After a successful rename only the empty work folder (or nothing) is left
             // 이름 바꾸기에 성공하면 빈 작업 폴더만 남거나 아무것도 안 남음
             deleteTree(work);
+        }
+    }
+
+    /**
+     * Moves everything in src into dst (same storage, so each move is a rename):
+     * folders are merged, a file replaces the one with the same name. A file and
+     * a folder with the same name: the archive's entry wins.
+     * src의 모든 것을 dst로 옮김(같은 저장소라 옮기기는 이름 바꾸기임): 폴더는 합치고, 파일은
+     * 같은 이름 파일을 바꿈. 같은 이름의 파일과 폴더가 겹치면 압축 쪽을 씀
+     */
+    static void mergeInto(File src, File dst) throws IOException {
+        File[] children = src.listFiles();
+        if (children == null) return;
+        mkdirsOrThrow(dst);
+        for (File from : children) {
+            File to = new File(dst, from.getName());
+            if (from.isDirectory() && !isSymlink(from)) {
+                if (to.exists() && (!to.isDirectory() || isSymlink(to))) deleteTree(to);
+                if (!to.exists()) {
+                    if (!from.renameTo(to)) throw new IOException("cannot move " + from + " -> " + to);
+                } else {
+                    mergeInto(from, to);
+                }
+            } else {
+                if (to.isDirectory() && !isSymlink(to)) deleteTree(to);
+                else if (to.exists() || isSymlink(to)) to.delete();
+                if (!from.renameTo(to)) throw new IOException("cannot move " + from + " -> " + to);
+            }
         }
     }
 
