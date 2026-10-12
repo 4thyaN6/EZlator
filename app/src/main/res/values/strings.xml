@@ -713,6 +713,10 @@
     <string name="vcredist_agree">Agree</string>
     <string name="vcredist_downloading">Downloading from Microsoft: %1$s (%2$s)</string>
     <string name="vcredist_download_failed">Could not download from Microsoft (%1$s).</string>
+    <string name="vcredist_status_kept">Kept on this device: %1$s</string>
+    <string name="vcredist_status_none">Not kept yet - Wine\'s builtin DLLs are used</string>
+    <string name="vcredist_get">Get</string>
+    <string name="vcredist_get_again">Get again</string>
     <string name="vcredist_license_link">Microsoft Visual C++ Runtime license terms</string>
     <string name="vcredist_searching">Visual C++ 2015-2022</string>
     <string name="vcredist_reading">Reading %1$s…</string>

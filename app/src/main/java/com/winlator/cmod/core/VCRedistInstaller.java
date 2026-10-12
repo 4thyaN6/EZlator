@@ -906,6 +906,22 @@ public final class VCRedistInstaller {
     }
 
 
+    /**
+     * Status of the kept DLLs for the line under the option: "14.44.35211.0 (x64 · x86)",
+     * or null when nothing is kept yet. Reads two small files, fine on the UI thread.
+     * 항목 아래 줄에 보여 줄 보관 DLL 상태: "14.44.35211.0 (x64 · x86)", 아직 없으면 null.
+     * 작은 파일 두 개만 읽으므로 UI 스레드에서 불러도 됨
+     */
+    public static String keptSummary(Context context) {
+        ImageFs imageFs = ImageFs.find(context);
+        if (!isInstalled(imageFs)) return null;
+        long v64 = fileVersion(new File(storeDir(imageFs), "system32/vcruntime140.dll"));
+        long v32 = fileVersion(new File(storeDir(imageFs), "syswow64/vcruntime140.dll"));
+        long v = Math.max(v64, v32);
+        String arch = (v64 != -1 ? "x64" : "") + (v64 != -1 && v32 != -1 ? " \u00b7 " : "") + (v32 != -1 ? "x86" : "");
+        return v == -1 ? "?" : versionText(v) + " (" + arch + ")";
+    }
+
     // ==================== Official download / 공식 주소에서 받기 ====================
 
     /** Bytes received for one file (total -1 when unknown) / 파일 하나의 받은 크기(전체를 모르면 -1) */
@@ -1019,12 +1035,22 @@ public final class VCRedistInstaller {
      * done(false)(설정이 원래대로 돌아감)
      */
     public static void ensureInstalled(Context context, Consumer<Boolean> done) {
+        ensureInstalled(context, false, done);
+    }
+
+    /**
+     * force = true: the license prompt and the download run even when DLLs are
+     * already kept (the "Get again" action under the option)
+     * force = true: 이미 보관한 DLL이 있어도 사용 조건 창과 받기를 진행함(항목 아래의
+     * "다시 받기")
+     */
+    public static void ensureInstalled(Context context, boolean force, Consumer<Boolean> done) {
         Activity activity = findActivity(context);
         if (activity == null) {
             done.accept(false);
             return;
         }
-        if (isInstalled(ImageFs.find(activity))) {
+        if (!force && isInstalled(ImageFs.find(activity))) {
             done.accept(true);
             return;
         }

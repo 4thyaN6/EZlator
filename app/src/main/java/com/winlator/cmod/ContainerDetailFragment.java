@@ -893,6 +893,7 @@ public class ContainerDetailFragment extends Fragment {
     // 받기를 제안함. 거절하거나 실패하면 행을 원래대로 되돌림
     private static void watchVCRedist(Spinner spinner) {
         if (!com.winlator.cmod.core.VCRedistInstaller.ID.equals(spinner.getTag())) return;
+        addVCRedistStatus(spinner);
         spinner.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(android.widget.AdapterView<?> parent, View v, int position, long id) {
@@ -905,6 +906,60 @@ public class ContainerDetailFragment extends Fragment {
             @Override
             public void onNothingSelected(android.widget.AdapterView<?> parent) {}
         });
+    }
+
+    /**
+     * Visual C++ 2015-2022 row: a line under the box with what is kept on this
+     * device and a "Get" / "Get again" action. Picking Native only starts the
+     * download when the value changes, so an option that was already Native had
+     * no way to get the DLLs; this line is that way (license prompt first)
+     * Visual C++ 2015~2022 행: 칸 아래에 이 기기에 보관한 상태와 "받기" / "다시 받기"를
+     * 보여 주는 줄. Native를 골라도 값이 바뀔 때만 받기가 시작돼서, 이미 Native였던
+     * 항목은 DLL을 받을 방법이 없었음. 이 줄이 그 방법임(사용 조건 창이 먼저 뜸)
+     */
+    private static void addVCRedistStatus(Spinner spinner) {
+        if (!(spinner.getParent() instanceof ViewGroup)) return;
+        ViewGroup item = (ViewGroup) spinner.getParent();
+        Context context = spinner.getContext();
+        float dp = context.getResources().getDisplayMetrics().density;
+
+        LinearLayout row = new LinearLayout(context);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        row.setPadding(Math.round(4 * dp), Math.round(2 * dp), 0, Math.round(4 * dp));
+
+        TextView status = new TextView(context);
+        status.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 12);
+        status.setTextColor(themeColor(context, R.attr.neonTextDim));
+        row.addView(status, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+
+        TextView action = new TextView(context);
+        action.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 13);
+        action.setTypeface(action.getTypeface(), android.graphics.Typeface.BOLD);
+        action.setTextColor(themeColor(context, R.attr.neonAccent));
+        action.setPadding(Math.round(12 * dp), Math.round(8 * dp), Math.round(12 * dp), Math.round(8 * dp));
+        action.setClickable(true);
+        action.setFocusable(true);
+        row.addView(action);
+
+        // Shows the kept version, or that nothing is kept yet
+        // 보관한 버전, 또는 아직 없음을 보여 줌
+        final Runnable refresh = () -> {
+            String kept = com.winlator.cmod.core.VCRedistInstaller.keptSummary(context);
+            status.setText(kept != null ? context.getString(R.string.vcredist_status_kept, kept)
+                    : context.getString(R.string.vcredist_status_none));
+            action.setText(kept != null ? R.string.vcredist_get_again : R.string.vcredist_get);
+        };
+        action.setOnClickListener(v -> com.winlator.cmod.core.VCRedistInstaller.ensureInstalled(context, true, ok -> refresh.run()));
+        refresh.run();
+        item.addView(row);
+    }
+
+    // Colour of a theme attribute (neon tokens) / 테마 속성(네온 값)의 색
+    private static int themeColor(Context context, int attr) {
+        android.util.TypedValue tv = new android.util.TypedValue();
+        if (!context.getTheme().resolveAttribute(attr, tv, true)) return android.graphics.Color.GRAY;
+        return tv.resourceId != 0 ? androidx.core.content.ContextCompat.getColor(context, tv.resourceId) : tv.data;
     }
 
     public static void createWinComponentsTab(View view, String wincomponents) {

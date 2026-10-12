@@ -607,6 +607,10 @@
     <string name="vcredist_agree">동의</string>
     <string name="vcredist_downloading">Microsoft에서 받는 중: %1$s (%2$s)</string>
     <string name="vcredist_download_failed">Microsoft에서 받지 못했습니다(%1$s).</string>
+    <string name="vcredist_status_kept">이 기기에 보관됨: %1$s</string>
+    <string name="vcredist_status_none">아직 보관된 파일 없음 - Wine 기본 DLL이 쓰임</string>
+    <string name="vcredist_get">받기</string>
+    <string name="vcredist_get_again">다시 받기</string>
     <string name="vcredist_license_link">Microsoft Visual C++ 런타임 사용 조건</string>
     <string name="vcredist_searching">Visual C++ 2015-2022</string>
     <string name="vcredist_reading">%1$s 읽는 중…</string>

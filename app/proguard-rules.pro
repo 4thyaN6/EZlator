@@ -62,6 +62,18 @@
 -dontwarn org.brotli.**
 -dontwarn org.objectweb.asm.**
 -dontwarn java.beans.**
+# Commons Compress creates zip extra fields by reflection with their no-arg
+# constructor (ExtraFieldUtils.register / createExtraField). R8 removed those
+# constructors, so opening any zip in a release build crashed with
+# ExceptionInInitializerError ... NoSuchMethodException <init> [] (adding a game
+# from a zip). The constructors of every ZipExtraField implementation are kept
+# Commons Compress는 zip 추가 필드를 인자 없는 생성자로 리플렉션 생성함
+# (ExtraFieldUtils.register / createExtraField). R8이 그 생성자를 지워서 release
+# 빌드에서 zip을 열면 ExceptionInInitializerError ... NoSuchMethodException <init> []로
+# 앱이 꺼졌음(zip으로 게임 추가). 모든 ZipExtraField 구현의 생성자를 남김
+-keep class * implements org.apache.commons.compress.archivers.zip.ZipExtraField {
+    public <init>();
+}
 -dontwarn kotlinx.**
 -dontwarn okhttp3.**
 -dontwarn okio.**

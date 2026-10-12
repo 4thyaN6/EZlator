@@ -163,12 +163,14 @@
                                     android:layout_height="wrap_content"
                                     android:text="@string/screen_size" />
 
+                                <!-- Opens right below the box like the other lists (was a centred dialog) -->
+                                <!-- 다른 목록처럼 칸 바로 아래로 펼쳐짐(전에는 가운데 창이었음) -->
                                 <Spinner
                                     style="@style/NeonComboBox"
                                     android:layout_width="match_parent"
                                     android:id="@+id/SScreenSize"
                                     android:entries="@array/screen_size_entries"
-                                    android:spinnerMode="dialog" />
+                                    android:spinnerMode="dropdown" />
                             </LinearLayout>
 
                             <LinearLayout
@@ -301,13 +303,15 @@
                             android:orientation="horizontal"
                             android:gravity="center_vertical">
 
+                            <!-- Opens right below the box like the other lists (was a centred dialog) -->
+                            <!-- 다른 목록처럼 칸 바로 아래로 펼쳐짐(전에는 가운데 창이었음) -->
                             <Spinner
                                 style="@style/NeonComboBox"
                                 android:layout_width="0dp"
                                 android:layout_weight="1"
                                 android:id="@+id/SDXWrapper"
                                 android:entries="@array/dxwrapper_entries"
-                                android:spinnerMode="dialog" />
+                                android:spinnerMode="dropdown" />
 
                             <ImageButton
                                 style="@style/NeonIconMenuButton"
@@ -640,11 +644,13 @@
                                                 android:layout_height="wrap_content"
                                                 android:text="@string/profile" />
 
+                                            <!-- Opens right below the box like the other lists (was a centred dialog) -->
+                                            <!-- 다른 목록처럼 칸 바로 아래로 펼쳐짐(전에는 가운데 창이었음) -->
                                             <Spinner
                                                 style="@style/NeonComboBox"
                                                 android:id="@+id/SControlsProfile"
                                                 android:layout_width="match_parent"
-                                                android:spinnerMode="dialog" />
+                                                android:spinnerMode="dropdown" />
 
                                             <androidx.appcompat.widget.SwitchCompat
                                                 style="@style/NeonSwitch"
@@ -873,12 +879,14 @@
                                         android:layout_height="wrap_content"
                                         android:text="@string/box64_version" />
 
+                                    <!-- Opens right below the box like the other lists (was a centred dialog) -->
+                                    <!-- 다른 목록처럼 칸 바로 아래로 펼쳐짐(전에는 가운데 창이었음) -->
                                     <Spinner
                                         style="@style/NeonComboBox"
                                         android:id="@+id/SBox64Version"
                                         android:layout_width="match_parent"
                                         android:entries="@array/box64_version_entries"
-                                        android:spinnerMode="dialog" />
+                                        android:spinnerMode="dropdown" />
 
                                     <TextView
                                         android:layout_width="wrap_content"
@@ -979,13 +987,15 @@
                                         android:layout_height="wrap_content"
                                         android:orientation="vertical" >
 
+                                        <!-- Opens right below the box like the other lists (was a centred dialog) -->
+                                        <!-- 다른 목록처럼 칸 바로 아래로 펼쳐짐(전에는 가운데 창이었음) -->
                                         <Spinner
                                             android:layout_width="match_parent"
                                             android:layout_height="wrap_content"
                                             android:id="@+id/SSharpnessEffect"
                                             style="@style/NeonComboBox"
                                             android:entries="@array/vkbasalt_sharpness_entries"
-                                            android:spinnerMode="dialog" />
+                                            android:spinnerMode="dropdown" />
 
                                         <LinearLayout
                                             android:layout_width="match_parent"
