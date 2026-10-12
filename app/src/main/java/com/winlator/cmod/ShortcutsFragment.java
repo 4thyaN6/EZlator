@@ -57,6 +57,7 @@ import com.winlator.cmod.contentdialog.ShortcutSettingsDialog;
 import com.winlator.cmod.contents.ContentsManager;
 import com.winlator.cmod.core.AppUtils;
 import com.winlator.cmod.core.FileUtils;
+import com.winlator.cmod.core.GameArchiveExtractor;
 import com.winlator.cmod.core.StorageDrives;
 import com.winlator.cmod.core.PreloaderDialog;
 import com.winlator.cmod.core.WineUtils;
@@ -604,7 +605,70 @@ public class ShortcutsFragment extends Fragment {
 
     private Container pendingContainer;
 
+    // Folder names that say nothing about the game; the name is looked for above them
+    // 게임을 알려 주지 않는 폴더 이름. 이름은 그 위 폴더에서 찾음
+    private static final java.util.Set<String> GENERIC_EXE_DIRS = new java.util.HashSet<>(java.util.Arrays.asList(
+            "bin", "bin32", "bin64", "binaries", "win32", "win64", "x86", "x64", "x86_64", "amd64",
+            "release", "retail", "shipping", "exe", "system", "program", "game", "data"));
+    // Container folders: reaching one means the game has no folder of its own
+    // 담는 폴더임: 여기까지 올라오면 게임 전용 폴더가 없다는 뜻임
+    private static final java.util.Set<String> ROOT_DIRS = new java.util.HashSet<>(java.util.Arrays.asList(
+            "common", "steamapps", "steamlibrary", "games", "program files", "program files (x86)",
+            "ezlator", "download", "downloads"));
+
+    /**
+     * Shortcut name for a picked exe: the game's folder name, going up past generic
+     * folders (bin, Binaries\Win64 ...). An exe right on a drive or in a container
+     * folder keeps its own name. Examples:
+     *   D:\Lost Memories\Game.exe                      -> "Lost Memories"
+     *   D:\MyGame\MyGame\Binaries\Win64\MyGame.exe  -> "MyGame"
+     *   D:\Game.exe                                     -> "Game"
+     * 고른 exe의 바로가기 이름: 게임 폴더 이름. 일반적인 폴더(bin, Binaries\Win64 등)는
+     * 건너뛰고 위로 올라감. 드라이브 바로 아래나 담는 폴더 안의 exe는 exe 이름을 씀. 예:
+     *   D:\Lost Memories\Game.exe                      -> "Lost Memories"
+     *   D:\MyGame\MyGame\Binaries\Win64\MyGame.exe  -> "MyGame"
+     *   D:\Game.exe                                     -> "Game"
+     */
+    static String displayNameForExe(String windowsPath, File exeFile) {
+        String fallback = FileUtils.getBasename(exeFile.getName());
+        if (windowsPath == null) return fallback;
+        String[] parts = windowsPath.replace('/', '\\').split("\\\\");
+        // parts[0] = "D:", last = exe; walk the folders between, nearest first
+        // parts[0] = "D:", 마지막 = exe. 그 사이 폴더를 가까운 것부터 봄
+        for (int i = parts.length - 2; i >= 1; i--) {
+            String dir = parts[i].trim();
+            if (dir.isEmpty()) continue;
+            String key = dir.toLowerCase(java.util.Locale.ENGLISH);
+            if (ROOT_DIRS.contains(key)) break;
+            if (GENERIC_EXE_DIRS.contains(key)) continue;
+            // Characters a file name cannot hold are replaced (the name becomes <name>.desktop)
+            // 파일 이름에 쓸 수 없는 글자는 바꿈(이름이 <이름>.desktop이 되므로)
+            return dir.replaceAll("[\\\\/:*?\"<>|]", "_");
+        }
+        return fallback;
+    }
+
+    // What the add button accepts: a game's exe or an archive holding the game
+    // 추가 버튼이 받는 파일: 게임 exe 또는 게임이 든 압축 파일
+    private static final String[] GAME_PICK_EXTENSIONS = {".exe", ".zip", ".7z", ".7z.001", ".zip.001"};
+    private static final String[] EXE_ONLY_EXTENSIONS = {".exe"};
+
+    // Set while the exe picker is open on a folder that was just unpacked: the
+    // archive files are deleted once a shortcut to an exe inside that folder is made
+    // 방금 푼 폴더에서 exe 선택기가 열려 있는 동안 채워짐: 그 폴더 안의 exe로
+    // 바로가기를 만들면 압축 파일을 지움
+    private File pendingUnpackedFolder;
+    private List<File> pendingArchiveVolumes;
+
+    // Normal entry: exe or archive, starting at the container's drives
+    // 일반 진입: exe 또는 압축 파일, 컨테이너 드라이브 목록에서 시작함
     private void launchExePicker(Container container) {
+        pendingUnpackedFolder = null;
+        pendingArchiveVolumes = null;
+        launchExePicker(container, null, false);
+    }
+
+    private void launchExePicker(Container container, @Nullable File startDir, boolean exeOnly) {
         pendingContainer = container;
 
         // dosdevices links are created by XServerDisplayActivity.setupWineSystemFiles(),
@@ -619,41 +683,308 @@ public class ShortcutsFragment extends Fragment {
         WineUtils.createDosdevicesSymlinks(container);
 
         File dosDevicesDir = new File(container.getRootDir(), ".wine/dosdevices");
+        File initialDir = startDir != null ? startDir : dosDevicesDir;
         Intent intent = new Intent(getContext(), com.winlator.cmod.saves.CustomFilePickerActivity.class);
-        intent.putExtra("initialDirectory", dosDevicesDir.getAbsolutePath());
+        intent.putExtra("initialDirectory", initialDir.getAbsolutePath());
         intent.putExtra("selectFileMode", true);
-        intent.putExtra("extensionFilter", ".exe");
-        intent.putExtra("pickerTitle", "실행 파일(.exe) 선택 — 드라이브 선택");
+        // The picker checks extensionFilters (several suffixes) before extensionFilter
+        // 선택기는 extensionFilter보다 extensionFilters(여러 확장자)를 먼저 봄
+        intent.putExtra("extensionFilters", exeOnly ? EXE_ONLY_EXTENSIONS : GAME_PICK_EXTENSIONS);
+        intent.putExtra("pickerTitle", getString(exeOnly ? R.string.add_game_pick_exe_title : R.string.add_game_pick_title));
         startActivityForResult(intent, REQUEST_PICK_EXE);
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_PICK_EXE && resultCode == Activity.RESULT_OK && data != null) {
-            String selectedPath = data.getStringExtra("selectedFile");
-            if (selectedPath == null || pendingContainer == null) return;
-            File exeFile = new File(selectedPath);
-            String windowsPath = toWindowsPath(exeFile, pendingContainer);
-            if (windowsPath == null) {
-                // The picked file is outside every drive this container maps, so there
-                // is no Windows path for it. Silently returning here made the whole
-                // "add shortcut" flow look like it did nothing.
-                // 고른 파일이 이 컨테이너가 매핑한 어떤 드라이브에도 속하지 않아
-                // 윈도우 경로를 만들 수 없음. 조용히 return하는 바람에 "바로가기 추가"가
-                // 아무 반응도 없는 것처럼 보였음
-                Log.w("ShortcutCreation", "매핑된 드라이브 밖의 경로: " + exeFile.getAbsolutePath());
-                AppUtils.showToast(getContext(),
-                        "이 폴더는 컨테이너 드라이브에 연결돼 있지 않습니다.\n"
-                                + "컨테이너 설정 > 드라이브에서 이 폴더를 추가한 뒤 다시 시도하세요.");
-                return;
+        if (requestCode != REQUEST_PICK_EXE) return;
+        if (resultCode != Activity.RESULT_OK || data == null) {
+            // Picker closed on a just-unpacked folder: the game stays, the archive too
+            // 방금 푼 폴더에서 선택기를 닫음: 게임 폴더도 압축 파일도 그대로 둠
+            if (pendingUnpackedFolder != null && getContext() != null) {
+                AppUtils.showToast(getContext(), getString(R.string.add_game_archive_kept, pendingUnpackedFolder.getName()));
             }
-            String displayName = FileUtils.getBasename(exeFile.getName());
-            boolean ok = createDesktopFileFromExePath(windowsPath, pendingContainer, displayName);
-            if (ok) {
-                loadShortcutsList(); // 기존에 있는 목록 새로고침 함수 재사용 (실제 이름 다르면 맞춰 교체)
-                AppUtils.showToast(getContext(), "바로가기가 추가되었습니다: " + displayName);
+            pendingUnpackedFolder = null;
+            pendingArchiveVolumes = null;
+            return;
+        }
+        String selectedPath = data.getStringExtra("selectedFile");
+        if (selectedPath == null || pendingContainer == null) return;
+        File picked = new File(selectedPath);
+        if (GameArchiveExtractor.isArchive(picked)) {
+            startArchiveImport(picked, pendingContainer);
+            return;
+        }
+        boolean ok = addShortcutForExe(picked, pendingContainer);
+        // The archive goes only when the shortcut points into the folder it was unpacked to
+        // 바로가기가 압축을 푼 폴더 안을 가리킬 때만 압축 파일을 지움
+        if (ok && pendingUnpackedFolder != null && pendingArchiveVolumes != null
+                && isInside(picked, pendingUnpackedFolder)) {
+            deleteArchiveVolumes(pendingArchiveVolumes);
+        }
+        pendingUnpackedFolder = null;
+        pendingArchiveVolumes = null;
+    }
+
+    // Shortcut for an exe; false (with a message) when it is outside the container's drives
+    // exe의 바로가기를 만듦. 컨테이너 드라이브 밖이면 안내 후 false
+    private boolean addShortcutForExe(File exeFile, Container container) {
+        String windowsPath = toWindowsPath(exeFile, container);
+        if (windowsPath == null) {
+            // The picked file is outside every drive this container maps, so there
+            // is no Windows path for it. Silently returning here made the whole
+            // "add shortcut" flow look like it did nothing.
+            // 고른 파일이 이 컨테이너가 매핑한 어떤 드라이브에도 속하지 않아
+            // 윈도우 경로를 만들 수 없음. 조용히 return하는 바람에 "바로가기 추가"가
+            // 아무 반응도 없는 것처럼 보였음
+            Log.w("ShortcutCreation", "매핑된 드라이브 밖의 경로: " + exeFile.getAbsolutePath());
+            showDriveNotMappedToast();
+            return false;
+        }
+        // Name from the game's folder, not the exe (RPG Maker games are all "Game")
+        // 이름은 exe가 아니라 게임 폴더에서 가져옴(RPG 메이커 게임은 전부 "Game"임)
+        String displayName = displayNameForExe(windowsPath, exeFile);
+        boolean ok = createDesktopFileFromExePath(windowsPath, container, displayName);
+        if (ok) {
+            loadShortcutsList(); // 기존에 있는 목록 새로고침 함수 재사용 (실제 이름 다르면 맞춰 교체)
+            AppUtils.showToast(getContext(), "바로가기가 추가되었습니다: " + displayName + "\n" + windowsPath);
+        }
+        return ok;
+    }
+
+    private void showDriveNotMappedToast() {
+        AppUtils.showToast(getContext(),
+                "이 폴더는 컨테이너 드라이브에 연결돼 있지 않습니다.\n"
+                        + "컨테이너 설정 > 드라이브에서 이 폴더를 추가한 뒤 다시 시도하세요.");
+    }
+
+    private static boolean isInside(File file, File dir) {
+        try {
+            return file.getCanonicalPath().startsWith(dir.getCanonicalPath() + File.separator);
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    // ---- Adding a game from an archive (.zip / .7z) / 압축 파일(.zip / .7z)로 게임 추가 ----
+    // Flow: read the table of contents -> compare the unpacked size with the free
+    // space -> confirm (with "delete the archive" option) -> unpack next to the
+    // archive with a progress window -> one game exe: shortcut at once; several:
+    // exe picker on the new folder -> archive deleted only after the shortcut is made.
+    // 흐름: 목록 읽기 -> 푼 크기와 남은 공간 비교 -> 확인("압축 파일 삭제" 선택 포함)
+    // -> 진행 창과 함께 압축 파일 옆에 풀기 -> 게임 exe가 하나면 바로 바로가기, 여럿이면
+    // 새 폴더에서 exe 선택기 -> 바로가기를 만든 뒤에만 압축 파일 삭제
+
+    private void startArchiveImport(File archive, Container container) {
+        final Activity activity = getActivity();
+        if (activity == null) return;
+        // The game is unpacked next to the archive, so that folder must be on a drive
+        // 게임을 압축 파일 옆에 풀기 때문에 그 폴더가 드라이브에 있어야 함
+        if (toWindowsPath(archive, container) == null) {
+            Log.w("ShortcutCreation", "매핑된 드라이브 밖의 압축 파일: " + archive.getAbsolutePath());
+            showDriveNotMappedToast();
+            return;
+        }
+        preloaderDialog.show(R.string.add_game_archive_reading);
+        final int memoryLimitKb = GameArchiveExtractor.defaultMemoryLimitKb();
+        Executors.newSingleThreadExecutor().execute(() -> {
+            GameArchiveExtractor.Info info = null;
+            IOException error = null;
+            try {
+                info = GameArchiveExtractor.scan(archive, memoryLimitKb);
+                Log.i("ShortcutCreation", "archive " + archive.getName() + ": " + info.fileCount + " files, "
+                        + info.totalBytes + " bytes, exe " + info.exeCount + ", top " + info.topDir
+                        + ", zip names " + info.zipCharset + ", volumes " + info.volumes.size());
+            } catch (IOException e) {
+                Log.w("ShortcutCreation", "archive scan failed: " + archive, e);
+                error = e;
+            } catch (RuntimeException e) {
+                Log.w("ShortcutCreation", "archive scan failed: " + archive, e);
+                error = GameArchiveExtractor.classify(e);
             }
+            final GameArchiveExtractor.Info scanned = info;
+            final IOException failure = error;
+            final long free = archive.getAbsoluteFile().getParentFile().getUsableSpace();
+            activity.runOnUiThread(() -> {
+                preloaderDialog.close();
+                if (!isAdded()) return;
+                if (failure != null) {
+                    showArchiveError(failure);
+                } else if (scanned.exeCount == 0) {
+                    new AlertDialog.Builder(activity)
+                            .setTitle(R.string.add_game_archive_title)
+                            .setMessage(R.string.add_game_archive_no_exe)
+                            .setPositiveButton(android.R.string.ok, null)
+                            .show();
+                } else {
+                    confirmArchiveImport(archive, scanned, free, memoryLimitKb, container);
+                }
+            });
+        });
+    }
+
+    private void confirmArchiveImport(File archive, GameArchiveExtractor.Info info, long free,
+                                      int memoryLimitKb, Container container) {
+        final Activity activity = getActivity();
+        if (activity == null) return;
+        long required = GameArchiveExtractor.requiredBytes(info);
+        if (free < required) {
+            new AlertDialog.Builder(activity)
+                    .setTitle(R.string.add_game_archive_no_space_title)
+                    .setMessage(getString(R.string.add_game_archive_no_space,
+                            com.winlator.cmod.core.DownloadProgressDialog.formatBytes(required),
+                            com.winlator.cmod.core.DownloadProgressDialog.formatBytes(free)))
+                    .setPositiveButton(android.R.string.ok, null)
+                    .show();
+            return;
+        }
+        File target = GameArchiveExtractor.targetFolderFor(archive, info);
+        String targetPath = toWindowsPath(target, container);
+        String archiveName = info.volumes.size() > 1
+                ? getString(R.string.add_game_archive_parts, archive.getName(), info.volumes.size())
+                : archive.getName();
+        String message = getString(R.string.add_game_archive_message,
+                archiveName,
+                targetPath != null ? targetPath : target.getAbsolutePath(),
+                com.winlator.cmod.core.DownloadProgressDialog.formatBytes(info.totalBytes),
+                info.fileCount,
+                com.winlator.cmod.core.DownloadProgressDialog.formatBytes(free));
+
+        // "Delete the archive" option under the message, on by default
+        // 안내문 아래의 "압축 파일 삭제" 선택, 기본으로 켜 둠
+        android.widget.CheckBox deleteBox = new android.widget.CheckBox(activity);
+        deleteBox.setText(R.string.add_game_archive_delete);
+        deleteBox.setChecked(true);
+        FrameLayout box = new FrameLayout(activity);
+        int pad = (int) (20 * getResources().getDisplayMetrics().density);
+        box.setPadding(pad, pad / 2, pad, 0);
+        box.addView(deleteBox);
+
+        new AlertDialog.Builder(activity)
+                .setTitle(R.string.add_game_archive_title)
+                .setMessage(message)
+                .setView(box)
+                .setPositiveButton(R.string.add_game_archive_unpack,
+                        (d, w) -> runArchiveExtraction(archive, info, memoryLimitKb, container, deleteBox.isChecked()))
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    private void runArchiveExtraction(File archive, GameArchiveExtractor.Info info, int memoryLimitKb,
+                                      Container container, boolean deleteArchive) {
+        final Activity activity = getActivity();
+        if (activity == null) return;
+        final java.util.concurrent.atomic.AtomicBoolean cancel = new java.util.concurrent.atomic.AtomicBoolean();
+        final com.winlator.cmod.core.DownloadProgressDialog dialog = new com.winlator.cmod.core.DownloadProgressDialog(activity);
+        dialog.show(R.string.add_game_archive_extracting, () -> {
+            cancel.set(true);
+            dialog.setLabel(activity.getString(R.string.add_game_archive_cancelling));
+        });
+        // Large games take minutes; keep the screen from sleeping meanwhile
+        // 큰 게임은 몇 분 걸림. 그동안 화면이 꺼지지 않게 함
+        activity.getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        final long[] lastPost = {0};
+        Executors.newSingleThreadExecutor().execute(() -> {
+            File folder = null;
+            IOException error = null;
+            List<File> candidates = null;
+            try {
+                folder = GameArchiveExtractor.extract(archive, info, memoryLimitKb, cancel,
+                        (doneBytes, totalBytes, doneFiles, totalFiles, name) -> {
+                            // At most a few UI updates a second, also for thousands of tiny files
+                            // 작은 파일이 수천 개여도 화면 갱신은 1초에 몇 번만 함
+                            long now = System.nanoTime();
+                            if (name != null && now - lastPost[0] < 150_000_000L) return;
+                            lastPost[0] = now;
+                            activity.runOnUiThread(() -> {
+                                if (cancel.get()) return;
+                                dialog.setFileProgress(doneBytes, totalBytes);
+                                dialog.setOverall(Math.min(doneFiles + 1, totalFiles), doneFiles, totalFiles);
+                            });
+                        });
+                if (folder != null) candidates = GameArchiveExtractor.gameExeCandidates(folder);
+            } catch (IOException e) {
+                Log.w("ShortcutCreation", "archive extract failed: " + archive, e);
+                error = e;
+            } catch (RuntimeException e) {
+                Log.w("ShortcutCreation", "archive extract failed: " + archive, e);
+                error = GameArchiveExtractor.classify(e);
+            }
+            final File unpacked = folder;
+            final IOException failure = error;
+            final List<File> exes = candidates;
+            activity.runOnUiThread(() -> {
+                dialog.close();
+                activity.getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                if (!isAdded()) return;
+                if (failure != null) {
+                    showArchiveError(failure);
+                    return;
+                }
+                if (unpacked == null) {
+                    AppUtils.showToast(activity, getString(R.string.add_game_archive_cancelled));
+                    return;
+                }
+                Log.i("ShortcutCreation", "unpacked " + archive.getName() + " -> " + unpacked
+                        + ", game exe candidates " + (exes != null ? exes.size() : 0));
+                if (exes != null && exes.size() == 1) {
+                    // One game exe: no question needed / 게임 exe가 하나면 물을 필요 없음
+                    boolean ok = addShortcutForExe(exes.get(0), container);
+                    if (ok && deleteArchive) deleteArchiveVolumes(info.volumes);
+                    return;
+                }
+                // Several (or only helper) exes: let the user choose inside the new folder
+                // exe가 여럿(또는 보조 프로그램뿐)이면 새 폴더 안에서 고르게 함
+                pendingUnpackedFolder = unpacked;
+                pendingArchiveVolumes = deleteArchive ? info.volumes : null;
+                AppUtils.showToast(activity, getString(R.string.add_game_archive_pick_exe, unpacked.getName()));
+                launchExePicker(container, unpacked, true);
+            });
+        });
+    }
+
+    private void showArchiveError(IOException e) {
+        final Context context = getContext();
+        if (context == null) return;
+        String detail = String.valueOf(e.getMessage());
+        String message;
+        if (e instanceof GameArchiveExtractor.ArchiveException) {
+            switch (((GameArchiveExtractor.ArchiveException) e).problem) {
+                case ENCRYPTED: message = getString(R.string.add_game_archive_err_encrypted); break;
+                case UNSUPPORTED: message = getString(R.string.add_game_archive_err_unsupported, detail); break;
+                case MEMORY: message = getString(R.string.add_game_archive_err_memory); break;
+                case MISSING_VOLUME: message = getString(R.string.add_game_archive_err_volume); break;
+                case UNSAFE_PATH: message = getString(R.string.add_game_archive_err_unsafe); break;
+                default: message = getString(R.string.add_game_archive_err_corrupt, detail); break;
+            }
+        } else {
+            // Plain I/O error while writing (storage full, folder not writable ...)
+            // 쓰는 중의 일반 입출력 오류(저장 공간 가득 참, 쓸 수 없는 폴더 등)
+            message = getString(R.string.add_game_archive_err_io, detail);
+        }
+        new AlertDialog.Builder(context)
+                .setTitle(R.string.add_game_archive_title)
+                .setMessage(message)
+                .setPositiveButton(android.R.string.ok, null)
+                .show();
+    }
+
+    // Deletes every volume of the archive; says so, or which one could not go
+    // 압축 파일의 모든 조각을 지움. 지웠다고 알리거나, 못 지운 파일을 알림
+    private void deleteArchiveVolumes(List<File> volumes) {
+        StringBuilder failed = new StringBuilder();
+        for (File v : volumes) {
+            if (v.exists() && !v.delete()) {
+                if (failed.length() > 0) failed.append(", ");
+                failed.append(v.getName());
+            }
+        }
+        if (getContext() == null) return;
+        if (failed.length() == 0) {
+            AppUtils.showToast(getContext(), getString(R.string.add_game_archive_deleted));
+        } else {
+            Log.w("ShortcutCreation", "could not delete archive: " + failed);
+            AppUtils.showToast(getContext(), getString(R.string.add_game_archive_delete_failed, failed.toString()));
         }
     }
 
@@ -1113,6 +1444,17 @@ public class ShortcutsFragment extends Fragment {
             ShortcutsFragment.this.launchShortcut(shortcut);
         }
 
+        // Turns the export folder into a short label for the guide (e.g. "Download/.EZlator/Frontend")
+        // 내보내기 폴더를 안내문용 짧은 표기로 바꿈(예: "Download/.EZlator/Frontend")
+        private String frontendDirDisplayPath(File dir) {
+            String full = dir.getAbsolutePath();
+            String root = Environment.getExternalStorageDirectory().getAbsolutePath();
+            // Inside internal storage -> path relative to its root, else the full path
+            // 내장 저장소 안이면 루트 기준 상대 경로, 아니면 전체 경로를 그대로 씀
+            if (full.startsWith(root + "/")) return full.substring(root.length() + 1);
+            return full;
+        }
+
         private void exportShortcutToFrontend(Shortcut shortcut) {
             // Check for a custom frontend export path in shared preferences
             SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
@@ -1133,7 +1475,8 @@ public class ShortcutsFragment extends Fragment {
                 // Convert DocumentFile to a File object for further processing
                 frontendDir = new File(FileUtils.getFilePathFromUri(getContext(), folderUri));
             } else {
-                // Default to Downloads\Winlator\Frontend if no custom URI is set
+                // Default to Download/.EZlator/Frontend if no custom URI is set
+                // 사용자 지정 폴더가 없으면 Download/.EZlator/Frontend를 사용함
                 frontendDir = com.winlator.cmod.core.AppDirs.downloads("Frontend");
                 if (!frontendDir.exists() && !frontendDir.mkdirs()) {
                     Toast.makeText(getContext(), R.string.shortcut_export_dir_failed, Toast.LENGTH_SHORT).show();
@@ -1144,28 +1487,31 @@ public class ShortcutsFragment extends Fragment {
 
             // Check for FRONTEND_INSTRUCTIONS.txt
             File instructionsFile = new File(frontendDir, "FRONTEND_INSTRUCTIONS.txt");
+            // Folder shown in the guide = the real export folder, relative to internal storage
+            // 안내문에 적는 폴더 = 실제 내보내기 폴더(내장 저장소 기준 상대 경로)
+            String frontendDirLabel = frontendDirDisplayPath(frontendDir);
             if (true) {
                 try (FileWriter writer = new FileWriter(instructionsFile, false)) {
-                    writer.write("Instructions for adding Winlator shortcuts to Frontends:\n\n");
+                    writer.write("Instructions for adding EZlator shortcuts to Frontends:\n\n");
                     writer.write("Daijisho:\n\n");
                     writer.write("1. Open Daijisho\n");
                     writer.write("2. Navigate to the Settings tab.\n");
                     writer.write("3. Navigate to Settings\\Library\n");
                     writer.write("4. Select, Import from Pegasus\n");
-                    writer.write("5. Add the metadata.pegasus.txt file located in this directory (Downloads\\Winlator\\Frontend)\n");
-                    writer.write("6. Set the Sync path to Downloads\\Winlator\\Frontend\n");
+                    writer.write("5. Add the metadata.pegasus.txt file located in this directory (" + frontendDirLabel + ")\n");
+                    writer.write("6. Set the Sync path to " + frontendDirLabel + "\n");
                     writer.write("7. Start your game!\n\n");
                     writer.write("Beacon:\n\n");
                     writer.write("1. Navigate to Settings\n");
                     writer.write("2. Click the + Icon\n");
                     writer.write("3. Set the following values:\n\n");
                     writer.write("Platform Type: Custom\n");
-                    writer.write("Name: Windows (or Winlator, whatever you prefer)\n");
+                    writer.write("Name: Windows (or EZlator, whatever you prefer)\n");
                     writer.write("Short name: windows\n");
                     // Exported guide names this app as the player app
                     // 내보내는 안내문에 실행 앱으로 이 앱(EZlator)을 표기함
                     writer.write("Player app: Select EZlator\n");
-                    writer.write("ROMs folder: Use Android FilePicker to select the Downloads\\Winlator\\Frontend directory\n");
+                    writer.write("ROMs folder: Use Android FilePicker to select the " + frontendDirLabel + " directory\n");
                     writer.write("Expand Advanced:\n");
                     writer.write("File handling: Default\n");
                     writer.write("Use custom launch: True\n");
@@ -1598,6 +1944,19 @@ public class ShortcutsFragment extends Fragment {
         // 먼저 물어보지만 화면 없는 에이전트는 못 물어보므로 앱이 대신 알려줌
         String appId = shortcut.getExtra("steamAppId");
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(activity);
+        // Steam refused the saved token (expired / revoked): the game would start
+        // without Steam, so say so first and point to the Steam page to sign in again
+        // 스팀이 저장된 토큰을 거부함(만료 / 취소): 게임이 스팀 없이 실행되므로 먼저
+        // 알리고, 스팀 화면에서 다시 로그인하도록 안내함
+        if (!appId.isEmpty() && new com.winlator.cmod.steam.SteamAccountStore(activity).isTokenRejected()) {
+            new AlertDialog.Builder(activity)
+                    .setTitle(R.string.steam_launch_notice_title)
+                    .setMessage(R.string.steam_token_expired_launch)
+                    .setPositiveButton(R.string.steam_launch_anyway, (d, w) -> startShortcut(activity, shortcut))
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show();
+            return;
+        }
         if (!appId.isEmpty() && new com.winlator.cmod.steam.SteamAccountStore(activity).isLoggedIn()
                 && !prefs.getBoolean("steam_launch_notice_hidden", false)) {
             new AlertDialog.Builder(activity)
@@ -1629,6 +1988,30 @@ public class ShortcutsFragment extends Fragment {
         activity.startActivity(intent);
     }
 
+    // Puts a halo (shadow with no offset) around every TextView under root, in
+    // the colour opposite to the text: white halo for dark text (light theme),
+    // black halo for light text (dark theme). "skip" keeps its own style (the
+    // title already has the neon glow)
+    // root 아래의 모든 TextView에 테두리(위치 이동 없는 그림자)를 넣음. 글자와
+    // 반대색임: 어두운 글자(라이트 테마)는 흰 테두리, 밝은 글자(다크 테마)는
+    // 검은 테두리. skip은 자기 모양을 유지함(제목은 이미 네온 발광이 있음)
+    private void applyTextHalo(View root, boolean darkTheme, View skip) {
+        if (root == skip) return;
+        if (root instanceof TextView) {
+            // Kept soft (2dp, ~60%) so it helps on bright art without showing as an outline
+            // 밝은 그림에서 도움이 되면서 테두리처럼 보이지 않게 약하게 둠(2dp, 약 60%)
+            float radius = 2f * root.getResources().getDisplayMetrics().density;
+            ((TextView) root).setShadowLayer(radius, 0f, 0f, darkTheme ? 0x99000000 : 0x99FFFFFF);
+            return;
+        }
+        // Walk down into layouts (stats row, layer button)
+        // 레이아웃 안쪽으로 내려감(정보 줄, 레이어 버튼)
+        if (root instanceof ViewGroup) {
+            ViewGroup g = (ViewGroup) root;
+            for (int i = 0; i < g.getChildCount(); i++) applyTextHalo(g.getChildAt(i), darkTheme, skip);
+        }
+    }
+
     // The detail sheet. Cover art sits behind the content as the background,
     // dimmed by the theme scrim so the text stays legible over any image.
     // 상세창임. 커버 이미지가 내용 뒤에 배경으로 깔리고, 테마의 막이 적당히
@@ -1657,15 +2040,15 @@ public class ShortcutsFragment extends Fragment {
         // Portrait: the artwork keeps its full width and sits at the
         // top instead of being cropped at the sides
         // 세로 화면: 아트워크 양옆을 자르지 않고 가로 전체를 보여 주며 위쪽에 붙임
-        // The portrait look above (full-width artwork at the top in
-        // portrait, ~20% veil) is only for real artwork - a background cover
-        // the user set, or Steam's wide art once it has loaded. Games without
-        // artwork (tile image / icon behind the sheet) keep the earlier look:
-        // centre-cropped picture under the stronger veil
-        // 위의 세로 모양(세로 화면에서 가로 전체로 위에 붙인 아트워크, 막 약 20%)은
-        // 실제 아트워크에만 씀 - 사용자가 정한 배경 커버, 또는 불러온 스팀 넓은
-        // 아트워크. 아트워크가 없는 게임(창 뒤에 타일 이미지 / 아이콘)은 예전 모양을
-        // 유지함: 가운데를 채워 자른 그림 + 더 진한 막
+        // The portrait fit above (full-width artwork at the top) is only for
+        // real artwork - a background cover the user set, or Steam's wide art
+        // once it has loaded. Games without artwork (tile image / icon behind
+        // the sheet) keep the centre-cropped picture. The veil (~20%) is the
+        // same for both
+        // 위의 세로 맞춤(가로 전체로 위에 붙인 아트워크)은 실제 아트워크에만 씀 -
+        // 사용자가 정한 배경 커버, 또는 불러온 스팀 넓은 아트워크. 아트워크가 없는
+        // 게임(창 뒤에 타일 이미지 / 아이콘)은 가운데를 채워 자른 그림을 유지함.
+        // 막(약 20%)은 둘 다 같음
         final View scrim = view.findViewById(R.id.VDetailScrim);
         final View scrimGradient = view.findViewById(R.id.VDetailScrimGradient);
         final boolean darkTheme = PreferenceManager.getDefaultSharedPreferences(context).getBoolean("dark_mode", false);
@@ -1696,15 +2079,25 @@ public class ShortcutsFragment extends Fragment {
             context.getTheme().resolveAttribute(R.attr.neonBg, bg, true);
             int bgColor = bg.resourceId != 0 ? androidx.core.content.ContextCompat.getColor(context, bg.resourceId) : bg.data;
             cover.setBackgroundColor(artwork ? bgColor : Color.TRANSPARENT);
-            if (artwork) {
-                scrim.setBackgroundColor(darkTheme ? 0x33000000 : 0x33FFFFFF);
-                scrimGradient.setBackgroundResource(darkTheme ? R.drawable.neon_scrim_bottom_dark : R.drawable.neon_scrim_bottom_light);
-            } else {
-                scrim.setBackgroundColor(darkTheme ? 0x66000000 : 0x8CFFFFFF);
-                scrimGradient.setBackgroundResource(darkTheme ? R.drawable.neon_scrim_bottom_dark_strong : R.drawable.neon_scrim_bottom_light_strong);
-            }
+            // Same veil for every game (the Steam artwork level): legibility comes
+            // from the text-block veil and the text halo set below, not a darker cover
+            // 모든 게임에 같은 막(스팀 아트워크 기준)을 씀: 글자 가독성은 커버를 더
+            // 어둡게 하는 대신 아래에서 넣는 글자 묶음 막과 글자 테두리로 확보함
+            scrim.setBackgroundColor(darkTheme ? 0x33000000 : 0x33FFFFFF);
+            scrimGradient.setBackgroundResource(darkTheme ? R.drawable.neon_scrim_bottom_dark : R.drawable.neon_scrim_bottom_light);
         };
         applyArtStyle.accept(shortcut.hasCustomCoverArt());
+
+        // Text legibility over any picture: a soft theme-coloured veil behind the
+        // text block, plus a halo around each text in it
+        // 어떤 그림 위에서도 글자가 읽히게 함: 글자 묶음 뒤에 테마 색의 옅은 막을
+        // 깔고, 그 안의 글자마다 테두리(후광)를 넣음
+        View textBlock = view.findViewById(R.id.LLDetailTextBlock);
+        textBlock.setBackgroundResource(darkTheme ? R.drawable.neon_text_scrim_dark : R.drawable.neon_text_scrim_light);
+        // Half strength so the veil does not read as a band over the artwork
+        // 막이 아트워크 위에 띠처럼 보이지 않게 절반 세기로 둠
+        if (textBlock.getBackground() != null) textBlock.getBackground().mutate().setAlpha(128);
+        applyTextHalo(textBlock, darkTheme, view.findViewById(R.id.TVDetailName));
         view.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> {
             if (r - l != or - ol || b - t != ob - ot) applyArtStyle.accept(artworkState[0]);
         });

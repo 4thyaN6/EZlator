@@ -7,6 +7,7 @@ import android.security.keystore.KeyProperties;
 import android.util.Base64;
 import android.util.Log;
 
+import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 
@@ -32,13 +33,45 @@ public final class SteamAccountStore {
     private static final String KEY_ALIAS = "ezlator_steam_token";
 
     private final SharedPreferences prefs;
+    // Mark left when Steam refused the saved token. A file, not a preference: the
+    // download runs in its own process (":download") and preferences are cached per
+    // process, so a file is what both processes see at once
+    // 스팀이 저장된 토큰을 거부했을 때 남기는 표시임. 설정값이 아니라 파일로 둠:
+    // 다운로드는 별도 프로세스(":download")에서 돌고 설정값은 프로세스마다 따로
+    // 캐시되므로, 두 프로세스가 바로 함께 보는 것은 파일임
+    private final File rejectedMark;
 
     public SteamAccountStore(Context context) {
         prefs = context.getApplicationContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        rejectedMark = new File(context.getApplicationContext().getFilesDir(), "steam/token_rejected");
     }
 
+    // A refused token counts as signed out: the Steam page shows the sign-in form
+    // and a game starts without Steam, as when nobody is signed in
+    // 거부된 토큰은 로그아웃으로 봄: 스팀 화면은 로그인 양식을 보여 주고, 게임은
+    // 로그인하지 않았을 때처럼 스팀 없이 실행됨
     public boolean isLoggedIn() {
-        return !getAccountName().isEmpty() && !getRefreshToken().isEmpty() && getSteamId64() > 0;
+        return !getAccountName().isEmpty() && !getRefreshToken().isEmpty() && getSteamId64() > 0
+                && !isTokenRejected();
+    }
+
+    // True after Steam refused the saved token, until the next sign-in or sign-out
+    // 스팀이 저장된 토큰을 거부한 뒤부터 다음 로그인이나 로그아웃 전까지 true임
+    public boolean isTokenRejected() {
+        return rejectedMark.exists();
+    }
+
+    // Called by SteamSession when Steam refuses the token (any process)
+    // 스팀이 토큰을 거부하면 SteamSession이 부름(어느 프로세스든)
+    public void markTokenRejected() {
+        try {
+            File dir = rejectedMark.getParentFile();
+            if (dir != null && !dir.isDirectory()) dir.mkdirs();
+            if (!rejectedMark.exists()) rejectedMark.createNewFile();
+            Log.w(TAG, "saved token refused by Steam - sign-in needed");
+        } catch (Exception e) {
+            Log.w(TAG, "could not write the token mark", e);
+        }
     }
 
     public String getAccountName() { return prefs.getString("account", ""); }
@@ -76,10 +109,16 @@ public final class SteamAccountStore {
                 .putLong("steamid64", steamId64)
                 .putString("token", Base64.encodeToString(all, Base64.NO_WRAP))
                 .apply();
+        // A new token replaces the refused one
+        // 새 토큰이 거부된 토큰을 대신함
+        rejectedMark.delete();
     }
 
     public void clear() {
         prefs.edit().clear().apply();
+        // Signing out also forgets the refused-token mark
+        // 로그아웃하면 토큰 거부 표시도 지움
+        rejectedMark.delete();
     }
 
     private static SecretKey getKey() throws Exception {

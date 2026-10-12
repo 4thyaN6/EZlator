@@ -887,6 +887,26 @@ public class ContainerDetailFragment extends Fragment {
         return String.join(",", wincomponents);
     }
 
+    // Visual C++ 2015-2022 row: picking native when its files are not taken yet
+    // offers the one-time download; declining or a failure puts the row back
+    // Visual C++ 2015~2022 행: 파일을 아직 안 꺼낸 상태에서 native를 고르면 한 번
+    // 받기를 제안함. 거절하거나 실패하면 행을 원래대로 되돌림
+    private static void watchVCRedist(Spinner spinner) {
+        if (!com.winlator.cmod.core.VCRedistInstaller.ID.equals(spinner.getTag())) return;
+        spinner.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(android.widget.AdapterView<?> parent, View v, int position, long id) {
+                if (position != 1) return;
+                com.winlator.cmod.core.VCRedistInstaller.ensureInstalled(spinner.getContext(), ok -> {
+                    if (!ok) spinner.setSelection(0, false);
+                });
+            }
+
+            @Override
+            public void onNothingSelected(android.widget.AdapterView<?> parent) {}
+        });
+    }
+
     public static void createWinComponentsTab(View view, String wincomponents) {
         Context context = view.getContext();
         LayoutInflater inflater = LayoutInflater.from(context);
@@ -901,6 +921,7 @@ public class ContainerDetailFragment extends Fragment {
             Spinner spinner = itemView.findViewById(R.id.Spinner);
             spinner.setSelection(Integer.parseInt(wincomponent[1]), false);
             spinner.setTag(wincomponent[0]);
+            watchVCRedist(spinner);
 
             parent.addView(itemView);
 
@@ -933,6 +954,7 @@ public class ContainerDetailFragment extends Fragment {
             Spinner spinner = itemView.findViewById(R.id.Spinner);
             spinner.setSelection(Integer.parseInt(wincomponent[1]), false);
             spinner.setTag(wincomponent[0]);
+            watchVCRedist(spinner);
 
             parent.addView(itemView);
         }

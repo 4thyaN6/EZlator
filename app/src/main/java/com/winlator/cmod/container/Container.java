@@ -44,15 +44,13 @@ public class Container {
     public static final String DEFAULT_DXWRAPPERCONFIG = "version=" + DefaultVersion.DXVK + ",framerate=0,maxDeviceMemory=0,async=0,asyncCache=0" + ",vkd3dVersion=" + DefaultVersion.VKD3D + ",vkd3dLevel=12_1";
     public static final String DEFAULT_GRAPHICSDRIVERCONFIG = "version=" + DefaultVersion.WRAPPER + ";blacklistedExtensions=" + ";maxDeviceMemory=0" + ";adrenotoolsTurnip=1" + ";frameSync=Normal";
     public static final String DEFAULT_DDRAWRAPPER = "wined3d";
-    // vcrun2015 (Visual C++ 2015-2022) is not offered for now: its DLLs may not be
-    // shipped inside the APK, so it waits for a download-once-into-imagefs installer.
-    // Its DLL list stays in wincomponents.json so containers that had it turned on
-    // can be put back to Wine's builtin DLLs (see offeredWinComponents())
-    // vcrun2015(Visual C++ 2015~2022)는 당분간 제공하지 않음: DLL을 APK에 넣어 배포할 수
-    // 없으므로, 한 번 받아 imagefs에 두는 설치 방식이 생길 때까지 보류함. DLL 목록은
-    // wincomponents.json에 남겨서 이 항목을 켰던 컨테이너를 Wine 기본 DLL로 되돌릴 때 씀
-    // (offeredWinComponents() 참고)
-    public static final String DEFAULT_WINCOMPONENTS = "direct3d=1,directsound=0,directmusic=0,directshow=0,directplay=0,xaudio=0,vcrun2010=1,opengl=0";
+    // vcrun2015 (Visual C++ 2015-2022) is offered again, off by default. Its DLLs are
+    // not in the APK: they are taken once from Microsoft's own installers into imagefs
+    // (core/VCRedistInstaller) the first time it is turned on
+    // vcrun2015(Visual C++ 2015~2022)를 다시 제공함. 기본값은 꺼짐. DLL은 APK에 없고,
+    // 처음 켤 때 Microsoft 공식 설치 파일에서 한 번 꺼내 imagefs에 둠
+    // (core/VCRedistInstaller)
+    public static final String DEFAULT_WINCOMPONENTS = "direct3d=1,directsound=0,directmusic=0,directshow=0,directplay=0,xaudio=0,vcrun2010=1,vcrun2015=0,opengl=0";
     public static final String FALLBACK_WINCOMPONENTS = "direct3d=1,directsound=1,directmusic=1,directshow=1,directplay=1,xaudio=1,vcrun2010=1,opengl=0";
 
     // Paths use the IMAGEFS_TOKEN placeholder instead of a hardcoded

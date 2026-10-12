@@ -98,6 +98,16 @@ public class ShortcutSettingsDialog extends ContentDialog {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
 
         final EditText etName = findViewById(R.id.ETName);
+        // Folder of the exe below the name (Windows form, quotes and file name removed)
+        // 이름 아래에 exe가 있는 폴더를 보여 줌(Windows 형식, 따옴표와 파일 이름은 뺌)
+        String exePath = shortcut.path != null ? shortcut.path.trim() : "";
+        if (exePath.length() >= 2 && exePath.startsWith("\"") && exePath.endsWith("\"")) exePath = exePath.substring(1, exePath.length() - 1);
+        int lastSep = exePath.lastIndexOf('\\');
+        String exeFolder = lastSep > 0 ? exePath.substring(0, lastSep) : exePath;
+        ((TextView) findViewById(R.id.TVShortcutFolder)).setText(exeFolder);
+        int folderVisibility = exeFolder.isEmpty() ? View.GONE : View.VISIBLE;
+        findViewById(R.id.TVShortcutFolder).setVisibility(folderVisibility);
+        findViewById(R.id.TVShortcutFolderLabel).setVisibility(folderVisibility);
         etName.setText(shortcut.name);
 
         // Container picker: current container preselected. The move itself

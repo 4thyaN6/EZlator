@@ -73,6 +73,20 @@ public final class SteamSession implements AutoCloseable {
     private final CountDownLatch loggedOn = new CountDownLatch(1);
     private final CountDownLatch licensesReady = new CountDownLatch(1);
 
+    /**
+     * Steam refused the saved refresh token (expired, revoked, password changed).
+     * Only signing in again helps; a network failure is NOT this exception.
+     * 스팀이 저장된 refresh token을 거부함(만료, 취소, 비밀번호 변경). 다시 로그인하는
+     * 것만 해결책임. 네트워크 실패는 이 예외가 아님
+     */
+    public static final class TokenRejectedException extends IllegalStateException {
+        public final EResult result;
+        TokenRejectedException(EResult result) {
+            super("Steam refused the saved sign-in: " + result);
+            this.result = result;
+        }
+    }
+
     public SteamClient getClient() { return client; }
     public List<License> getLicenses() { return licenses; }
 
@@ -90,6 +104,13 @@ public final class SteamSession implements AutoCloseable {
         in.dragonbra.javasteam.util.log.LogManager.addListener(bridge);
         try {
             openInternal(store);
+        } catch (TokenRejectedException e) {
+            // Leave the mark so every part of the app (both processes) treats the
+            // account as signed out until the next sign-in
+            // 표시를 남겨서 앱의 모든 부분(두 프로세스 모두)이 다음 로그인 전까지
+            // 이 계정을 로그아웃 상태로 보게 함
+            store.markTokenRejected();
+            throw e;
         } finally {
             in.dragonbra.javasteam.util.log.LogManager.removeListener(bridge);
         }
@@ -133,13 +154,40 @@ public final class SteamSession implements AutoCloseable {
         pump.start();
 
         client.connect();
-        if (!loggedOn.await(60, TimeUnit.SECONDS) || logOnResult != EResult.OK)
+        boolean answered = loggedOn.await(60, TimeUnit.SECONDS);
+        // Steam answered and refused the token -> sign-in needed (see isTokenRefusal)
+        // 스팀이 응답했고 토큰을 거부함 -> 다시 로그인 필요(isTokenRefusal 참고)
+        if (answered && isTokenRefusal(logOnResult)) throw new TokenRejectedException(logOnResult);
+        if (!answered || logOnResult != EResult.OK)
             throw new IllegalStateException(logOnResult == null
                     ? "Disconnected before log on (see logcat SteamSession)"
                     : "Steam log on failed: " + logOnResult);
         if (!licensesReady.await(30, TimeUnit.SECONDS) || licenses == null)
             throw new IllegalStateException("No license list from Steam");
         Log.i(TAG, "logged on, licenses=" + licenses.size());
+    }
+
+    // Log-on results that mean the saved token itself is no good. Anything else
+    // (no answer, busy, try another server, ...) keeps the token for a retry.
+    // The list is the one DepotDownloader uses to drop a refused token, plus
+    // CachedCredentialInvalid (GameNative); all six exist in javasteam 1.8.0
+    // 저장된 토큰 자체가 쓸 수 없다는 뜻의 로그온 결과임. 그 밖의 결과(응답 없음,
+    // 바쁨, 다른 서버로 재시도 등)는 다시 시도하도록 토큰을 남김.
+    // 목록은 DepotDownloader가 거부된 토큰을 지울 때 쓰는 것에 CachedCredentialInvalid
+    // (GameNative)를 더한 것임. 6개 모두 javasteam 1.8.0에 있음
+    static boolean isTokenRefusal(EResult r) {
+        if (r == null) return false;
+        switch (r) {
+            case InvalidPassword:
+            case InvalidSignature:
+            case AccessDenied:
+            case Expired:
+            case Revoked:
+            case CachedCredentialInvalid:
+                return true;
+            default:
+                return false;
+        }
     }
 
     private SteamApps apps() {

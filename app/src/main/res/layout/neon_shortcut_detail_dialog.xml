@@ -107,12 +107,12 @@
         <!-- Text block (title ~ stats row). The negative margins cancel the
              22dp sheet padding so the soft veil set from ShortcutsFragment
              reaches the sheet edges; the padding gives the text its place back.
-             The veil is only applied over real artwork, and it fades out below
-             the stats row so the picture stays visible
+             The veil is applied for every game (with a halo on each text), and
+             it fades out below the stats row so the picture stays visible
              글자 묶음(제목 ~ 정보 줄)임. 음수 여백이 창의 22dp 안쪽 여백을
              상쇄해서 ShortcutsFragment에서 넣는 옅은 막이 창 끝까지 닿고, 안쪽
-             여백이 글자 자리를 되돌려 줌. 막은 실제 아트워크 위에만 적용하고
-             정보 줄 아래에서 사라져 그림이 그대로 보임 -->
+             여백이 글자 자리를 되돌려 줌. 막은 모든 게임에 적용하고(글자마다
+             테두리도 넣음) 정보 줄 아래에서 사라져 그림이 그대로 보임 -->
         <LinearLayout
             android:id="@+id/LLDetailTextBlock"
             android:layout_width="match_parent"

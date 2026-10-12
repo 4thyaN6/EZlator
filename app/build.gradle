@@ -138,8 +138,20 @@ dependencies {
     // material 1.4.0 줄 삭제함: 아래에 1.6.1이 선언되어 있고 Gradle은 항상
     // 높은 버전으로 결정하므로 1.4.0 줄은 효과가 없었음
     implementation 'com.github.luben:zstd-jni:1.5.2-3@aar'
-    implementation 'org.tukaani:xz:1.7'
-    implementation 'org.apache.commons:commons-compress:1.20'
+    // Commons Compress 1.25.0: zip/7z/tar fixes for CVE-2021-35515~35517, 36090 and
+    // CVE-2023-42503 (game archives are read from untrusted files now). 1.25.0 is the
+    // last release without required runtime libraries (1.26.0 adds commons-io,
+    // commons-lang3, commons-codec). Its 7z LZMA decoder calls
+    // LZMAInputStream.enableRelaxedEndCondition(), which XZ for Java has since 1.9,
+    // so xz moves to 1.9 too (1.7 would fail at run time with NoSuchMethodError).
+    // Commons Compress 1.25.0: zip/7z/tar 취약점 CVE-2021-35515~35517, 36090,
+    // CVE-2023-42503 수정본임(이제 게임 압축이라는 믿을 수 없는 파일을 읽음). 필수
+    // 런타임 라이브러리가 없는 마지막 버전임(1.26.0부터 commons-io, commons-lang3,
+    // commons-codec 추가). 7z LZMA 해제기가 XZ for Java 1.9부터 있는
+    // LZMAInputStream.enableRelaxedEndCondition()을 부르므로 xz도 1.9로 올림
+    // (1.7이면 실행 중 NoSuchMethodError로 실패함)
+    implementation 'org.tukaani:xz:1.9'
+    implementation 'org.apache.commons:commons-compress:1.25.0'
     // -ktx variants swapped for the plain artifacts at the same version. The -ktx
     // ones only add Kotlin extension functions on top, which Java code cannot use.
     // -ktx 버전을 같은 버전의 일반 라이브러리로 바꿈. -ktx는 그 위에 Kotlin 확장

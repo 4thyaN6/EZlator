@@ -53,6 +53,15 @@
 -dontwarn org.spongycastle.**
 -dontwarn javax.naming.**
 -dontwarn org.apache.commons.**
+# Optional classes of Commons Compress 1.25.0 that the app never loads: Brotli,
+# ASM and java.beans (Pack200 code only). Named here as well, in case R8 matches
+# -dontwarn against the missing class rather than the class that refers to it
+# 앱이 불러오지 않는 Commons Compress 1.25.0의 선택적 클래스: Brotli, ASM,
+# java.beans(Pack200 코드에서만 씀). R8이 -dontwarn을 참조하는 쪽이 아니라 없는
+# 클래스 이름으로 맞출 경우를 대비해 여기에도 적음
+-dontwarn org.brotli.**
+-dontwarn org.objectweb.asm.**
+-dontwarn java.beans.**
 -dontwarn kotlinx.**
 -dontwarn okhttp3.**
 -dontwarn okio.**

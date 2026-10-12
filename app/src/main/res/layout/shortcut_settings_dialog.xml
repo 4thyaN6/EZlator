@@ -109,6 +109,29 @@
                             android:id="@+id/ETName"
                             android:inputType="textCapSentences" />
 
+                        <!-- Folder of the game's exe (Windows form, e.g. D:\Lost Memories),
+                             so games with the same or similar names can be told apart.
+                             Selectable for copying; hidden when the shortcut has no path
+                             게임 exe가 있는 폴더(Windows 형식, 예: D:\Lost Memories)임. 이름이
+                             같거나 비슷한 게임을 구분하려는 것임. 복사할 수 있게 선택 가능.
+                             바로가기에 경로가 없으면 숨김 -->
+                        <TextView
+                            android:id="@+id/TVShortcutFolderLabel"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:text="@string/shortcut_folder" />
+
+                        <TextView
+                            android:id="@+id/TVShortcutFolder"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:textColor="?attr/neonTextDim"
+                            android:textSize="12sp"
+                            android:fontFamily="monospace"
+                            android:textIsSelectable="true" />
+
                         <!-- Container this shortcut runs in. Changing it moves the
                              .desktop file to the chosen container on Save.
                              이 바로가기가 실행될 컨테이너임. 바꾸고 저장하면 .desktop

@@ -191,6 +191,15 @@ public class SteamFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        // The token may have been refused elsewhere meanwhile (download, achievements,
+        // update check): the library is still shown, so switch to the sign-in form
+        // 그동안 다른 곳(다운로드, 도전과제, 업데이트 확인)에서 토큰이 거부됐을 수 있음:
+        // 라이브러리가 그대로 보이면 로그인 양식으로 바꿈
+        if (store != null && libraryView != null
+                && libraryView.getVisibility() == View.VISIBLE && !store.isLoggedIn()) {
+            session = null;
+            refresh();
+        }
         if (getActivity() instanceof AppCompatActivity && ((AppCompatActivity) getActivity()).getSupportActionBar() != null) {
             ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(R.string.steam_account);
         }
@@ -359,7 +368,10 @@ public class SteamFragment extends Fragment {
         viewToggle.setVisibility(in ? View.VISIBLE : View.GONE);
         profileHeader.setVisibility(in ? View.VISIBLE : View.GONE);
         btnLogin.setEnabled(true);
-        tvStatus.setText(in ? "" : getString(R.string.steam_not_signed_in));
+        // Not signed in: say so, or that Steam refused the saved token (expired / revoked)
+        // 로그인 안 됨: 그렇다고 표시하거나, 스팀이 저장된 토큰을 거부했다고(만료 / 취소) 표시함
+        tvStatus.setText(in ? "" : getString(store.isTokenRejected()
+                ? R.string.steam_token_expired : R.string.steam_not_signed_in));
         if (!in) {
             allGames.clear();
             adapter.setItems(new ArrayList<>());
@@ -473,6 +485,15 @@ public class SteamFragment extends Fragment {
             } catch (Exception e) {
                 Log.w(TAG, "owned games failed", e);
                 session = null;
+                // Token refused: back to the sign-in form with the expired message
+                // 토큰 거부: 만료 안내와 함께 로그인 양식으로 돌아감
+                if (e instanceof SteamSession.TokenRejectedException) {
+                    ui(() -> {
+                        swipeRefresh.setRefreshing(false);
+                        refresh();
+                    });
+                    return;
+                }
                 ui(() -> {
                     tvLibraryStatus.setText(getString(R.string.steam_login_failed, String.valueOf(e.getMessage())));
                     swipeRefresh.setRefreshing(false);

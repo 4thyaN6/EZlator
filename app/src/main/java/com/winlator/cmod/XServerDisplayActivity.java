@@ -73,6 +73,7 @@ import com.winlator.cmod.core.DefaultVersion;
 import com.winlator.cmod.core.DXVKConfig;
 import com.winlator.cmod.core.EnvVars;
 import com.winlator.cmod.core.EnvironmentManager;
+import com.winlator.cmod.core.VCRedistInstaller;
 import com.winlator.cmod.core.FileUtils;
 import com.winlator.cmod.core.LocaleEnv;
 import com.winlator.cmod.core.KeyValueSet;
@@ -3678,18 +3679,33 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
                 // A component not applied before (no old value) is always applied
                 // 전에 적용한 적이 없는 항목(예전 값 없음)은 항상 적용함
                 String oldValue = oldWinComponents.get(wincomponent[0], null);
-                if (oldValue != null && wincomponent[1].equals(oldValue) && !firstTimeBoot) continue;
                 String identifier = wincomponent[0];
                 boolean useNative = wincomponent[1].equals("1");
+                // Visual C++ turned on before its files were taken (or taken again in
+                // a newer version) is applied even when the setting did not change
+                // 파일을 꺼내기 전에 켠(또는 새 버전으로 다시 꺼낸) Visual C++는 설정이
+                // 바뀌지 않았어도 적용함
+                boolean vcrunPending = useNative && VCRedistInstaller.ID.equals(identifier)
+                        && !VCRedistInstaller.isAppliedTo(imageFs, windowsDir);
+                if (oldValue != null && wincomponent[1].equals(oldValue) && !firstTimeBoot && !vcrunPending) continue;
 
                 if (!wineInfo.isArm64EC() && identifier.contains("opengl") && useNative)
                     continue;
 
-                if (useNative) {
-                    // <id>.tzst, or an uncompressed <id>.tar (vcrun2015 is packed on
-                    // Windows with the built-in tar, see local_tools/pack_vcrun2015)
-                    // <id>.tzst, 없으면 압축하지 않은 <id>.tar(vcrun2015는 Windows 기본
-                    // tar로 묶음, local_tools/pack_vcrun2015 참고)
+                if (useNative && VCRedistInstaller.ID.equals(identifier)) {
+                    // Visual C++ 2015-2022: copied from the files taken once from
+                    // Microsoft's installers into imagefs. Not taken yet -> Wine's
+                    // builtin DLLs stay in place (the override is native,builtin, so
+                    // the builtin ones are used)
+                    // Visual C++ 2015~2022: Microsoft 설치 파일에서 한 번 꺼내 imagefs에
+                    // 둔 파일을 복사함. 아직 안 꺼냈으면 Wine 기본 DLL이 그대로 남음
+                    // (override가 native,builtin이라 기본 DLL이 쓰임)
+                    if (!VCRedistInstaller.applyTo(imageFs, windowsDir))
+                        Log.w("XServerDisplayActivity", "vcrun2015 is on but not installed yet - Wine builtin DLLs are used");
+                }
+                else if (useNative) {
+                    // <id>.tzst, or an uncompressed <id>.tar
+                    // <id>.tzst, 없으면 압축하지 않은 <id>.tar
                     boolean extracted = TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, this, "wincomponents/"+identifier+".tzst", windowsDir, onExtractFileListener)
                             || TarCompressorUtils.extract(TarCompressorUtils.Type.NONE, this, "wincomponents/"+identifier+".tar", windowsDir, onExtractFileListener);
                     if (!extracted) Log.w("XServerDisplayActivity", "wincomponent package missing in APK: " + identifier);
@@ -3700,17 +3716,20 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
                         String dlname = dlnames.getString(i);
                         dlls.add(!dlname.endsWith(".exe") ? dlname+".dll" : dlname);
                     }
+                    // Builtin DLLs come back below, so the "applied" mark goes too
+                    // 아래에서 기본 DLL로 되돌리므로 "적용됨" 표시도 지움
+                    if (VCRedistInstaller.ID.equals(identifier)) VCRedistInstaller.clearAppliedMark(windowsDir);
                 }
                 Log.d("XServerDisplayActivity", "Setting wincomponent " + identifier + " to " + String.valueOf(useNative));
                 WineUtils.overrideWinComponentDlls(this, container, identifier, useNative);
                 WineUtils.setWinComponentRegistryKeys(systemRegFile, identifier, useNative, this);
             }
 
-            // A component that was applied as native but is no longer offered (vcrun2015
-            // during its test) is put back to Wine's builtin DLLs once: overrides removed
-            // and the builtin files copied over the native ones
-            // native로 적용됐다가 더 이상 제공하지 않는 항목(시험 때의 vcrun2015)은 한 번
-            // Wine 기본 DLL로 되돌림: override를 지우고 기본 파일로 native 파일을 덮어씀
+            // A component that was applied as native but is no longer offered is put
+            // back to Wine's builtin DLLs once: overrides removed and the builtin files
+            // copied over the native ones
+            // native로 적용됐다가 더 이상 제공하지 않는 항목은 한 번 Wine 기본 DLL로
+            // 되돌림: override를 지우고 기본 파일로 native 파일을 덮어씀
             KeyValueSet currentWinComponents = new KeyValueSet(wincomponents);
             for (String[] oldComponent : oldWinComponents) {
                 String identifier = oldComponent[0];

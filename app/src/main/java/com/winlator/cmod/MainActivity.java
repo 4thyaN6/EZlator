@@ -970,6 +970,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     "Bouncy Castle (<a href=\"https://www.bouncycastle.org\">bouncycastle.org</a>) — Bouncy Castle License (MIT)",
                     "ZXing (<a href=\"https://github.com/zxing/zxing\">Git</a>) — Apache-2.0",
                     "Apache Commons Compress (<a href=\"https://commons.apache.org/proper/commons-compress/\">Apache</a>) — Apache-2.0",
+                    // LZX decoder files taken from dorkbox CabParser (core/cab)
+                    // dorkbox CabParser에서 가져온 LZX 해제 파일(core/cab)
+                    "dorkbox CabParser, LZX decoder (<a href=\"https://github.com/dorkbox/CabParser\">Git</a>) — Apache-2.0",
                     "zstd-jni (<a href=\"https://github.com/luben/zstd-jni\">Git</a>) — BSD-2-Clause",
                     "XZ for Java (<a href=\"https://tukaani.org/xz/java.html\">tukaani.org</a>) — public domain",
                     "AndroidX, Material Components, FlexboxLayout (Google) — Apache-2.0",

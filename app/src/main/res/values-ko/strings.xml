@@ -135,6 +135,9 @@
     <string name="steam_confirm_in_app">스팀 모바일 앱에서 로그인을 승인하세요.</string>
     <string name="steam_login_failed">로그인 실패: %1$s</string>
     <string name="steam_not_signed_in">로그인 안 됨</string>
+    <string name="steam_token_expired">스팀 로그인이 만료되었습니다. 다시 로그인하세요.</string>
+    <string name="steam_token_expired_launch">스팀 로그인이 만료되어 이 게임은 스팀 없이 실행됩니다. 스팀 화면에서 다시 로그인하세요.</string>
+    <string name="steam_launch_anyway">그대로 실행</string>
     <string name="steam_guard">Steam Guard</string>
     <string name="steam_guard_app">스팀 모바일 앱의 코드를 입력하세요.</string>
     <string name="steam_guard_email">이메일로 받은 코드를 입력하세요.</string>
@@ -598,4 +601,44 @@
     <!-- 구성요소 목록: 줄의 설치 상태 -->
     <string name="content_status_installed">설치됨</string>
     <string name="content_status_available">미설치</string>
+    <!-- Visual C++ 2015-2022 from installers already on the device (core/VCRedistInstaller) -->
+    <!-- 기기에 이미 있는 설치 파일에서 꺼내는 Visual C++ 2015~2022(core/VCRedistInstaller) -->
+    <string name="vcredist_enable_message">Visual C++ 2015-2022 DLL은 앱에 들어 있지 않고, 앱이 받지도 않습니다. 이 기기에 이미 있는 Microsoft 설치 파일에서 꺼냅니다: 스팀 게임과 함께 받은 설치 파일(예: _CommonRedist, Steamworks Shared)과 %1$s에 직접 넣은 vc_redist.x86.exe / vc_redist.x64.exe입니다. 설치 프로그램을 실행하지 않으므로 그 사용 조건 화면이 나오지 않습니다. 아래 Microsoft 사용 조건을 읽어 주세요. 가장 새 버전을 보관해 이 항목을 켠 컨테이너에 복사합니다.</string>
+    <string name="vcredist_agree">동의</string>
+    <string name="vcredist_license_link">Microsoft Visual C++ 런타임 사용 조건</string>
+    <string name="vcredist_searching">Visual C++ 2015-2022</string>
+    <string name="vcredist_reading">%1$s 읽는 중…</string>
+    <string name="vcredist_done">Visual C++ 2015-2022 준비가 끝났습니다.</string>
+    <string name="vcredist_not_found">아직 쓸 수 있는 설치 파일을 찾지 못했습니다. 설정은 켜 둔 채로 두며, 다음 중 하나가 되면 저절로 적용됩니다.\n- 설치 파일이 함께 들어 있는 스팀 게임을 받음\n- 게임 폴더(보통 _CommonRedist 또는 Redist)의 vc_redist.x86.exe / vc_redist.x64.exe를 %1$s(숨김 폴더)에 넣고 이 항목을 다시 켬</string>
+    <string name="vcredist_details">자세한 내용: %1$s</string>
+    <string name="vcredist_busy">Visual C++ 2015-2022를 이미 준비하는 중입니다.</string>
+    <!-- Shortcut edit: folder of the exe / 바로가기 편집: exe가 있는 폴더 -->
+    <string name="shortcut_folder">폴더</string>
+    <!-- Adding a game from an archive (ShortcutsFragment, core/GameArchiveExtractor) -->
+    <!-- 압축 파일로 게임 추가(ShortcutsFragment, core/GameArchiveExtractor) -->
+    <string name="add_game_pick_title">게임 실행 파일(.exe) 또는 압축 파일(.zip, .7z) 선택</string>
+    <string name="add_game_pick_exe_title">게임을 실행할 .exe 선택</string>
+    <string name="add_game_archive_title">게임 압축 풀기</string>
+    <string name="add_game_archive_reading">압축 파일 확인 중…</string>
+    <string name="add_game_archive_parts">%1$s (%2$d개로 나뉨)</string>
+    <string name="add_game_archive_message">압축 파일: %1$s\n풀 위치: %2$s\n풀었을 때 크기: %3$s (파일 %4$d개)\n남은 공간: %5$s</string>
+    <string name="add_game_archive_delete">바로가기를 만든 뒤 압축 파일 삭제</string>
+    <string name="add_game_archive_unpack">풀기</string>
+    <string name="add_game_archive_no_space_title">공간 부족</string>
+    <string name="add_game_archive_no_space">압축을 풀려면 약 %1$s가 필요한데 이 저장소에는 %2$s만 남아 있습니다. 공간을 비우거나 압축 파일을 다른 저장소(예: SD카드)로 옮긴 뒤 다시 시도하세요.</string>
+    <string name="add_game_archive_no_exe">이 압축 파일에는 .exe 파일이 없어 바로가기를 만들 수 없습니다.</string>
+    <string name="add_game_archive_extracting">게임 압축 푸는 중…</string>
+    <string name="add_game_archive_cancelling">취소하는 중…</string>
+    <string name="add_game_archive_cancelled">압축 풀기를 취소했습니다. 풀던 파일은 지웠고 압축 파일은 그대로 두었습니다.</string>
+    <string name="add_game_archive_pick_exe">%1$s에 풀었습니다. 게임을 실행할 .exe를 고르세요.</string>
+    <string name="add_game_archive_kept">게임은 %1$s에 그대로 있고 압축 파일도 지우지 않았습니다. 나중에 + 버튼으로 추가할 수 있습니다.</string>
+    <string name="add_game_archive_deleted">압축 파일을 지웠습니다.</string>
+    <string name="add_game_archive_delete_failed">압축 파일을 지우지 못했습니다: %1$s</string>
+    <string name="add_game_archive_err_encrypted">암호가 걸린 압축 파일은 지원하지 않습니다. PC에서 풀어 게임 폴더째 옮겨 주세요.</string>
+    <string name="add_game_archive_err_unsupported">앱이 읽을 수 없는 압축 방식입니다(예: 7-Zip의 BCJ2·ARM64 필터, zip 안의 LZMA·PPMd). PC에서 풀거나 zip(Deflate) 또는 7z(LZMA2)로 다시 압축해 주세요.\n자세한 내용: %1$s</string>
+    <string name="add_game_archive_err_memory">이 7z 파일은 풀 때 앱이 쓸 수 있는 것보다 많은 메모리가 필요합니다(사전 크기가 너무 큼). 사전 크기 64MB 이하로 다시 압축하거나 PC에서 풀어 주세요.</string>
+    <string name="add_game_archive_err_volume">분할 압축 파일 일부를 찾지 못했습니다. 모든 조각(.001, .002 … 또는 .z01, .z02 …)을 같은 폴더에 넣어 주세요.</string>
+    <string name="add_game_archive_err_unsafe">압축 안에 폴더 밖을 가리키는 항목이 있어 풀지 않았습니다(손상되었거나 안전하지 않은 파일).</string>
+    <string name="add_game_archive_err_corrupt">압축 파일을 읽지 못했습니다. 파일이 손상되었거나 다 받아지지 않았을 수 있습니다. 풀던 파일은 지웠습니다.\n자세한 내용: %1$s</string>
+    <string name="add_game_archive_err_io">압축을 푸는 중 오류가 나서 멈췄습니다. 풀던 파일은 지웠고 압축 파일은 그대로 두었습니다.\n자세한 내용: %1$s</string>
 </resources>

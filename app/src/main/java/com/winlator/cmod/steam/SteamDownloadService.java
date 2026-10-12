@@ -155,6 +155,13 @@ public class SteamDownloadService extends Service {
                             @Override public void onPercent(int p) { state.percent = p; }
                             @Override public void onInstallDir(File dir) { state.installDir = dir.getAbsolutePath(); }
                         }, myCancel);
+                // Visual C++ 2015-2022: read the Microsoft installers that came with
+                // the game (or Steamworks Shared) and keep the newest DLLs in imagefs
+                // Visual C++ 2015~2022: 게임(또는 Steamworks Shared)과 함께 받은
+                // Microsoft 설치 파일을 읽어 가장 새 DLL을 imagefs에 보관함
+                state.status = getString(R.string.vcredist_reading, "vc_redist");
+                state.write(this);
+                com.winlator.cmod.core.VCRedistInstaller.harvestAfterSteamDownload(getApplicationContext());
                 result = getString(R.string.steam_download_done, shortcut);
                 state.appId = 0;
             } catch (SteamGameInstaller.CancelledException ce) {
@@ -167,7 +174,13 @@ public class SteamDownloadService extends Service {
                 // 아니면 일시정지임(사용자가 했거나 게임이 시작돼서)
             } catch (Exception e) {
                 Log.w(TAG, "download failed", e);
-                result = getString(R.string.steam_download_failed, String.valueOf(e.getMessage()));
+                // Token refused: tell the user to sign in again (SteamSession already
+                // left the mark, so the Steam page switches to the sign-in form)
+                // 토큰 거부: 다시 로그인하라고 알림(SteamSession이 이미 표시를 남겨서
+                // 스팀 화면은 로그인 양식으로 바뀜)
+                String why = e instanceof SteamSession.TokenRejectedException
+                        ? getString(R.string.steam_token_expired) : String.valueOf(e.getMessage());
+                result = getString(R.string.steam_download_failed, why);
                 session = null;
                 state.appId = 0;
             } finally {

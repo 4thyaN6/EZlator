@@ -17,6 +17,9 @@
     <string name="steam_confirm_in_app">Approve the sign-in in the Steam mobile app.</string>
     <string name="steam_login_failed">Sign-in failed: %1$s</string>
     <string name="steam_not_signed_in">Not signed in</string>
+    <string name="steam_token_expired">Steam sign-in has expired. Please sign in again.</string>
+    <string name="steam_token_expired_launch">Steam sign-in has expired, so this game will start without Steam. Sign in again on the Steam page.</string>
+    <string name="steam_launch_anyway">Start anyway</string>
     <string name="steam_guard">Steam Guard</string>
     <string name="steam_guard_app">Enter the code from the Steam mobile app.</string>
     <string name="steam_guard_email">Enter the code sent to your e-mail.</string>
@@ -704,4 +707,44 @@
     <!-- Contents list: download state of a row -->
     <string name="content_status_installed">Installed</string>
     <string name="content_status_available">Not installed</string>
+    <!-- Visual C++ 2015-2022 from installers already on the device (core/VCRedistInstaller) -->
+    <!-- 기기에 이미 있는 설치 파일에서 꺼내는 Visual C++ 2015~2022(core/VCRedistInstaller) -->
+    <string name="vcredist_enable_message">Visual C++ 2015-2022 DLLs are not part of the app and are not downloaded. They are taken out of Microsoft\'s installers already on this device: those that come with Steam games (for example _CommonRedist or Steamworks Shared) and vc_redist.x86.exe / vc_redist.x64.exe you put in %1$s. The installers are not run, so their license screen does not appear: please read Microsoft\'s license terms below. The newest version is kept and copied into containers that have this option on.</string>
+    <string name="vcredist_agree">Agree</string>
+    <string name="vcredist_license_link">Microsoft Visual C++ Runtime license terms</string>
+    <string name="vcredist_searching">Visual C++ 2015-2022</string>
+    <string name="vcredist_reading">Reading %1$s…</string>
+    <string name="vcredist_done">Visual C++ 2015-2022 is ready.</string>
+    <string name="vcredist_not_found">No usable installer was found yet. The option stays on and is applied by itself once one of these happens:\n- a Steam game is downloaded that comes with the installers\n- vc_redist.x86.exe / vc_redist.x64.exe from a game folder (usually _CommonRedist or Redist) are put in %1$s (a hidden folder) and the option is turned on again</string>
+    <string name="vcredist_details">Details: %1$s</string>
+    <string name="vcredist_busy">Visual C++ 2015-2022 is already being prepared.</string>
+    <!-- Shortcut edit: folder of the exe / 바로가기 편집: exe가 있는 폴더 -->
+    <string name="shortcut_folder">Folder</string>
+    <!-- Adding a game from an archive (ShortcutsFragment, core/GameArchiveExtractor) -->
+    <!-- 압축 파일로 게임 추가(ShortcutsFragment, core/GameArchiveExtractor) -->
+    <string name="add_game_pick_title">Choose the game (.exe) or its archive (.zip, .7z)</string>
+    <string name="add_game_pick_exe_title">Choose the .exe that starts the game</string>
+    <string name="add_game_archive_title">Unpack the game</string>
+    <string name="add_game_archive_reading">Reading the archive…</string>
+    <string name="add_game_archive_parts">%1$s (%2$d parts)</string>
+    <string name="add_game_archive_message">Archive: %1$s\nUnpack to: %2$s\nSize after unpacking: %3$s (%4$d files)\nFree space: %5$s</string>
+    <string name="add_game_archive_delete">Delete the archive after the shortcut is added</string>
+    <string name="add_game_archive_unpack">Unpack</string>
+    <string name="add_game_archive_no_space_title">Not enough space</string>
+    <string name="add_game_archive_no_space">Unpacking needs about %1$s, but only %2$s is free on this storage. Free up space or move the archive to another storage (for example the SD card) and try again.</string>
+    <string name="add_game_archive_no_exe">There is no .exe file in this archive, so no shortcut can be made from it.</string>
+    <string name="add_game_archive_extracting">Unpacking the game…</string>
+    <string name="add_game_archive_cancelling">Cancelling…</string>
+    <string name="add_game_archive_cancelled">Unpacking was cancelled. The partly unpacked files were removed and the archive was kept.</string>
+    <string name="add_game_archive_pick_exe">Unpacked to %1$s. Choose the .exe that starts the game.</string>
+    <string name="add_game_archive_kept">The game stays in %1$s and the archive was kept. You can add it later with the + button.</string>
+    <string name="add_game_archive_deleted">The archive was deleted.</string>
+    <string name="add_game_archive_delete_failed">Could not delete the archive: %1$s</string>
+    <string name="add_game_archive_err_encrypted">This archive is password-protected, which is not supported. Unpack it on a PC and copy the game folder instead.</string>
+    <string name="add_game_archive_err_unsupported">This archive uses a compression method the app cannot read (for example 7-Zip\'s BCJ2 or ARM64 filter, or LZMA / PPMd inside a zip). Unpack it on a PC, or pack it again as zip (Deflate) or 7z (LZMA2).\nDetails: %1$s</string>
+    <string name="add_game_archive_err_memory">This 7z archive needs more memory to unpack than the app can use (its dictionary is too large). Pack it again with a dictionary of 64 MB or less, or unpack it on a PC.</string>
+    <string name="add_game_archive_err_volume">A part of this split archive is missing. Put every part (.001, .002 … or .z01, .z02 …) in the same folder.</string>
+    <string name="add_game_archive_err_unsafe">This archive was not unpacked: it contains entries that point outside its folder (damaged or unsafe file).</string>
+    <string name="add_game_archive_err_corrupt">The archive could not be read. It may be damaged or not completely downloaded. The partly unpacked files were removed.\nDetails: %1$s</string>
+    <string name="add_game_archive_err_io">Unpacking stopped with an error. The partly unpacked files were removed and the archive was kept.\nDetails: %1$s</string>
 </resources>
