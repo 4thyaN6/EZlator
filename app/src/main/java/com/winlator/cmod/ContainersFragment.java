@@ -340,6 +340,17 @@ public class ContainersFragment extends Fragment {
                         loadContainersList();
                         AppUtils.showToast(getContext(), "Container imported successfully.");
                         preloaderDialog.close(); // Move this inside the callback
+                        // The export left Visual C++ 2015-2022 DLLs out: when the imported
+                        // container has it on and this device has none kept, say where
+                        // they will come from (the newest container is the imported one)
+                        // 내보낼 때 Visual C++ 2015~2022 DLL을 뺐음: 가져온 컨테이너가 켜 둔
+                        // 상태인데 이 기기에 보관본이 없으면 어디서 생기는지 안내함(가장 마지막
+                        // 컨테이너가 가져온 것임)
+                        java.util.ArrayList<Container> all = manager.getContainers();
+                        if (!all.isEmpty()) {
+                            com.winlator.cmod.core.VCRedistInstaller.notifyIfMissingAfterImport(
+                                    getActivity(), all.get(all.size() - 1).getWinComponents());
+                        }
                     });
                 });
             } catch (Exception e) {
@@ -542,4 +553,4 @@ public class ContainersFragment extends Fragment {
         }
     }
 
-}
+}

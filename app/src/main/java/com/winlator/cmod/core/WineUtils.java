@@ -103,6 +103,28 @@ public abstract class WineUtils {
         catch (JSONException e) {}
     }
 
+    /**
+     * Sets one load order (e.g. "builtin") for every DLL of a Win Component.
+     * Used for Visual C++ 2015-2022 turned off: its files stay in the prefix,
+     * and this makes Wine use its builtin DLLs instead of them.
+     * Win Components 항목의 모든 DLL에 같은 로드 순서(예: "builtin")를 지정함.
+     * 꺼진 Visual C++ 2015~2022에 씀: 파일은 프리픽스에 남겨 두고, 이 값으로 Wine이
+     * 그 파일 대신 기본 DLL을 쓰게 함
+     */
+    public static void setWinComponentDllLoadOrder(Context context, Container container, String identifier, String loadOrder) {
+        final String dllOverridesKey = "Software\\Wine\\DllOverrides";
+        File userRegFile = new File(container.getRootDir(), ".wine/user.reg");
+
+        try (WineRegistryEditor registryEditor = new WineRegistryEditor(userRegFile)) {
+            JSONObject wincomponentsJSONObject = new JSONObject(FileUtils.readString(context, "wincomponents/wincomponents.json"));
+            JSONArray dlnames = wincomponentsJSONObject.getJSONArray(identifier);
+            for (int i = 0; i < dlnames.length(); i++) {
+                registryEditor.setStringValue(dllOverridesKey, dlnames.getString(i), loadOrder);
+            }
+        }
+        catch (JSONException e) {}
+    }
+
     public static void setWinComponentRegistryKeys(File systemRegFile, String identifier, boolean useNative, Context context) {
         if (identifier.equals("directsound")) {
             try (WineRegistryEditor registryEditor = new WineRegistryEditor(systemRegFile)) {

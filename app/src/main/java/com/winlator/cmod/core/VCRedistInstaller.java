@@ -48,6 +48,10 @@ import java.util.function.Consumer;
  * The installers are not run: the DLLs are read from the cabinets inside them
  * (no Windows code runs). The newest version of each DLL is kept in imagefs, and
  * turning the component on copies them into the prefix at every launch that needs it.
+ * Files put into a prefix are not taken out again: turning the component off only
+ * makes Wine use its builtin DLLs, and a newer file the user installed is kept.
+ * Such a newer file is also kept on the device for that game only (games/<key>),
+ * so it comes back when the game runs in another container.
  * Visual C++ 2015~2022 런타임(Win Components "vcrun2015")임. DLL은 APK에 넣지 않고
  * 앱이 받지도 않음. 기기에 이미 있는 Microsoft 설치 파일(vc_redist.x86.exe /
  * vc_redist.x64.exe)에서 꺼냄:
@@ -56,7 +60,10 @@ import java.util.function.Consumer;
  *   2. 사용자가 Download/.EZlator/VCRedist에 넣은 설치 파일
  * 설치 프로그램은 실행하지 않음: 그 안의 캐비닛에서 DLL을 읽어 냄(Windows 코드는
  * 실행하지 않음). DLL마다 가장 새 버전을 imagefs에 보관하고, 항목을 켜면 필요할 때마다
- * 실행 시 프리픽스에 복사함
+ * 실행 시 프리픽스에 복사함. 프리픽스에 넣은 파일은 다시 빼지 않음: 항목을 끄면
+ * Wine 기본 DLL을 쓰게만 하고, 사용자가 설치한 더 새 파일은 그대로 둠. 그런 더 새
+ * 파일은 기기에도 그 게임 전용(games/<키>)으로 보관하므로, 다른 컨테이너에서 그 게임을
+ * 실행해도 다시 들어감
  *
  * Layout of vc_redist (WiX Burn bundle): the .exe carries a cabinet whose entries
  * ("a10", "a12", ...) are cabinets again; those hold the DLLs, named either plainly
@@ -141,43 +148,387 @@ public final class VCRedistInstaller {
 
     // ==================== Apply to a prefix / 프리픽스에 적용 ====================
 
-    /**
-     * Copies the kept DLLs into windows/system32 (64-bit) and windows/syswow64
-     * (32-bit) and marks the prefix. false when nothing is kept yet.
-     * 보관한 DLL을 windows/system32(64비트)와 windows/syswow64(32비트)에 복사하고
-     * 프리픽스에 표시를 남김. 아직 보관한 것이 없으면 false
+    // Folders of a prefix (and of the store) that hold the DLLs
+    // DLL이 들어가는 프리픽스(와 보관소)의 폴더
+    private static final String[] SUBDIRS = {"system32", "syswow64"};
+
+    /*
+     * Per-game copies: <store>/games/<game key>/{system32,syswow64} + game.txt.
+     * The shared store is filled only from Microsoft's installers (cabinets).
+     * A newer DLL the user installed inside a container (no installer found for
+     * it) is kept here, for that game only: it comes back when that game runs
+     * in any container, even after the container is deleted, and it is not
+     * spread to other games (where it came from cannot be checked).
+     * 게임별 사본: <보관소>/games/<게임 키>/{system32,syswow64} + game.txt.
+     * 공용 보관소는 Microsoft 설치 파일(캐비닛)에서만 채움. 사용자가 컨테이너 안에서
+     * 설치한 더 새 DLL(설치 파일을 못 찾은 것)은 여기에 그 게임 전용으로 둠: 컨테이너를
+     * 지워도 그 게임을 어느 컨테이너에서 실행하든 다시 들어가고, 다른 게임에는 퍼지지
+     * 않음(출처를 확인할 수 없으므로)
      */
-    public static boolean applyTo(ImageFs imageFs, File windowsDir) {
-        if (!isInstalled(imageFs)) return false;
-        File store = storeDir(imageFs);
-        int copied = 0;
-        for (String sub : new String[]{"system32", "syswow64"}) {
-            File[] dlls = new File(store, sub).listFiles();
-            File dst = new File(windowsDir, sub);
-            if (dlls == null || !dst.isDirectory()) continue;
-            for (File dll : dlls) {
-                if (FileUtils.copy(dll, new File(dst, dll.getName()))) copied++;
-            }
-        }
-        FileUtils.writeString(new File(windowsDir, "system32/" + APPLIED_MARK), readStamp(imageFs));
-        Log.i(TAG, "applied " + copied + " DLLs to " + windowsDir);
-        return true;
+    private static final String GAMES_DIR = "games";
+
+    // Container extras: the game whose newer DLLs are not kept yet (set at launch,
+    // cleared after the game ends and they are kept)
+    // 컨테이너 extra: 더 새 DLL을 아직 보관하지 않은 게임(실행 때 적고, 게임이 끝나
+    // 보관한 뒤 지움)
+    public static final String LAST_GAME_EXTRA = "vcrunLastGame";
+    public static final String LAST_GAME_NAME_EXTRA = "vcrunLastGameName";
+    private static final String GAME_INFO = "game.txt";
+
+    private static File gameDir(ImageFs imageFs, String gameKey) {
+        return new File(new File(storeDir(imageFs), GAMES_DIR), gameKey);
     }
 
-    // True when this prefix already has the current contents of the store
-    // 이 프리픽스에 보관소의 지금 내용이 이미 적용돼 있으면 true
-    public static boolean isAppliedTo(ImageFs imageFs, File windowsDir) {
-        if (!isInstalled(imageFs)) return true; // nothing to apply / 적용할 것이 없음
+    /**
+     * Key of a game for its own copies: "steam-<AppID>" for a Steam game,
+     * otherwise "exe-" + a hash of the shortcut's exe path (the same game added
+     * again finds its copies). null when neither is known.
+     * 게임별 사본의 키: 스팀 게임은 "steam-<AppID>", 그 외는 "exe-" + 바로가기 exe
+     * 경로의 해시(같은 게임을 다시 추가해도 사본을 찾음). 둘 다 모르면 null
+     */
+    public static String gameKey(String steamAppId, String exePath) {
+        String id = steamAppId == null ? "" : steamAppId.replaceAll("[^0-9]", "");
+        if (!id.isEmpty()) return "steam-" + id;
+        if (exePath == null || exePath.trim().isEmpty()) return null;
         try {
-            String applied = FileUtils.readString(new File(windowsDir, "system32/" + APPLIED_MARK)).trim();
-            return applied.equals(readStamp(imageFs));
+            java.security.MessageDigest md = java.security.MessageDigest.getInstance("SHA-1");
+            byte[] hash = md.digest(exePath.trim().toLowerCase(Locale.ROOT).getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            StringBuilder sb = new StringBuilder("exe-");
+            for (int i = 0; i < 8; i++) sb.append(String.format(Locale.ROOT, "%02x", hash[i]));
+            return sb.toString();
         } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * True for Wine's own PE files ("Wine builtin DLL" / "Wine placeholder DLL"
+     * at offset 0x40). Their version numbers say nothing about Microsoft's
+     * runtime, so they always count as "none".
+     * Wine 자체 PE 파일이면 true(0x40 위치의 "Wine builtin DLL" / "Wine placeholder
+     * DLL"). 그 버전 값은 Microsoft 런타임과 무관하므로 항상 "없음"으로 봄
+     */
+    static boolean isWineBuiltin(File file) {
+        try (RandomAccessFile f = new RandomAccessFile(file, "r")) {
+            if (f.length() < 0x60) return false;
+            byte[] b = new byte[0x20];
+            f.seek(0x40);
+            f.readFully(b);
+            String s = new String(b, java.nio.charset.StandardCharsets.ISO_8859_1);
+            return s.startsWith("Wine builtin DLL") || s.startsWith("Wine placeholder DLL");
+        } catch (IOException e) {
             return false;
         }
     }
 
-    public static void clearAppliedMark(File windowsDir) {
-        new File(windowsDir, "system32/" + APPLIED_MARK).delete();
+    // File version of a DLL in a prefix; -1 when missing, Wine's own, or unknown
+    // 프리픽스 DLL의 파일 버전. 없거나 Wine 자체 파일이거나 모르면 -1
+    static long prefixVersion(File file) {
+        if (!file.isFile() || isWineBuiltin(file)) return -1;
+        return fileVersion(file);
+    }
+
+    // "<sub>/<name>" -> kept file to use for this launch: the shared copy, or
+    // this game's copy when it is newer
+    // "<폴더>/<이름>" -> 이번 실행에 쓸 보관 파일: 공용 사본, 또는 더 새로우면 이 게임의 사본
+    private static Map<String, File> sources(ImageFs imageFs, String gameKey) {
+        Map<String, File> best = new HashMap<>();
+        Map<String, Long> bestVer = new HashMap<>();
+        List<File> roots = new ArrayList<>();
+        if (isInstalled(imageFs)) roots.add(storeDir(imageFs));
+        if (gameKey != null) roots.add(gameDir(imageFs, gameKey));
+        for (File root : roots) {
+            for (String sub : SUBDIRS) {
+                File[] dlls = new File(root, sub).listFiles();
+                if (dlls == null) continue;
+                for (File dll : dlls) {
+                    // Skip work files (.new while one is written)
+                    // 작업 파일(쓰는 중인 .new)은 건너뜀
+                    if (!dll.getName().toLowerCase(Locale.ROOT).endsWith(".dll")) continue;
+                    String key = sub + "/" + dll.getName().toLowerCase(Locale.ROOT);
+                    long v = fileVersion(dll);
+                    Long old = bestVer.get(key);
+                    if (old == null || v > old) {
+                        best.put(key, dll);
+                        bestVer.put(key, v);
+                    }
+                }
+            }
+        }
+        return best;
+    }
+
+    // "<sub>/<name>" -> every version kept on this device (shared + all games)
+    // "<폴더>/<이름>" -> 이 기기에 보관한 모든 버전(공용 + 모든 게임)
+    private static Map<String, Set<Long>> keptVersions(ImageFs imageFs) {
+        Map<String, Set<Long>> all = new HashMap<>();
+        List<File> roots = new ArrayList<>();
+        roots.add(storeDir(imageFs));
+        File[] games = new File(storeDir(imageFs), GAMES_DIR).listFiles();
+        if (games != null) for (File g : games) if (g.isDirectory()) roots.add(g);
+        for (File root : roots) {
+            for (String sub : SUBDIRS) {
+                File[] dlls = new File(root, sub).listFiles();
+                if (dlls == null) continue;
+                for (File dll : dlls) {
+                    if (!dll.getName().toLowerCase(Locale.ROOT).endsWith(".dll")) continue;
+                    long v = fileVersion(dll);
+                    if (v == -1) continue;
+                    String key = sub + "/" + dll.getName().toLowerCase(Locale.ROOT);
+                    Set<Long> set = all.get(key);
+                    if (set == null) all.put(key, set = new HashSet<>());
+                    set.add(v);
+                }
+            }
+        }
+        return all;
+    }
+
+    private static long max(Set<Long> set) {
+        long m = -1;
+        if (set != null) for (long v : set) m = Math.max(m, v);
+        return m;
+    }
+
+    /*
+     * The mark (windows/system32/.ezlator-vcrun2015) lists the files EZlator
+     * counts as its own in this prefix, one per line as "<sub>/<name>\t<file
+     * version>"; the first line is the store stamp. A file is EZlator's while it
+     * has the version of a kept copy (put in by EZlator, or the same version the
+     * user installed). It is used to put back files a container export left out.
+     * 표시 파일(windows/system32/.ezlator-vcrun2015)은 이 프리픽스에서 EZlator 것으로
+     * 보는 파일 목록임. 한 줄에 "<폴더>/<이름>\t<파일 버전>" 하나씩이고 첫 줄은 보관소
+     * 표시값임. 보관 사본과 같은 버전인 동안 EZlator 것임(EZlator가 넣었거나 사용자가
+     * 같은 버전을 설치함). 컨테이너 내보내기에서 뺀 파일을 다시 채울 때 씀
+     */
+    private static File markFile(File windowsDir) {
+        return new File(windowsDir, "system32/" + APPLIED_MARK);
+    }
+
+    public static boolean isMarked(File windowsDir) {
+        return markFile(windowsDir).isFile();
+    }
+
+    // "<sub>/<name>" -> version from the mark; null when there is no mark,
+    // an empty map for a mark of an older build (stamp only)
+    // 표시 파일의 "<폴더>/<이름>" -> 버전. 표시 파일이 없으면 null,
+    // 예전 빌드의 표시 파일(표시값만)이면 빈 목록
+    private static Map<String, Long> readApplied(File windowsDir) {
+        File mark = markFile(windowsDir);
+        if (!mark.isFile()) return null;
+        Map<String, Long> applied = new HashMap<>();
+        try {
+            String text = FileUtils.readString(mark);
+            if (text == null) return applied;
+            String[] lines = text.split("\n");
+            // The first line is the store stamp
+            // 첫 줄은 보관소 표시값임
+            for (int i = 1; i < lines.length; i++) {
+                String[] parts = lines[i].trim().split("\t");
+                if (parts.length != 2) continue;
+                try {
+                    applied.put(parts[0], Long.parseLong(parts[1]));
+                } catch (NumberFormatException ignored) {}
+            }
+        } catch (Exception ignored) {}
+        return applied;
+    }
+
+    private static void writeApplied(ImageFs imageFs, File windowsDir, Map<String, Long> applied) {
+        StringBuilder text = new StringBuilder(readStamp(imageFs));
+        for (Map.Entry<String, Long> e : applied.entrySet()) {
+            text.append('\n').append(e.getKey()).append('\t').append(e.getValue());
+        }
+        FileUtils.writeString(markFile(windowsDir), text.toString());
+    }
+
+    /**
+     * Puts the kept DLLs (shared, or this game's copy when newer) into
+     * windows/system32 (64-bit) and windows/syswow64 (32-bit). Only adds, never
+     * takes out: a DLL is copied when the prefix has none, Wine's own, or an
+     * older file version (e.g. an old one a game installer put back); a newer
+     * one is left as it is. false when nothing is kept for this launch.
+     * 보관한 DLL(공용, 또는 더 새로우면 이 게임의 사본)을 windows/system32(64비트)와
+     * windows/syswow64(32비트)에 넣음. 넣기만 하고 빼지 않음: 프리픽스에 없거나, Wine
+     * 자체 파일이거나, 파일 버전이 더 낮을 때(예: 게임 설치 프로그램이 옛 버전으로 덮은
+     * 경우)만 복사하고, 더 높으면 그대로 둠. 이번 실행에 쓸 보관본이 없으면 false
+     */
+    public static boolean applyTo(ImageFs imageFs, File windowsDir, String gameKey) {
+        Map<String, File> src = sources(imageFs, gameKey);
+        if (src.isEmpty()) return false;
+        Map<String, Long> before = readApplied(windowsDir);
+        Map<String, Long> applied = new HashMap<>();
+        int copied = 0, kept = 0;
+        for (Map.Entry<String, File> e : src.entrySet()) {
+            String key = e.getKey();
+            File dst = new File(windowsDir, key);
+            if (!dst.getParentFile().isDirectory()) continue;
+            long srcVer = fileVersion(e.getValue());
+            long dstVer = prefixVersion(dst);
+            boolean replace = srcVer == -1
+                    ? (!dst.isFile() || isWineBuiltin(dst))
+                    : dstVer < srcVer;
+            if (replace) {
+                if (FileUtils.copy(e.getValue(), dst) && dst.isFile()) {
+                    applied.put(key, srcVer);
+                    copied++;
+                }
+            } else if (dstVer == srcVer) {
+                // Same version as the kept copy: EZlator's (it can be put back)
+                // 보관 사본과 같은 버전: EZlator 것으로 봄(다시 넣을 수 있음)
+                applied.put(key, srcVer);
+            } else {
+                // Newer: left alone
+                // 더 높음: 그대로 둠
+                kept++;
+            }
+        }
+        // Files of another game's copy that are still in place stay on the list
+        // 다른 게임 사본에서 넣은 파일이 그대로 남아 있으면 목록에 유지함
+        if (before != null) {
+            for (Map.Entry<String, Long> e : before.entrySet()) {
+                if (applied.containsKey(e.getKey()) || e.getValue() == -1) continue;
+                if (prefixVersion(new File(windowsDir, e.getKey())) == e.getValue()) applied.put(e.getKey(), e.getValue());
+            }
+        }
+        writeApplied(imageFs, windowsDir, applied);
+        Log.i(TAG, "applied to " + windowsDir + " (game " + gameKey + "): copied " + copied + ", listed " + applied.size() + ", newer kept " + kept);
+        return true;
+    }
+
+    /**
+     * True when applyTo has something to do: a kept DLL is missing in the
+     * prefix, Wine's own, or older there. Reads the version of each file, so a
+     * game installer that put old files back is noticed too.
+     * applyTo가 할 일이 있으면 true: 보관한 DLL이 프리픽스에 없거나, Wine 자체 파일이거나,
+     * 더 낮은 버전임. 파일마다 버전을 읽으므로 게임 설치 프로그램이 옛 파일로 덮은 것도 알아챔
+     */
+    public static boolean needsApply(ImageFs imageFs, File windowsDir, String gameKey) {
+        for (Map.Entry<String, File> e : sources(imageFs, gameKey).entrySet()) {
+            File dst = new File(windowsDir, e.getKey());
+            if (!dst.getParentFile().isDirectory()) continue;
+            long srcVer = fileVersion(e.getValue());
+            if (srcVer == -1 ? (!dst.isFile() || isWineBuiltin(dst)) : prefixVersion(dst) < srcVer) return true;
+        }
+        return false;
+    }
+
+    /**
+     * "<sub>/<name>" of files on the mark that are gone from the prefix (a
+     * container exported without them, see exportExcluded). When no kept copy
+     * can fill them, Wine's builtin files are put back in their place.
+     * 표시 파일 목록에 있지만 프리픽스에서 없어진 파일의 "<폴더>/<이름>"(이 파일 없이
+     * 내보낸 컨테이너, exportExcluded 참고). 보관 사본으로 채울 수 없으면 그 자리에 Wine
+     * 기본 파일을 다시 넣음
+     */
+    public static List<String> missingApplied(File windowsDir) {
+        List<String> missing = new ArrayList<>();
+        Map<String, Long> applied = readApplied(windowsDir);
+        if (applied == null) return missing;
+        for (String key : applied.keySet()) {
+            if (!new File(windowsDir, key).isFile()) missing.add(key);
+        }
+        return missing;
+    }
+
+    /**
+     * True when the launch has Visual C++ work: on and applyTo has something to
+     * do, or files on the mark are missing (on or off).
+     * 실행 때 Visual C++ 작업이 있으면 true: 켜져 있고 applyTo가 할 일이 있거나,
+     * 표시 파일 목록의 파일이 없어졌음(켜짐·꺼짐 무관)
+     */
+    public static boolean needsWork(ImageFs imageFs, File windowsDir, boolean on, String gameKey) {
+        if (on && needsApply(imageFs, windowsDir, gameKey)) return true;
+        return !missingApplied(windowsDir).isEmpty();
+    }
+
+    /**
+     * Keeps, for this game only, the Visual C++ DLLs in the prefix that are
+     * newer than every copy kept on this device (a runtime the user installed
+     * inside the container). Only Microsoft's files of the right kind are taken:
+     * not Wine's own, x64 in system32 and x86 in syswow64. Called after the game
+     * ends, at the next launch (if the app was closed before that) and before
+     * the container is deleted. Returns the number of files kept.
+     * 프리픽스에 있는 Visual C++ DLL 중 이 기기에 보관한 모든 사본보다 새로운 것(사용자가
+     * 컨테이너 안에서 설치한 런타임)을 이 게임 전용으로 보관함. 알맞은 종류의 Microsoft
+     * 파일만 가져감: Wine 자체 파일 제외, system32는 x64, syswow64는 x86. 게임이 끝난 뒤,
+     * (그 전에 앱이 닫혔으면) 다음 실행 때, 컨테이너를 지우기 전에 부름. 보관한 파일 수를 돌려줌
+     */
+    public static int collectNewer(Context context, ImageFs imageFs, File windowsDir, String gameKey, String label) {
+        if (gameKey == null || !new File(windowsDir, "system32").isDirectory()) return 0;
+        int count = 0;
+        File store = storeDir(imageFs);
+        try {
+            List<String> names = dllNames(context);
+            if (!store.isDirectory() && !store.mkdirs()) return 0;
+            File gameDir = gameDir(imageFs, gameKey);
+            try (RandomAccessFile lockRaf = new RandomAccessFile(new File(store, ".lock"), "rw");
+                 FileChannel channel = lockRaf.getChannel();
+                 FileLock ignored = channel.lock()) {
+                Map<String, Set<Long>> kept = keptVersions(imageFs);
+                for (String sub : SUBDIRS) {
+                    int machine = "system32".equals(sub) ? MACHINE_AMD64 : MACHINE_I386;
+                    for (String dll : names) {
+                        String key = sub + "/" + dll + ".dll";
+                        File f = new File(windowsDir, key);
+                        long v = prefixVersion(f);
+                        if (v == -1 || v <= max(kept.get(key))) continue;
+                        if (peMachine(f) != machine) continue;
+                        File dstDir = new File(gameDir, sub);
+                        if (!dstDir.isDirectory() && !dstDir.mkdirs()) continue;
+                        File out = new File(dstDir, dll + ".dll");
+                        File tmp = new File(dstDir, dll + ".dll.new");
+                        if (!FileUtils.copy(f, tmp) || !tmp.isFile()) continue;
+                        out.delete();
+                        if (!tmp.renameTo(out)) {
+                            tmp.delete();
+                            continue;
+                        }
+                        Log.i(TAG, "kept for " + gameKey + ": " + key + " " + versionText(v));
+                        count++;
+                    }
+                }
+                if (count > 0) FileUtils.writeString(new File(gameDir, GAME_INFO), (label == null ? "" : label) + "\n" + gameKey);
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "collect for " + gameKey + " failed", e);
+        }
+        return count;
+    }
+
+    /**
+     * Files of a prefix that a container export leaves out: Visual C++ DLLs with
+     * the version of a copy kept on this device (shared or any game's).
+     * Microsoft's files are not to be shared; an imported container gets them
+     * again from the kept copies of the device it is imported on. A newer file
+     * not kept anywhere is exported as it is.
+     * 컨테이너 내보내기에서 뺄 프리픽스 파일: 이 기기에 보관한 사본(공용 또는 어느 게임의
+     * 것)과 버전이 같은 Visual C++ DLL. Microsoft 파일은 공유하지 않아야 하며, 가져온
+     * 컨테이너는 가져온 기기의 보관 사본에서 다시 받음. 어디에도 보관되지 않은 더 새 파일은
+     * 그대로 내보냄
+     */
+    public static Set<String> exportExcluded(ImageFs imageFs, File windowsDir) {
+        Set<String> paths = new HashSet<>();
+        for (Map.Entry<String, Set<Long>> e : keptVersions(imageFs).entrySet()) {
+            File f = new File(windowsDir, e.getKey());
+            if (!f.isFile()) {
+                // The prefix may spell the name in another letter case
+                // 프리픽스 쪽 이름의 대소문자가 다를 수 있음
+                f = findIgnoreCase(windowsDir, e.getKey());
+                if (f == null) continue;
+            }
+            if (e.getValue().contains(prefixVersion(f))) paths.add(f.getAbsolutePath());
+        }
+        return paths;
+    }
+
+    private static File findIgnoreCase(File windowsDir, String key) {
+        int slash = key.indexOf('/');
+        File[] files = new File(windowsDir, key.substring(0, slash)).listFiles();
+        if (files == null) return null;
+        String name = key.substring(slash + 1);
+        for (File f : files) if (f.getName().equalsIgnoreCase(name) && f.isFile()) return f;
+        return null;
     }
 
     // ==================== Harvest / 꺼내 보관하기 ====================
@@ -651,6 +1002,24 @@ public final class VCRedistInstaller {
                 done.accept(true);
             });
         }, "VCRedistHarvest").start();
+    }
+
+    /**
+     * After a container is imported: when it has the component on but this
+     * device has not kept the DLLs yet, says where they will come from (the
+     * export left them out). The setting stays on.
+     * 컨테이너를 가져온 뒤 부름: 항목이 켜져 있는데 이 기기에 아직 보관한 DLL이 없으면
+     * 어디서 생기는지 안내함(내보낼 때 뺐으므로). 설정은 켜진 채로 둠
+     */
+    public static void notifyIfMissingAfterImport(Activity activity, String wincomponents) {
+        if (activity == null || wincomponents == null) return;
+        if (!"1".equals(new KeyValueSet(wincomponents).get(ID, "0"))) return;
+        if (isInstalled(ImageFs.find(activity))) return;
+        new AlertDialog.Builder(activity)
+                .setTitle(R.string.vcrun2015)
+                .setMessage(activity.getString(R.string.vcredist_not_found, manualLabel()))
+                .setPositiveButton(android.R.string.ok, null)
+                .show();
     }
 
     // "Download/.EZlator/VCRedist" for messages

@@ -166,6 +166,13 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
     private FrameRating frameRating = null;
     private Runnable editInputControlsCallback;
     private Shortcut shortcut;
+    // Visual C++ 2015-2022 for this launch: on or off, and the key / name of the game
+    // whose own DLL copies are used and kept (see VCRedistInstaller.gameKey)
+    // 이번 실행의 Visual C++ 2015~2022: 켜짐 여부, 게임별 DLL 사본을 쓰고 보관할 게임의
+    // 키·이름(VCRedistInstaller.gameKey 참고)
+    private boolean vcrunOn = false;
+    private String vcrunGameKey = null;
+    private String vcrunGameLabel = null;
     private String graphicsDriver = Container.DEFAULT_GRAPHICS_DRIVER;
     private HashMap<String, String> graphicsDriverConfig;
     private String audioDriver = Container.DEFAULT_AUDIO_DRIVER;
@@ -1209,6 +1216,22 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
                 // 종료 시 전체 단계별 정리: 게임 -> Wine -> wineserver ->
                 // box64/FEX -> PRoot -> 나머지 -> 확인
                 ProcessHelper.terminateAllGuestProcesses("exit");
+
+                // Visual C++ 2015-2022: a newer runtime the user installed during this
+                // game is kept for this game, so deleting the container does not lose it
+                // Visual C++ 2015~2022: 이 게임 중에 사용자가 설치한 더 새 런타임을 이 게임용으로
+                // 보관함. 그래서 컨테이너를 지워도 잃지 않음
+                if (vcrunOn && vcrunGameKey != null && imageFs != null) {
+                    try {
+                        File vcWindowsDir = new File(imageFs.getRootDir(), ImageFs.WINEPREFIX + "/drive_c/windows");
+                        VCRedistInstaller.collectNewer(this, imageFs, vcWindowsDir, vcrunGameKey, vcrunGameLabel);
+                        container.putExtra(VCRedistInstaller.LAST_GAME_EXTRA, null);
+                        container.putExtra(VCRedistInstaller.LAST_GAME_NAME_EXTRA, null);
+                        container.saveData();
+                    } catch (Exception e) {
+                        Log.w("XServerDisplayActivity", "vcrun2015 collect on exit failed", e);
+                    }
+                }
 
                 // Finish the activity on the main UI thread
                 runOnUiThread(() -> {
@@ -2309,7 +2332,33 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         // 이 버전이 제공하는 항목만 씀. 예전에 저장한 바로가기에는 빠진 항목(vcrun2015)이
         // 남아 있을 수 있음
         String wincomponents = Container.offeredWinComponents(shortcut != null ? shortcut.getExtra("wincomponents", container.getWinComponents()) : container.getWinComponents());
-        if (!wincomponents.equals(container.getExtra("wincomponents"))) {
+        // Visual C++ 2015-2022 can have work with the same setting: DLLs taken after
+        // it was turned on (or taken again newer), old files a game installer put
+        // back, or files an exported container left out
+        // Visual C++ 2015~2022는 설정이 같아도 할 일이 있을 수 있음: 켠 뒤에 꺼낸(또는 더
+        // 새 버전으로 다시 꺼낸) DLL, 게임 설치 프로그램이 옛 파일로 덮은 경우, 내보낸
+        // 컨테이너에서 빠진 파일
+        File vcWindowsDir = new File(imageFs.getRootDir(), ImageFs.WINEPREFIX + "/drive_c/windows");
+        vcrunOn = "1".equals(new KeyValueSet(wincomponents).get(VCRedistInstaller.ID, "0"));
+        vcrunGameKey = shortcut != null ? VCRedistInstaller.gameKey(shortcut.getExtra("steamAppId"), shortcut.path) : null;
+        vcrunGameLabel = shortcut != null ? shortcut.name : null;
+        // If the app closed before the last game's DLLs were kept (see exitApp),
+        // they are kept now for that game
+        // 지난 게임의 DLL을 보관하기 전에 앱이 닫혔으면(exitApp 참고) 지금 그 게임용으로 보관함
+        String lastGame = container.getExtra(VCRedistInstaller.LAST_GAME_EXTRA);
+        if (!lastGame.isEmpty()) {
+            VCRedistInstaller.collectNewer(this, imageFs, vcWindowsDir, lastGame, container.getExtra(VCRedistInstaller.LAST_GAME_NAME_EXTRA));
+        }
+        // Remember this game until its DLLs are kept (only while the component is on)
+        // DLL을 보관할 때까지 이 게임을 기억함(항목이 켜져 있을 때만)
+        boolean remember = vcrunOn && vcrunGameKey != null;
+        if (!lastGame.equals(remember ? vcrunGameKey : "")) {
+            container.putExtra(VCRedistInstaller.LAST_GAME_EXTRA, remember ? vcrunGameKey : null);
+            container.putExtra(VCRedistInstaller.LAST_GAME_NAME_EXTRA, remember ? vcrunGameLabel : null);
+            containerDataChanged = true;
+        }
+        if (!wincomponents.equals(container.getExtra("wincomponents"))
+                || VCRedistInstaller.needsWork(imageFs, vcWindowsDir, vcrunOn, vcrunGameKey)) {
             extractWinComponentFiles();
             container.putExtra("wincomponents", wincomponents);
             containerDataChanged = true;
@@ -3681,27 +3730,53 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
                 String oldValue = oldWinComponents.get(wincomponent[0], null);
                 String identifier = wincomponent[0];
                 boolean useNative = wincomponent[1].equals("1");
-                // Visual C++ turned on before its files were taken (or taken again in
-                // a newer version) is applied even when the setting did not change
-                // 파일을 꺼내기 전에 켠(또는 새 버전으로 다시 꺼낸) Visual C++는 설정이
-                // 바뀌지 않았어도 적용함
-                boolean vcrunPending = useNative && VCRedistInstaller.ID.equals(identifier)
-                        && !VCRedistInstaller.isAppliedTo(imageFs, windowsDir);
+                // Visual C++ with work to do (see needsWork) runs even when the
+                // setting did not change
+                // 할 일이 있는 Visual C++(needsWork 참고)는 설정이 바뀌지 않았어도 처리함
+                boolean vcrunPending = VCRedistInstaller.ID.equals(identifier)
+                        && VCRedistInstaller.needsWork(imageFs, windowsDir, useNative, vcrunGameKey);
                 if (oldValue != null && wincomponent[1].equals(oldValue) && !firstTimeBoot && !vcrunPending) continue;
 
                 if (!wineInfo.isArm64EC() && identifier.contains("opengl") && useNative)
                     continue;
 
-                if (useNative && VCRedistInstaller.ID.equals(identifier)) {
-                    // Visual C++ 2015-2022: copied from the files taken once from
-                    // Microsoft's installers into imagefs. Not taken yet -> Wine's
-                    // builtin DLLs stay in place (the override is native,builtin, so
-                    // the builtin ones are used)
-                    // Visual C++ 2015~2022: Microsoft 설치 파일에서 한 번 꺼내 imagefs에
-                    // 둔 파일을 복사함. 아직 안 꺼냈으면 Wine 기본 DLL이 그대로 남음
-                    // (override가 native,builtin이라 기본 DLL이 쓰임)
-                    if (!VCRedistInstaller.applyTo(imageFs, windowsDir))
-                        Log.w("XServerDisplayActivity", "vcrun2015 is on but not installed yet - Wine builtin DLLs are used");
+                if (VCRedistInstaller.ID.equals(identifier)) {
+                    // Visual C++ 2015-2022: files are only added, never taken out
+                    // Visual C++ 2015~2022: 파일은 넣기만 하고 빼지 않음
+                    if (useNative) {
+                        // Copied from the files taken from Microsoft's installers into
+                        // imagefs, only where the prefix has none or an older version.
+                        // Not taken yet -> Wine's builtin DLLs stay in place (the
+                        // override is native,builtin, so the builtin ones are used)
+                        // Microsoft 설치 파일에서 꺼내 imagefs에 둔 파일을, 프리픽스에 없거나
+                        // 더 낮은 버전일 때만 복사함. 아직 안 꺼냈으면 Wine 기본 DLL이 그대로
+                        // 남음(override가 native,builtin이라 기본 DLL이 쓰임)
+                        if (!VCRedistInstaller.applyTo(imageFs, windowsDir, vcrunGameKey))
+                            Log.w("XServerDisplayActivity", "vcrun2015 is on but not installed yet - Wine builtin DLLs are used");
+                        WineUtils.overrideWinComponentDlls(this, container, identifier, true);
+                    }
+                    else if (VCRedistInstaller.isMarked(windowsDir)) {
+                        // Off after EZlator put files in: they stay, and the override
+                        // "builtin" makes Wine use its own DLLs
+                        // EZlator가 파일을 넣은 뒤 끔: 파일은 두고, override "builtin"으로
+                        // Wine 기본 DLL을 쓰게 함
+                        WineUtils.setWinComponentDllLoadOrder(this, container, identifier, "builtin");
+                    }
+                    else {
+                        // Off and never put in by EZlator: the override is removed and
+                        // the files are not touched (a runtime the user installed in
+                        // the container stays as it is)
+                        // 꺼짐이고 EZlator가 넣은 적 없음: override만 지우고 파일은 건드리지
+                        // 않음(사용자가 컨테이너 안에서 설치한 런타임은 그대로 둠)
+                        WineUtils.overrideWinComponentDlls(this, container, identifier, false);
+                    }
+                    // Files on the mark that are gone (an exported container leaves them
+                    // out) and could not be filled from the store get Wine's builtin back
+                    // 표시 목록에 있는데 없어진 파일(내보낸 컨테이너에서 빠짐) 중 보관소로
+                    // 채우지 못한 것은 Wine 기본 파일을 다시 넣음
+                    restoreBuiltinFiles(VCRedistInstaller.missingApplied(windowsDir));
+                    Log.d("XServerDisplayActivity", "Setting wincomponent " + identifier + " to " + String.valueOf(useNative));
+                    continue;
                 }
                 else if (useNative) {
                     // <id>.tzst, or an uncompressed <id>.tar
@@ -3716,9 +3791,6 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
                         String dlname = dlnames.getString(i);
                         dlls.add(!dlname.endsWith(".exe") ? dlname+".dll" : dlname);
                     }
-                    // Builtin DLLs come back below, so the "applied" mark goes too
-                    // 아래에서 기본 DLL로 되돌리므로 "적용됨" 표시도 지움
-                    if (VCRedistInstaller.ID.equals(identifier)) VCRedistInstaller.clearAppliedMark(windowsDir);
                 }
                 Log.d("XServerDisplayActivity", "Setting wincomponent " + identifier + " to " + String.valueOf(useNative));
                 WineUtils.overrideWinComponentDlls(this, container, identifier, useNative);
@@ -3735,6 +3807,9 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
                 String identifier = oldComponent[0];
                 if (currentWinComponents.get(identifier, null) != null || !oldComponent[1].equals("1")) continue;
                 if (!wincomponentsJSONObject.has(identifier)) continue;
+                // Visual C++ files are never taken out (only added)
+                // Visual C++ 파일은 빼지 않음(넣기만 함)
+                if (VCRedistInstaller.ID.equals(identifier)) continue;
                 JSONArray dlnames = wincomponentsJSONObject.getJSONArray(identifier);
                 for (int i = 0; i < dlnames.length(); i++) {
                     String dlname = dlnames.getString(i);
@@ -3773,6 +3848,29 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             FileUtils.copy(srcFile, dstFile);
         }
    }
+
+    // Puts Wine's builtin file back only where it is missing, per folder
+    // ("system32/<name>" or "syswow64/<name>"); an existing file in the other
+    // folder is not touched
+    // 없어진 자리에만 폴더별로 Wine 기본 파일을 다시 넣음("system32/<이름>" 또는
+    // "syswow64/<이름>"). 다른 폴더에 있는 파일은 건드리지 않음
+    private void restoreBuiltinFiles(java.util.List<String> relPaths) {
+        if (relPaths == null || relPaths.isEmpty()) return;
+        File windowsDir = new File(imageFs.getRootDir(), ImageFs.WINEPREFIX+"/drive_c/windows");
+        File system32dlls = new File(imageFs.getWinePath() + (wineInfo.isArm64EC() ? "/lib/wine/aarch64-windows" : "/lib/wine/x86_64-windows"));
+        File syswow64dlls = new File(imageFs.getWinePath() + "/lib/wine/i386-windows");
+        for (String rel : relPaths) {
+            int slash = rel.indexOf('/');
+            if (slash <= 0) continue;
+            String sub = rel.substring(0, slash);
+            String name = rel.substring(slash + 1);
+            File dst = new File(windowsDir, rel);
+            if (dst.isFile()) continue;
+            File src = new File("syswow64".equals(sub) ? syswow64dlls : system32dlls, name);
+            boolean ok = src.isFile() && FileUtils.copy(src, dst) && dst.isFile();
+            Log.d("XServerDisplayActivity", "builtin restored for missing " + rel + ": " + ok);
+        }
+    }
 
     // winhandler.exe / wfm.exe are ANSI binaries: argv comes in through GetCommandLineA and the
     // target is launched with ShellExecuteA. Under the default code page 1252 every non-ASCII

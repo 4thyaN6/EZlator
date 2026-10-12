@@ -561,6 +561,16 @@ public class ContainerManager {
 
 
     private void removeContainer(Container container) {
+        // A newer Visual C++ runtime the user installed in this container and not
+        // kept yet (the app closed before the game's end) is kept for that game first
+        // 이 컨테이너에 사용자가 설치했는데 아직 보관하지 못한(게임이 끝나기 전에 앱이 닫힘)
+        // 더 새 Visual C++ 런타임을 먼저 그 게임용으로 보관함
+        String lastGame = container.getExtra(com.winlator.cmod.core.VCRedistInstaller.LAST_GAME_EXTRA);
+        if (!lastGame.isEmpty()) {
+            com.winlator.cmod.core.VCRedistInstaller.collectNewer(context, ImageFs.find(context),
+                    new File(container.getRootDir(), ".wine/drive_c/windows"), lastGame,
+                    container.getExtra(com.winlator.cmod.core.VCRedistInstaller.LAST_GAME_NAME_EXTRA));
+        }
         if (FileUtils.delete(container.getRootDir())) {
             containers.remove(container);
             // Removal next to the creation log, so number reuse can be followed in logcat
@@ -809,6 +819,18 @@ public class ContainerManager {
                 // Create the new container object and save its data
                 Container newContainer = new Container(newContainerId, this);
                 newContainer.setRootDir(newContainerDir);
+                // Keep the settings of the imported container (Wine version, Win
+                // Components such as Visual C++ 2015-2022, ...). Before, saveData()
+                // below wrote the defaults over the copied config
+                // 가져온 컨테이너의 설정(Wine 버전, Visual C++ 2015~2022 같은 Win
+                // Components 등)을 유지함. 예전에는 아래 saveData()가 복사한 설정 파일을
+                // 기본값으로 덮어썼음
+                try {
+                    String config = FileUtils.readString(newContainer.getConfigFile());
+                    if (config != null && !config.trim().isEmpty()) newContainer.loadData(new JSONObject(config));
+                } catch (Exception e) {
+                    Log.w("ContainerManager", "Imported config not readable, defaults are used", e);
+                }
                 newContainer.setName(importDir.getName());
                 newContainer.saveData();
                 containers.add(newContainer);
@@ -854,7 +876,16 @@ public class ContainerManager {
                     return;
                 }
 
-                if (!FileUtils.copy(containerDir, destinationDir, file -> FileUtils.chmod(file, 0771))) {
+                // Visual C++ 2015-2022 DLLs that EZlator put into the prefix are left
+                // out (Microsoft's files are not shared); the mark is kept, so the
+                // container gets them again from the store where it is imported
+                // EZlator가 프리픽스에 넣은 Visual C++ 2015~2022 DLL은 뺌(Microsoft 파일은
+                // 공유하지 않음). 표시 파일은 남기므로 가져온 곳의 보관소에서 다시 받음
+                java.util.Set<String> vcExcluded = com.winlator.cmod.core.VCRedistInstaller.exportExcluded(
+                        ImageFs.find(context), new File(containerDir, ".wine/drive_c/windows"));
+                if (!vcExcluded.isEmpty()) Log.d("ContainerManager", "Export leaves out " + vcExcluded.size() + " Visual C++ DLL(s)");
+
+                if (!FileUtils.copy(containerDir, destinationDir, file -> FileUtils.chmod(file, 0771), vcExcluded)) {
                     Log.e("ContainerManager", "Failed to export some container files to: " + destinationDir.getPath());
                     FileUtils.delete(destinationDir); // Optional: Delete partially copied directory
                 }

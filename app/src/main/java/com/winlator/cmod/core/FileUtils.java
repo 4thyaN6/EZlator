@@ -162,7 +162,18 @@ public abstract class FileUtils {
     }
 
     public static boolean copy(File srcFile, File dstFile, Callback<File> callback) {
+        return copy(srcFile, dstFile, callback, null);
+    }
+
+    /**
+     * Same as copy(src, dst, callback), but source files whose absolute path is
+     * in "skip" are left out (used to keep Microsoft's DLLs out of an export).
+     * copy(src, dst, callback)와 같지만, 절대 경로가 "skip"에 있는 원본 파일은 뺌
+     * (내보내기에 Microsoft DLL이 섞이지 않게 할 때 씀)
+     */
+    public static boolean copy(File srcFile, File dstFile, Callback<File> callback, java.util.Set<String> skip) {
         if (isSymlink(srcFile)) return true;
+        if (skip != null && skip.contains(srcFile.getAbsolutePath())) return true;
         if (srcFile.isDirectory()) {
             if (!dstFile.exists() && !dstFile.mkdirs()) return false;
             if (callback != null) callback.call(dstFile);
@@ -170,7 +181,7 @@ public abstract class FileUtils {
             String[] filenames = srcFile.list();
             if (filenames != null) {
                 for (String filename : filenames) {
-                    if (!copy(new File(srcFile, filename), new File(dstFile, filename), callback)) {
+                    if (!copy(new File(srcFile, filename), new File(dstFile, filename), callback, skip)) {
                         Log.e(TAG, "Failed to copy directory: " + srcFile.getAbsolutePath());
                         // Continue copying other files even if one fails
                     }
