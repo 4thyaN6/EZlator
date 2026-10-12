@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Strings looked up only by name (StringUtils.getString / getIdentifier), so the
+    release build's resource shrinking (shrinkResources) cannot see they are used:
+    - Win Components labels: the key in the components list is the string name.
+      "vcrun2010" appears nowhere else in the code, so its label was removed and
+      the Visual C++ 2010 row showed no name in release builds
+    - Box64 preset titles (<prefix>_preset) and env var help texts
+      (box86_64_env_var_help__<name>)
+    이름으로만 찾는 문자열(StringUtils.getString / getIdentifier)이라, release 빌드의
+    리소스 줄이기(shrinkResources)가 쓰이는 줄 모름:
+    - Win Components 이름: 구성요소 목록의 키가 곧 문자열 이름임. "vcrun2010"은 코드
+      다른 곳에 전혀 안 나와서 이름이 지워졌고, release 빌드에서 Visual C++ 2010 줄에
+      이름이 안 보였음
+    - Box64 프리셋 제목(<접두어>_preset)과 환경 변수 도움말(box86_64_env_var_help__<이름>)
+-->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@string/direct3d,@string/directsound,@string/directmusic,@string/directshow,@string/directplay,@string/xaudio,@string/vcrun2010,@string/vcrun2015,@string/opengl,@string/*_preset,@string/box86_64_env_var_help__*" />

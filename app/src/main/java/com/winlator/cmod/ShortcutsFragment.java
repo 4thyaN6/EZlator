@@ -2074,7 +2074,17 @@ public class ShortcutsFragment extends Fragment {
             // 실제 아트워크(스팀 아트워크나 지정한 커버)는 가로·세로 모두 잘리지 않게
             // 위쪽에 맞춰 보여 주고, 그 아래는 창의 배경색으로 채움. 일반 타일 그림은
             // 지금처럼 창을 가득 채움("portrait"는 아래 막 선택에 그대로 씀)
-            cover.setScaleType(artwork ? ImageView.ScaleType.FIT_START : ImageView.ScaleType.CENTER_CROP);
+            // Landscape: the artwork fitted to the full width is taller than the
+            // text block and ran behind the Start row. There it fills only the text
+            // block area (cropped), so the Start row sits on the sheet's background
+            // as in portrait
+            // 가로 화면: 가로 전체에 맞춘 아트워크가 글자 묶음보다 커서 시작 줄 뒤까지
+            // 내려왔음. 가로에서는 글자 묶음 영역만 채우게(잘라서) 해서, 세로처럼 시작
+            // 줄이 창 배경 위에 오게 함
+            final boolean headerOnly = artwork && !portrait;
+            cover.setScaleType(headerOnly ? ImageView.ScaleType.CENTER_CROP
+                    : artwork ? ImageView.ScaleType.FIT_START : ImageView.ScaleType.CENTER_CROP);
+            view.post(() -> limitArtToHeader(view, headerOnly, cover, scrim, scrimGradient));
             android.util.TypedValue bg = new android.util.TypedValue();
             context.getTheme().resolveAttribute(R.attr.neonBg, bg, true);
             int bgColor = bg.resourceId != 0 ? androidx.core.content.ContextCompat.getColor(context, bg.resourceId) : bg.data;
@@ -2260,8 +2270,25 @@ public class ShortcutsFragment extends Fragment {
         }
 
         view.findViewById(R.id.BTEditShortcut).setOnClickListener(v -> {
-            dialog.dismiss();
-            new ShortcutSettingsDialog(ShortcutsFragment.this, shortcut).show();
+            // The detail sheet stays open under the settings dialog. Cancel goes
+            // back to it as it was; OK reopens it with the saved settings (the
+            // shortcut may have been renamed or moved to another container)
+            // 상세창은 설정창 아래에 그대로 둠. 취소하면 그대로 돌아오고, 확인하면 저장한
+            // 설정으로 다시 엶(바로가기 이름이 바뀌었거나 다른 컨테이너로 옮겨졌을 수 있음)
+            ShortcutSettingsDialog settings = new ShortcutSettingsDialog(ShortcutsFragment.this, shortcut);
+            final Runnable saveSettings = settings.onConfirmCallback;
+            settings.setOnConfirmCallback(() -> {
+                if (saveSettings != null) saveSettings.run();
+                // After the settings dialog has closed
+                // 설정창이 닫힌 뒤에 처리함
+                view.post(() -> {
+                    if (!isAdded()) return;
+                    dialog.dismiss();
+                    Shortcut updated = findShortcutAfterEdit(shortcut);
+                    if (updated != null) showShortcutDetail(updated);
+                });
+            });
+            settings.show();
         });
 
         view.findViewById(R.id.BTRemoveShortcut).setOnClickListener(v -> {
@@ -2302,6 +2329,67 @@ public class ShortcutsFragment extends Fragment {
         });
 
         dialog.show();
+    }
+
+    /**
+     * Detail sheet: on = the artwork (and its veils) ends a little below the text
+     * block; off = it covers the whole content as before (layout values).
+     * Changes the layout only when the height differs, so it does not loop
+     * with the sheet's layout listener.
+     * 상세창: 켜면 아트워크(와 그 막)가 글자 묶음 조금 아래에서 끝남. 끄면 예전처럼
+     * 내용 전체를 덮음(레이아웃 값). 높이가 다를 때만 레이아웃을 바꾸므로 창의 레이아웃
+     * 감시와 서로 되풀이되지 않음
+     */
+    private void limitArtToHeader(View root, boolean on, View... layers) {
+        View content = root.findViewById(R.id.SVDetailContent);
+        View textBlock = root.findViewById(R.id.LLDetailTextBlock);
+        if (content == null || textBlock == null) return;
+        int height = ViewGroup.LayoutParams.MATCH_PARENT;
+        if (on) {
+            // Bottom of the text block inside the scroll content, plus a small gap
+            // 스크롤 내용 안에서 글자 묶음의 아래 끝 + 약간의 여백
+            int bottom = textBlock.getBottom();
+            View p = (View) textBlock.getParent();
+            while (p != null && p != content) {
+                bottom += p.getTop();
+                p = p.getParent() instanceof View ? (View) p.getParent() : null;
+            }
+            if (bottom <= 0) return; // not laid out yet / 아직 배치 전
+            height = bottom + Math.round(12 * root.getResources().getDisplayMetrics().density);
+        }
+        for (View layer : layers) {
+            android.widget.RelativeLayout.LayoutParams lp = (android.widget.RelativeLayout.LayoutParams) layer.getLayoutParams();
+            boolean aligned = lp.getRule(android.widget.RelativeLayout.ALIGN_BOTTOM) != 0;
+            if (on) {
+                if (!aligned && lp.height == height) continue;
+                lp.removeRule(android.widget.RelativeLayout.ALIGN_BOTTOM);
+                lp.height = height;
+            } else {
+                if (aligned && lp.height == ViewGroup.LayoutParams.MATCH_PARENT) continue;
+                lp.addRule(android.widget.RelativeLayout.ALIGN_BOTTOM, R.id.SVDetailContent);
+                lp.height = ViewGroup.LayoutParams.MATCH_PARENT;
+            }
+            layer.setLayoutParams(lp);
+        }
+    }
+
+    /**
+     * The shortcut as it is on disk after the settings dialog saved it: the same
+     * file (a rename updates it), otherwise the same exe with the same name in
+     * another container (moved). null when it cannot be found.
+     * 설정창이 저장한 뒤 디스크에 있는 바로가기: 같은 파일(이름을 바꾸면 그 파일로
+     * 갱신됨), 없으면 다른 컨테이너의 같은 이름·같은 exe(옮겨짐). 못 찾으면 null
+     */
+    private Shortcut findShortcutAfterEdit(Shortcut old) {
+        Context context = getContext();
+        if (context == null) return null;
+        manager = new ContainerManager(context);
+        Shortcut sameExe = null;
+        for (Shortcut sc : manager.loadShortcuts()) {
+            if (sc.file.getAbsolutePath().equals(old.file.getAbsolutePath())) return sc;
+            if (sameExe == null && sc.path.equals(old.path) && sc.name.equals(old.name)) sameExe = sc;
+        }
+        return sameExe;
     }
 
     // ==================== Layer switch (EZ mode) ====================
