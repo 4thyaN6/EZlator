@@ -519,7 +519,16 @@ public final class GameArchiveExtractor {
      * 기존 폴더에 섞어 넣는 일이 없게 함
      */
     public static File targetFolderFor(File archive, Info info) {
-        File parent = archive.getAbsoluteFile().getParentFile();
+        return targetFolderFor(archive.getAbsoluteFile().getParentFile(), archive, info);
+    }
+
+    /**
+     * Same as targetFolderFor(archive, info), inside the given folder instead of
+     * next to the archive (e.g. the archive on internal storage, the game on E:)
+     * targetFolderFor(archive, info)와 같지만 압축 파일 옆이 아니라 주어진 폴더 안에
+     * 만듦(예: 압축 파일은 내장 메모리, 게임은 E:)
+     */
+    public static File targetFolderFor(File parent, File archive, Info info) {
         String base = info.topDir != null ? info.topDir : archiveBaseName(archive);
         File target = new File(parent, base);
         for (int i = 2; target.exists(); i++) target = new File(parent, base + " (" + i + ")");
@@ -552,7 +561,21 @@ public final class GameArchiveExtractor {
      */
     public static File extract(File archive, Info info, int memoryLimitKb,
                                AtomicBoolean cancel, Progress progress) throws IOException {
-        File target = targetFolderFor(archive, info);
+        return extract(archive, info, archive.getAbsoluteFile().getParentFile(), memoryLimitKb, cancel, progress);
+    }
+
+    /**
+     * Unpacks into a folder made inside destParent (see targetFolderFor). The work
+     * folder is made there too, so the final rename stays on the same storage.
+     * Reading the archive from one storage and writing to another (internal ->
+     * SD card) is faster than reading and writing the same SD card at once.
+     * destParent 안에 만든 폴더에 풂(targetFolderFor 참고). 작업 폴더도 그 안에 만들어서
+     * 마지막 이름 바꾸기가 같은 저장소 안에서 일어남. 압축 파일을 한 저장소에서 읽고 다른
+     * 저장소에 쓰는 것(내장 -> SD카드)이 같은 SD카드에서 읽기와 쓰기를 함께 하는 것보다 빠름
+     */
+    public static File extract(File archive, Info info, File destParent, int memoryLimitKb,
+                               AtomicBoolean cancel, Progress progress) throws IOException {
+        File target = targetFolderFor(destParent, archive, info);
         File work = new File(target.getParentFile(), WORK_PREFIX + System.currentTimeMillis());
         if (!work.mkdirs()) throw new IOException("cannot create " + work);
         try {
@@ -585,26 +608,68 @@ public final class GameArchiveExtractor {
         }
     }
 
+    // Progress shared by the writer threads / 쓰기 스레드들이 같이 쓰는 진행 정보
     private static final class Counter {
         final Info info;
         final Progress progress;
-        long doneBytes;
-        int doneFiles;
+        final java.util.concurrent.atomic.AtomicLong doneBytes = new java.util.concurrent.atomic.AtomicLong();
+        final java.util.concurrent.atomic.AtomicInteger doneFiles = new java.util.concurrent.atomic.AtomicInteger();
 
         Counter(Info info, Progress progress) {
             this.info = info;
             this.progress = progress;
         }
 
-        void report(String name) {
-            if (progress != null) progress.onProgress(doneBytes, info.totalBytes, doneFiles, info.fileCount, name);
+        synchronized void report(String name) {
+            if (progress != null) progress.onProgress(doneBytes.get(), info.totalBytes, doneFiles.get(), info.fileCount, name);
+        }
+    }
+
+    /*
+     * Speed with many small files: the time went into work done once per file,
+     * not into the data. Per file there were two canonical-path lookups (one
+     * system call per folder level, slow on shared storage), a folder check and a
+     * single writer thread waiting on each file open/close. Now: the target path
+     * is checked by text only (safeRelativePath already refuses "..", absolute
+     * paths and drive letters, and nothing here creates symbolic links), folders
+     * already made are remembered, and zip files are written by several threads.
+     * 7z stays on one thread: its solid blocks have to be decoded in order.
+     * 작은 파일이 많을 때의 속도: 시간은 데이터가 아니라 파일마다 한 번씩 하는 일에
+     * 들었음. 파일마다 실제 경로 확인 2번(폴더 단계마다 시스템 호출, 공유 저장소에서
+     * 느림), 폴더 확인, 그리고 파일 열기/닫기를 기다리는 쓰기 스레드 하나였음. 이제:
+     * 대상 경로는 글자로만 확인함(safeRelativePath가 이미 "..", 절대 경로, 드라이브
+     * 글자를 거부하고, 여기서는 심볼릭 링크를 만들지 않음), 이미 만든 폴더는 기억하고,
+     * zip 파일은 여러 스레드로 씀. 7z는 솔리드 블록을 차례로 풀어야 해서 스레드 하나로 둠
+     */
+    private static final int ZIP_WRITERS = Math.max(1, Math.min(4, Runtime.getRuntime().availableProcessors()));
+
+    // Entries this big are written one at a time (see extractZip)
+    // 이 크기 이상인 항목은 하나씩 씀(extractZip 참고)
+    private static final long LARGE_ENTRY = 16L * 1024 * 1024;
+
+    // Waits for the queued writes; they report their own errors (failure / stop)
+    // 대기 중인 쓰기가 끝나기를 기다림. 오류는 각 작업이 직접 알림(failure / stop)
+    private static void waitAll(List<java.util.concurrent.Future<?>> pending) throws IOException {
+        try {
+            for (java.util.concurrent.Future<?> f : pending) f.get();
+        } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
+            throw new java.io.InterruptedIOException("interrupted");
+        } catch (java.util.concurrent.ExecutionException ee) {
+            throw new IOException(ee.getCause());
+        } finally {
+            pending.clear();
         }
     }
 
     private static void extractZip(File archive, Info info, File work, AtomicBoolean cancel, Counter c) throws IOException {
         try (ZipFile zip = openZip(archive, info.volumes, info.zipCharset)) {
-            // Physical order reads the archive front to back (no seeking back and forth)
-            // 실제 저장 순서로 읽어서 앞에서 뒤로 한 번만 지나감(앞뒤로 오가지 않음)
+            Dirs dirs = new Dirs();
+            // Physical order reads the archive front to back; folders are made first.
+            // A name stored twice keeps the later entry, as when written one by one
+            // 실제 저장 순서로 앞에서 뒤로 읽음. 폴더를 먼저 만듦. 같은 이름이 두 번 있으면
+            // 하나씩 쓸 때처럼 나중 항목을 씀
+            java.util.LinkedHashMap<String, ZipArchiveEntry> files = new java.util.LinkedHashMap<>();
             Enumeration<ZipArchiveEntry> en = zip.getEntriesInPhysicalOrder();
             while (en.hasMoreElements()) {
                 if (cancel.get()) return;
@@ -613,23 +678,69 @@ public final class GameArchiveExtractor {
                 if (path == null) continue;
                 File out = resolveInside(work, path);
                 if (e.isDirectory()) {
-                    mkdirsOrThrow(out);
+                    dirs.make(out);
                     continue;
                 }
                 // Symbolic links are not made: a game needs none, and one could point outside
                 // 심볼릭 링크는 만들지 않음: 게임에 필요 없고 밖을 가리킬 수 있음
                 if (e.isUnixSymlink()) continue;
-                c.report(path);
-                try (InputStream in = zip.getInputStream(e)) {
-                    writeEntry(in, out, e.getSize(), cancel, c, path);
-                } catch (ArchiveException ex) {
-                    throw ex;
-                } catch (IOException | RuntimeException ex) {
-                    throw classify(ex);
-                }
-                setTime(out, e.getLastModifiedDate());
-                c.doneFiles++;
+                files.remove(path);
+                files.put(path, e);
             }
+
+            // Several writers; the first error stops the rest and is thrown here
+            // 여러 스레드가 씀. 처음 난 오류가 나머지를 멈추고 여기서 던져짐
+            final AtomicBoolean stop = new AtomicBoolean(false);
+            final java.util.concurrent.atomic.AtomicReference<IOException> failure = new java.util.concurrent.atomic.AtomicReference<>();
+            java.util.concurrent.ExecutorService pool = java.util.concurrent.Executors.newFixedThreadPool(ZIP_WRITERS);
+            // Small files since the last large one (waited for before a large one)
+            // 마지막 큰 파일 이후의 작은 파일 작업(큰 파일 전에 끝나기를 기다림)
+            List<java.util.concurrent.Future<?>> pending = new ArrayList<>();
+            try {
+                for (java.util.Map.Entry<String, ZipArchiveEntry> job : files.entrySet()) {
+                    if (stop.get() || cancel.get()) break;
+                    final String path = job.getKey();
+                    final ZipArchiveEntry e = job.getValue();
+                    Runnable write = () -> {
+                        if (stop.get() || cancel.get()) return;
+                        try {
+                            File out = resolveInside(work, path);
+                            dirs.make(out.getParentFile());
+                            c.report(path);
+                            InputStream raw;
+                            // Opening is serialized; reading runs in parallel (positioned reads)
+                            // 열기는 하나씩, 읽기는 동시에 함(위치 지정 읽기)
+                            synchronized (zip) {
+                                raw = zip.getInputStream(e);
+                            }
+                            try (InputStream in = raw) {
+                                writeEntry(in, out, e.getSize(), e.getCrc(), cancel, c, path);
+                            }
+                            setTime(out, e.getLastModifiedDate());
+                            c.doneFiles.incrementAndGet();
+                        } catch (ArchiveException ex) {
+                            if (failure.compareAndSet(null, ex)) stop.set(true);
+                        } catch (IOException | RuntimeException ex) {
+                            if (failure.compareAndSet(null, classify(ex))) stop.set(true);
+                        }
+                    };
+                    if (e.getSize() >= LARGE_ENTRY) {
+                        // A large file is written alone, after the small ones before it:
+                        // several large files written at once interleave on the card and
+                        // an SD card writes that much slower than one stream
+                        // 큰 파일은 앞의 작은 파일들이 끝난 뒤 혼자 씀: 큰 파일 여러 개를 동시에
+                        // 쓰면 카드 위에서 섞여 기록되고, SD카드는 그때 한 줄로 쓸 때보다 훨씬 느림
+                        waitAll(pending);
+                        write.run();
+                    } else {
+                        pending.add(pool.submit(write));
+                    }
+                }
+                waitAll(pending);
+            } finally {
+                pool.shutdownNow();
+            }
+            if (failure.get() != null) throw failure.get();
             c.report(null);
         }
     }
@@ -637,6 +748,7 @@ public final class GameArchiveExtractor {
     private static void extractSevenZ(File archive, Info info, int memoryLimitKb, File work,
                                       AtomicBoolean cancel, Counter c) throws IOException {
         try (SevenZFile sz = openSevenZ(archive, info.volumes, memoryLimitKb)) {
+            Dirs dirs = new Dirs();
             // Sequential reading: solid blocks are decoded once, front to back
             // 차례대로 읽음: 솔리드 블록을 앞에서 뒤로 한 번만 풂
             SevenZArchiveEntry e;
@@ -652,17 +764,18 @@ public final class GameArchiveExtractor {
                 if (path == null || e.isAntiItem()) continue;
                 File out = resolveInside(work, path);
                 if (e.isDirectory()) {
-                    mkdirsOrThrow(out);
+                    dirs.make(out);
                     continue;
                 }
+                dirs.make(out.getParentFile());
                 c.report(path);
                 if (!e.hasStream()) {
                     // Empty file / 빈 파일
-                    mkdirsOrThrow(out.getParentFile());
                     new FileOutputStream(out).close();
                 } else {
                     try {
-                        writeEntry(new SevenZEntryStream(sz), out, e.getSize(), cancel, c, path);
+                        // 7z checks its own CRC while decoding / 7z는 풀면서 CRC를 직접 확인함
+                        writeEntry(new SevenZEntryStream(sz), out, e.getSize(), -1, cancel, c, path);
                     } catch (ArchiveException ex) {
                         throw ex;
                     } catch (IOException | RuntimeException ex) {
@@ -670,7 +783,7 @@ public final class GameArchiveExtractor {
                     }
                 }
                 if (e.getHasLastModifiedDate()) setTime(out, e.getLastModifiedDate());
-                c.doneFiles++;
+                c.doneFiles.incrementAndGet();
             }
             c.report(null);
         }
@@ -695,10 +808,18 @@ public final class GameArchiveExtractor {
         }
     }
 
-    private static void writeEntry(InputStream in, File out, long declaredSize, AtomicBoolean cancel,
-                                   Counter c, String name) throws IOException {
-        mkdirsOrThrow(out.getParentFile());
+    /**
+     * Writes one entry. The folder must already exist (see Dirs). expectedCrc
+     * (-1 = unknown) is compared at the end: the zip library does not check it,
+     * so damaged data inside an archive was written without any error before
+     * 항목 하나를 씀. 폴더는 이미 있어야 함(Dirs 참고). expectedCrc(-1 = 모름)는 끝에
+     * 비교함: zip 라이브러리가 확인하지 않아서, 전에는 압축 안의 데이터가 손상돼도
+     * 오류 없이 그대로 쓰였음
+     */
+    private static void writeEntry(InputStream in, File out, long declaredSize, long expectedCrc,
+                                   AtomicBoolean cancel, Counter c, String name) throws IOException {
         byte[] buf = new byte[BUFFER_SIZE];
+        java.util.zip.CRC32 crc = expectedCrc >= 0 ? new java.util.zip.CRC32() : null;
         long written = 0;
         long lastReport = System.nanoTime();
         try (OutputStream os = new FileOutputStream(out)) {
@@ -712,7 +833,8 @@ public final class GameArchiveExtractor {
                     throw new ArchiveException(Problem.CORRUPT, "entry larger than declared: " + name);
                 }
                 os.write(buf, 0, n);
-                c.doneBytes += n;
+                if (crc != null) crc.update(buf, 0, n);
+                c.doneBytes.addAndGet(n);
                 long now = System.nanoTime();
                 if (now - lastReport > 200_000_000L) {
                     lastReport = now;
@@ -720,21 +842,41 @@ public final class GameArchiveExtractor {
                 }
             }
         }
+        if (crc != null && crc.getValue() != expectedCrc) {
+            throw new ArchiveException(Problem.CORRUPT, "CRC mismatch: " + name);
+        }
     }
 
-    // Target file for a relative path; refuses anything that resolves outside root
-    // 상대 경로의 대상 파일. root 밖으로 풀리는 경로는 거부함
+    /**
+     * Target file for a relative path, checked by text. The path comes from
+     * safeRelativePath() (no "..", no absolute path, no drive letter) and nothing
+     * under the work folder is a symbolic link (none are created), so it cannot
+     * leave root; the text check guards against a caller passing anything else.
+     * 상대 경로의 대상 파일. 글자로 확인함. 경로는 safeRelativePath()를 거친 것이고
+     * ("..", 절대 경로, 드라이브 글자 없음) 작업 폴더 아래에는 심볼릭 링크가 없으므로
+     * (만들지 않음) root 밖으로 나갈 수 없음. 다른 값이 들어오는 경우를 글자 확인으로 막음
+     */
     private static File resolveInside(File root, String relative) throws IOException {
-        File out = new File(root, relative);
-        String rootPath = root.getCanonicalPath() + File.separator;
-        if (!out.getCanonicalPath().startsWith(rootPath)) {
+        if (relative.startsWith("/") || ("/" + relative + "/").contains("/../")) {
             throw new ArchiveException(Problem.UNSAFE_PATH, "unsafe entry: " + relative);
         }
-        return out;
+        return new File(root, relative);
+    }
+
+    // Folders already made in this run, so each is checked/created once (thread-safe)
+    // 이번 작업에서 이미 만든 폴더. 폴더마다 한 번만 확인/생성함(여러 스레드에서 안전)
+    private static final class Dirs {
+        private final java.util.Set<String> made = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
+        void make(File dir) throws IOException {
+            if (dir == null || made.contains(dir.getPath())) return;
+            mkdirsOrThrow(dir);
+            made.add(dir.getPath());
+        }
     }
 
     private static void mkdirsOrThrow(File dir) throws IOException {
-        if (dir != null && !dir.isDirectory() && !dir.mkdirs()) throw new IOException("cannot create " + dir);
+        if (dir != null && !dir.isDirectory() && !dir.mkdirs() && !dir.isDirectory()) throw new IOException("cannot create " + dir);
     }
 
     private static void setTime(File f, Date date) {

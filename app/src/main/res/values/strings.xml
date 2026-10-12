@@ -734,6 +734,12 @@
     <string name="add_game_archive_reading">Reading the archive…</string>
     <string name="add_game_archive_parts">%1$s (%2$d parts)</string>
     <string name="add_game_archive_message">Archive: %1$s\nUnpack to: %2$s\nSize after unpacking: %3$s (%4$d files)\nFree space: %5$s</string>
+    <string name="relocate_title">Games that were moved</string>
+    <string name="relocate_message">These games are no longer where their shortcuts point. They were found in a new place; the shortcuts can point there (play time and settings stay):\n\n%1$s</string>
+    <string name="relocate_missing">%1$d other shortcut(s) point at a file that is gone and was not found anywhere else; they are left as they are.</string>
+    <string name="relocate_fix">Fix</string>
+    <string name="relocate_later">Later</string>
+    <string name="relocate_done">%1$d shortcut(s) now point at the new place.</string>
     <string name="add_game_archive_delete">Delete the archive after the shortcut is added</string>
     <string name="add_game_archive_unpack">Unpack</string>
     <string name="add_game_archive_no_space_title">Not enough space</string>

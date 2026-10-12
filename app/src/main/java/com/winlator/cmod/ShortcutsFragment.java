@@ -350,6 +350,7 @@ public class ShortcutsFragment extends Fragment {
         preloaderDialog = new PreloaderDialog(getActivity());
         loadShortcutsList();
         maybeRecommendLayer();
+        checkMovedGames();
        // startFileObservers(); // Start watching for new file
         // Title lives in the toolbar, next to the hamburger, on one line - the
         // same place every other screen puts its title. The inline header row
@@ -766,22 +767,181 @@ public class ShortcutsFragment extends Fragment {
         }
     }
 
+    // ---- Games moved with a file manager / 파일 관리자로 옮긴 게임 ----
+
+    // Checked once per app start / 앱을 시작할 때 한 번만 확인함
+    private static boolean movedGamesChecked = false;
+
+    /**
+     * At app start: shortcuts whose exe is gone are looked up in their new place
+     * (ShortcutRelocator). When some are found, a dialog lists old -> new and
+     * fixes them on "Fix"; "Later" asks again at the next start. Steam games are
+     * left out (their place is managed by the Steam download), and nothing is
+     * shown when nothing was found (an SD card that is out, a deleted game).
+     * 앱을 시작할 때: exe가 없어진 숏컷의 새 위치를 찾음(ShortcutRelocator). 찾은 것이
+     * 있으면 예전 -> 새 위치를 보여 주고 "고치기"를 누르면 고침. "나중에"를 누르면 다음
+     * 시작 때 다시 물음. 스팀 게임은 빼고(위치를 스팀 다운로드가 관리함), 찾은 것이 없으면
+     * 아무것도 띄우지 않음(빠진 SD카드, 지운 게임)
+     */
+    private void checkMovedGames() {
+        if (movedGamesChecked) return;
+        movedGamesChecked = true;
+        final Activity activity = getActivity();
+        if (activity == null) return;
+        final Context app = activity.getApplicationContext();
+        Executors.newSingleThreadExecutor().execute(() -> {
+            final List<Shortcut> moved = new ArrayList<>();
+            final List<String> newPaths = new ArrayList<>();
+            int notFound = 0;
+            try {
+                ContainerManager cm = new ContainerManager(app);
+                java.util.Map<Integer, java.util.Map<Character, File>> drivesByContainer = new java.util.HashMap<>();
+                for (Shortcut sc : cm.loadShortcuts()) {
+                    if (!sc.getExtra("steamAppId").isEmpty()) continue;
+                    java.util.Map<Character, File> drives = drivesByContainer.get(sc.container.id);
+                    if (drives == null) {
+                        drives = containerDrives(app, sc.container);
+                        drivesByContainer.put(sc.container.id, drives);
+                    }
+                    File exe = sc.resolveExeFile();
+                    if (exe != null && exe.isFile()) continue;
+                    com.winlator.cmod.container.ShortcutRelocator.Match m = com.winlator.cmod.container.ShortcutRelocator.find(
+                            com.winlator.cmod.container.ShortcutRelocator.exePart(sc.path), drives,
+                            com.winlator.cmod.core.StorageDrives.UNPACKED_DIR_NAME);
+                    Log.i("ShortcutCreation", "missing exe: " + sc.name + " -> " + m.status
+                            + (m.newExePath != null ? " " + m.newExePath : ""));
+                    if (m.status == com.winlator.cmod.container.ShortcutRelocator.Status.FOUND) {
+                        moved.add(sc);
+                        newPaths.add(m.newExePath);
+                    } else if (m.status != com.winlator.cmod.container.ShortcutRelocator.Status.UNSUPPORTED) {
+                        notFound++;
+                    }
+                }
+            } catch (Exception e) {
+                Log.w("ShortcutCreation", "moved game check failed", e);
+                return;
+            }
+            if (moved.isEmpty()) return;
+            final int missing = notFound;
+            activity.runOnUiThread(() -> {
+                if (!isAdded()) return;
+                StringBuilder list = new StringBuilder();
+                for (int i = 0; i < moved.size(); i++) {
+                    String oldExe = com.winlator.cmod.container.ShortcutRelocator.exePart(moved.get(i).path);
+                    list.append("\u2022 ").append(moved.get(i).name).append("\n   ")
+                            .append(folderOf(oldExe)).append("\n   \u2192 ").append(folderOf(newPaths.get(i))).append("\n");
+                }
+                String message = getString(R.string.relocate_message, list.toString().trim());
+                if (missing > 0) message += "\n\n" + getString(R.string.relocate_missing, missing);
+                new AlertDialog.Builder(activity)
+                        .setTitle(R.string.relocate_title)
+                        .setMessage(message)
+                        .setPositiveButton(R.string.relocate_fix, (d, w) -> fixMovedGames(app, moved, newPaths))
+                        .setNegativeButton(R.string.relocate_later, null)
+                        .show();
+            });
+        });
+    }
+
+    // Writes the new paths, then refreshes the list / 새 경로를 쓰고 목록을 새로 고침
+    private void fixMovedGames(Context app, List<Shortcut> moved, List<String> newPaths) {
+        final File genericDosdevices = new File(app.getFilesDir(), "imagefs/home/xuser/.wine/dosdevices");
+        Executors.newSingleThreadExecutor().execute(() -> {
+            int fixed = 0;
+            for (int i = 0; i < moved.size(); i++) {
+                Shortcut sc = moved.get(i);
+                try {
+                    if (com.winlator.cmod.container.ShortcutRelocator.rewrite(sc.file, sc.path, newPaths.get(i), genericDosdevices)) {
+                        fixed++;
+                        Log.i("ShortcutCreation", "relocated " + sc.name + " -> " + newPaths.get(i));
+                    }
+                } catch (IOException e) {
+                    Log.w("ShortcutCreation", "relocate failed: " + sc.file, e);
+                }
+            }
+            final int done = fixed;
+            Activity a = getActivity();
+            if (a == null) return;
+            a.runOnUiThread(() -> {
+                if (!isAdded()) return;
+                loadShortcutsList();
+                AppUtils.showToast(a, getString(R.string.relocate_done, done));
+            });
+        });
+    }
+
+    // Letter -> real folder for a container's drives (links made first, as the picker does)
+    // 컨테이너 드라이브의 문자 -> 실제 폴더(선택기처럼 링크를 먼저 만듦)
+    private static java.util.Map<Character, File> containerDrives(Context context, Container container) {
+        container.setAutoDrives(StorageDrives.buildAutoDrives(context, container.getDrives()));
+        WineUtils.createDosdevicesSymlinks(container);
+        java.util.Map<Character, File> drives = new java.util.LinkedHashMap<>();
+        File[] links = new File(container.getRootDir(), ".wine/dosdevices").listFiles();
+        if (links == null) return drives;
+        for (File link : links) {
+            if (!link.getName().matches("[a-z]:")) continue;
+            try {
+                drives.put(link.getName().charAt(0), link.getCanonicalFile());
+            } catch (IOException ignored) {}
+        }
+        return drives;
+    }
+
+    // "E:\a\b\Game.exe" -> "E:\a\b" for the dialog / 안내 창용
+    private static String folderOf(String winPath) {
+        if (winPath == null) return "";
+        int slash = winPath.lastIndexOf('\\');
+        return slash > 2 ? winPath.substring(0, slash) : winPath;
+    }
+
     // ---- Adding a game from an archive (.zip / .7z) / 압축 파일(.zip / .7z)로 게임 추가 ----
     // Flow: read the table of contents -> compare the unpacked size with the free
-    // space -> confirm (with "delete the archive" option) -> unpack next to the
-    // archive with a progress window -> one game exe: shortcut at once; several:
+    // space -> confirm (with "delete the archive" option) -> unpack to E: (see
+    // unpackParentFor) with a progress window -> one game exe: shortcut at once; several:
     // exe picker on the new folder -> archive deleted only after the shortcut is made.
     // 흐름: 목록 읽기 -> 푼 크기와 남은 공간 비교 -> 확인("압축 파일 삭제" 선택 포함)
-    // -> 진행 창과 함께 압축 파일 옆에 풀기 -> 게임 exe가 하나면 바로 바로가기, 여럿이면
+    // -> 진행 창과 함께 E:에 풀기(unpackParentFor 참고) -> 게임 exe가 하나면 바로 바로가기, 여럿이면
     // 새 폴더에서 exe 선택기 -> 바로가기를 만든 뒤에만 압축 파일 삭제
+
+    /**
+     * Folder the game is unpacked into: the "Custom Games" folder of E: (the SD
+     * card's EZlator folder), or of D: without an SD card. Archives and unpacked games
+     * are kept apart this way (archives go in D:\Archives, see StorageDrives).
+     * Reading an archive from internal storage while the card only writes is
+     * also faster than reading and writing the same card. Falls back to the
+     * archive's own folder when neither drive is there or writable.
+     * 게임을 풀 폴더: E:(SD카드의 EZlator 폴더)의 "Custom Games" 폴더, SD카드가
+     * 없으면 D:의 "Custom Games" 폴더. 이렇게 압축 파일과 푼 게임을 나눔(압축 파일은 D:\Archives,
+     * StorageDrives 참고). 내장에서 압축 파일을 읽고 카드는 쓰기만 하므로 같은 카드에서
+     * 읽고 쓸 때보다 빠름. 두 드라이브가 없거나 쓸 수 없으면 압축 파일이 있는 폴더에 풂
+     */
+    private File unpackParentFor(File archive, Container container) {
+        File archiveDir = archive.getAbsoluteFile().getParentFile();
+        File dosDevices = new File(container.getRootDir(), ".wine/dosdevices");
+        for (String letter : new String[]{"e:", "d:"}) {
+            File drive = new File(dosDevices, letter);
+            try {
+                if (!drive.isDirectory()) continue;
+                File base = drive.getCanonicalFile();
+                if (!base.canWrite()) continue;
+                File games = new File(base, com.winlator.cmod.core.StorageDrives.UNPACKED_DIR_NAME);
+                if (games.isDirectory() || games.mkdirs()) return games;
+                Log.w("ShortcutCreation", "cannot create " + games);
+            } catch (IOException e) {
+                Log.w("ShortcutCreation", "drive " + letter + " not usable", e);
+            }
+        }
+        return archiveDir;
+    }
 
     private void startArchiveImport(File archive, Container container) {
         final Activity activity = getActivity();
         if (activity == null) return;
-        // The game is unpacked next to the archive, so that folder must be on a drive
-        // 게임을 압축 파일 옆에 풀기 때문에 그 폴더가 드라이브에 있어야 함
-        if (toWindowsPath(archive, container) == null) {
-            Log.w("ShortcutCreation", "매핑된 드라이브 밖의 압축 파일: " + archive.getAbsolutePath());
+        // The game folder must be on one of the container's drives
+        // 게임을 풀 폴더가 컨테이너 드라이브 안에 있어야 함
+        final File unpackParent = unpackParentFor(archive, container);
+        if (toWindowsPath(unpackParent, container) == null) {
+            Log.w("ShortcutCreation", "매핑된 드라이브 밖의 풀 위치: " + unpackParent.getAbsolutePath());
             showDriveNotMappedToast();
             return;
         }
@@ -794,7 +954,8 @@ public class ShortcutsFragment extends Fragment {
                 info = GameArchiveExtractor.scan(archive, memoryLimitKb);
                 Log.i("ShortcutCreation", "archive " + archive.getName() + ": " + info.fileCount + " files, "
                         + info.totalBytes + " bytes, exe " + info.exeCount + ", top " + info.topDir
-                        + ", zip names " + info.zipCharset + ", volumes " + info.volumes.size());
+                        + ", zip names " + info.zipCharset + ", volumes " + info.volumes.size()
+                        + ", unpack to " + unpackParent);
             } catch (IOException e) {
                 Log.w("ShortcutCreation", "archive scan failed: " + archive, e);
                 error = e;
@@ -804,7 +965,7 @@ public class ShortcutsFragment extends Fragment {
             }
             final GameArchiveExtractor.Info scanned = info;
             final IOException failure = error;
-            final long free = archive.getAbsoluteFile().getParentFile().getUsableSpace();
+            final long free = unpackParent.getUsableSpace();
             activity.runOnUiThread(() -> {
                 preloaderDialog.close();
                 if (!isAdded()) return;
@@ -817,14 +978,14 @@ public class ShortcutsFragment extends Fragment {
                             .setPositiveButton(android.R.string.ok, null)
                             .show();
                 } else {
-                    confirmArchiveImport(archive, scanned, free, memoryLimitKb, container);
+                    confirmArchiveImport(archive, scanned, free, memoryLimitKb, container, unpackParent);
                 }
             });
         });
     }
 
     private void confirmArchiveImport(File archive, GameArchiveExtractor.Info info, long free,
-                                      int memoryLimitKb, Container container) {
+                                      int memoryLimitKb, Container container, File unpackParent) {
         final Activity activity = getActivity();
         if (activity == null) return;
         long required = GameArchiveExtractor.requiredBytes(info);
@@ -838,7 +999,7 @@ public class ShortcutsFragment extends Fragment {
                     .show();
             return;
         }
-        File target = GameArchiveExtractor.targetFolderFor(archive, info);
+        File target = GameArchiveExtractor.targetFolderFor(unpackParent, archive, info);
         String targetPath = toWindowsPath(target, container);
         String archiveName = info.volumes.size() > 1
                 ? getString(R.string.add_game_archive_parts, archive.getName(), info.volumes.size())
@@ -865,13 +1026,13 @@ public class ShortcutsFragment extends Fragment {
                 .setMessage(message)
                 .setView(box)
                 .setPositiveButton(R.string.add_game_archive_unpack,
-                        (d, w) -> runArchiveExtraction(archive, info, memoryLimitKb, container, deleteBox.isChecked()))
+                        (d, w) -> runArchiveExtraction(archive, info, memoryLimitKb, container, deleteBox.isChecked(), unpackParent))
                 .setNegativeButton(android.R.string.cancel, null)
                 .show();
     }
 
     private void runArchiveExtraction(File archive, GameArchiveExtractor.Info info, int memoryLimitKb,
-                                      Container container, boolean deleteArchive) {
+                                      Container container, boolean deleteArchive, File unpackParent) {
         final Activity activity = getActivity();
         if (activity == null) return;
         final java.util.concurrent.atomic.AtomicBoolean cancel = new java.util.concurrent.atomic.AtomicBoolean();
@@ -889,7 +1050,7 @@ public class ShortcutsFragment extends Fragment {
             IOException error = null;
             List<File> candidates = null;
             try {
-                folder = GameArchiveExtractor.extract(archive, info, memoryLimitKb, cancel,
+                folder = GameArchiveExtractor.extract(archive, info, unpackParent, memoryLimitKb, cancel,
                         (doneBytes, totalBytes, doneFiles, totalFiles, name) -> {
                             // At most a few UI updates a second, also for thousands of tiny files
                             // 작은 파일이 수천 개여도 화면 갱신은 1초에 몇 번만 함

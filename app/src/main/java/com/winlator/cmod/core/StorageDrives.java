@@ -36,6 +36,16 @@ public final class StorageDrives {
      *  사용자가 게임을 넣을 곳이 한눈에 보이도록 볼륨 루트에 만드는 폴더 */
     public static final String GAMES_DIR_NAME = "EZlator";
 
+    /** Sub-folders of an EZlator folder: archives the user puts in (internal
+     *  storage), and games unpacked from them (E:, or D: without an SD card).
+     *  Games added by hand come from many places, so they get their own
+     *  "Custom Games" folder, apart from archives and from Steam games.
+     *  EZlator 폴더의 하위 폴더: 사용자가 넣는 압축 파일(내장 메모리)과, 거기서 푼
+     *  게임(E:, SD카드가 없으면 D:). 직접 추가하는 게임은 여러 곳에서 오므로 압축
+     *  파일·스팀 게임과 나눠 "Custom Games" 폴더에 따로 둠 */
+    public static final String ARCHIVES_DIR_NAME = "Archives";
+    public static final String UNPACKED_DIR_NAME = "Custom Games";
+
     /** Auto assignment starts at E: (the app-private E: default was removed).
      *  A container that still has E: in its saved list keeps it - used letters
      *  are skipped below, so the SD card simply moves on to F:.
@@ -151,7 +161,13 @@ public final class StorageDrives {
         // D:는 내장 EZlator 폴더로 고정
         if (release) {
             File internalGames = getInternalGamesDir();
-            if (ensureGamesFolder(internalGames)) result.append("D:").append(internalGames.getAbsolutePath());
+            if (ensureGamesFolder(internalGames)) {
+                result.append("D:").append(internalGames.getAbsolutePath());
+                // Folder for archives to add (read from internal storage, unpacked to E:)
+                // 추가할 압축 파일을 넣는 폴더(내장에서 읽고 E:로 풂)
+                File archives = new File(internalGames, ARCHIVES_DIR_NAME);
+                if (!archives.isDirectory() && !archives.mkdirs()) Log.w(TAG, "Could not create " + archives.getPath());
+            }
         }
 
         // User letters other than D:/E: are respected; removable volumes after
@@ -290,4 +306,4 @@ public final class StorageDrives {
         }
         return false;
     }
-}
+}

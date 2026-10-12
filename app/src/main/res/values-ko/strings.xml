@@ -628,6 +628,12 @@
     <string name="add_game_archive_reading">압축 파일 확인 중…</string>
     <string name="add_game_archive_parts">%1$s (%2$d개로 나뉨)</string>
     <string name="add_game_archive_message">압축 파일: %1$s\n풀 위치: %2$s\n풀었을 때 크기: %3$s (파일 %4$d개)\n남은 공간: %5$s</string>
+    <string name="relocate_title">위치가 바뀐 게임</string>
+    <string name="relocate_message">다음 게임이 바로가기가 가리키는 곳에 없고, 새 위치에서 찾았습니다. 바로가기를 새 위치로 고칠 수 있습니다(플레이 시간과 설정은 유지됩니다):\n\n%1$s</string>
+    <string name="relocate_missing">그 밖에 바로가기 %1$d개는 파일이 없고 다른 곳에서도 찾지 못해 그대로 둡니다.</string>
+    <string name="relocate_fix">고치기</string>
+    <string name="relocate_later">나중에</string>
+    <string name="relocate_done">바로가기 %1$d개를 새 위치로 고쳤습니다.</string>
     <string name="add_game_archive_delete">바로가기를 만든 뒤 압축 파일 삭제</string>
     <string name="add_game_archive_unpack">풀기</string>
     <string name="add_game_archive_no_space_title">공간 부족</string>
