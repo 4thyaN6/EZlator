@@ -709,8 +709,10 @@
     <string name="content_status_available">Not installed</string>
     <!-- Visual C++ 2015-2022 from installers already on the device (core/VCRedistInstaller) -->
     <!-- 기기에 이미 있는 설치 파일에서 꺼내는 Visual C++ 2015~2022(core/VCRedistInstaller) -->
-    <string name="vcredist_enable_message">Visual C++ 2015-2022 DLLs are not part of the app and are not downloaded. They are taken out of Microsoft\'s installers already on this device: those that come with Steam games (for example _CommonRedist or Steamworks Shared) and vc_redist.x86.exe / vc_redist.x64.exe you put in %1$s. The installers are not run, so their license screen does not appear: please read Microsoft\'s license terms below. The newest version is kept and copied into containers that have this option on.</string>
+    <string name="vcredist_enable_message">Visual C++ 2015-2022 DLLs are not part of the app. After you agree, the app downloads Microsoft\'s official installers (vc_redist.x64.exe / vc_redist.x86.exe, aka.ms/vc14) and takes the DLLs out of them. If the download fails, it uses installers already on this device: those that come with Steam games (for example _CommonRedist or Steamworks Shared) and the ones you put in %1$s. The installers are not run, so their license screen does not appear: please read Microsoft\'s license terms below. The newest version is kept on this device and copied into containers that have this option on.</string>
     <string name="vcredist_agree">Agree</string>
+    <string name="vcredist_downloading">Downloading from Microsoft: %1$s (%2$s)</string>
+    <string name="vcredist_download_failed">Could not download from Microsoft (%1$s).</string>
     <string name="vcredist_license_link">Microsoft Visual C++ Runtime license terms</string>
     <string name="vcredist_searching">Visual C++ 2015-2022</string>
     <string name="vcredist_reading">Reading %1$s…</string>

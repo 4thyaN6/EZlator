@@ -44,6 +44,13 @@
         <item name="android:textColorPrimary">@color/neon_l_text</item>
         <item name="android:textColorSecondary">@color/neon_l_text_dim</item>
         <item name="android:textColorHint">@color/neon_l_disabled</item>
+        <!-- Text of dropdown lists (spinner popups): AppCompat takes it from
+             textColorPrimaryDisableOnly, which a dark parent theme leaves white -
+             white on the white popup in light mode, so the lists looked empty -->
+        <!-- 드롭다운 목록(스피너 팝업) 글자 색: AppCompat은 textColorPrimaryDisableOnly에서
+             가져오는데, 부모가 어두운 테마면 흰색으로 남음 - 라이트 모드의 흰 팝업 위에서
+             흰 글자라 목록이 빈칸처럼 보였음 -->
+        <item name="android:textColorPrimaryDisableOnly">@color/neon_l_text</item>
         <item name="android:windowBackground">@color/neon_l_bg</item>
         <item name="android:colorBackground">@color/neon_l_bg</item>
 
@@ -90,6 +97,13 @@
         <item name="android:textColorPrimary">@color/neon_d_text</item>
         <item name="android:textColorSecondary">@color/neon_d_text_dim</item>
         <item name="android:textColorHint">@color/neon_d_disabled</item>
+        <!-- Text of dropdown lists (spinner popups): AppCompat takes it from
+             textColorPrimaryDisableOnly, which a dark parent theme leaves white -
+             white on the white popup in light mode, so the lists looked empty -->
+        <!-- 드롭다운 목록(스피너 팝업) 글자 색: AppCompat은 textColorPrimaryDisableOnly에서
+             가져오는데, 부모가 어두운 테마면 흰색으로 남음 - 라이트 모드의 흰 팝업 위에서
+             흰 글자라 목록이 빈칸처럼 보였음 -->
+        <item name="android:textColorPrimaryDisableOnly">@color/neon_d_text</item>
         <item name="android:windowBackground">@color/neon_d_bg</item>
         <item name="android:colorBackground">@color/neon_d_bg</item>
 

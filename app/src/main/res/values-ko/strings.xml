@@ -603,8 +603,10 @@
     <string name="content_status_available">미설치</string>
     <!-- Visual C++ 2015-2022 from installers already on the device (core/VCRedistInstaller) -->
     <!-- 기기에 이미 있는 설치 파일에서 꺼내는 Visual C++ 2015~2022(core/VCRedistInstaller) -->
-    <string name="vcredist_enable_message">Visual C++ 2015-2022 DLL은 앱에 들어 있지 않고, 앱이 받지도 않습니다. 이 기기에 이미 있는 Microsoft 설치 파일에서 꺼냅니다: 스팀 게임과 함께 받은 설치 파일(예: _CommonRedist, Steamworks Shared)과 %1$s에 직접 넣은 vc_redist.x86.exe / vc_redist.x64.exe입니다. 설치 프로그램을 실행하지 않으므로 그 사용 조건 화면이 나오지 않습니다. 아래 Microsoft 사용 조건을 읽어 주세요. 가장 새 버전을 보관해 이 항목을 켠 컨테이너에 복사합니다.</string>
+    <string name="vcredist_enable_message">Visual C++ 2015-2022 DLL은 앱에 들어 있지 않습니다. 동의하면 Microsoft 공식 설치 파일(vc_redist.x64.exe / vc_redist.x86.exe, aka.ms/vc14)을 받아 그 안에서 DLL을 꺼냅니다. 받기에 실패하면 이 기기에 이미 있는 설치 파일을 씁니다: 스팀 게임과 함께 받은 설치 파일(예: _CommonRedist, Steamworks Shared)과 %1$s에 직접 넣은 파일입니다. 설치 프로그램을 실행하지 않으므로 그 사용 조건 화면이 나오지 않습니다. 아래 Microsoft 사용 조건을 읽어 주세요. 가장 새 버전을 이 기기에 보관해 이 항목을 켠 컨테이너에 복사합니다.</string>
     <string name="vcredist_agree">동의</string>
+    <string name="vcredist_downloading">Microsoft에서 받는 중: %1$s (%2$s)</string>
+    <string name="vcredist_download_failed">Microsoft에서 받지 못했습니다(%1$s).</string>
     <string name="vcredist_license_link">Microsoft Visual C++ 런타임 사용 조건</string>
     <string name="vcredist_searching">Visual C++ 2015-2022</string>
     <string name="vcredist_reading">%1$s 읽는 중…</string>

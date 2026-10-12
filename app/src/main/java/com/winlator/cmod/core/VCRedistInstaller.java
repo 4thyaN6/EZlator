@@ -39,12 +39,13 @@ import java.util.function.Consumer;
 
 /**
  * Visual C++ 2015-2022 runtime (Win Components "vcrun2015"). The DLLs are not
- * shipped in the APK and the app does not download them. They are taken out of
- * Microsoft's own installers (vc_redist.x86.exe / vc_redist.x64.exe) that are
- * already on the device:
- *   1. installers that come with Steam games (steamapps/common, e.g. the game's
- *      _CommonRedist folder or "Steamworks Shared")
- *   2. installers the user put in Download/.EZlator/VCRedist
+ * shipped in the APK. They are taken out of Microsoft's own installers
+ * (vc_redist.x86.exe / vc_redist.x64.exe):
+ *   1. downloaded from Microsoft's official addresses (aka.ms/vc14) after the
+ *      user agrees to the license terms; kept only in the cache until read
+ *   2. if that fails, installers already on the device: those that come with
+ *      Steam games (steamapps/common, e.g. _CommonRedist or "Steamworks Shared")
+ *      and those the user put in Download/.EZlator/VCRedist
  * The installers are not run: the DLLs are read from the cabinets inside them
  * (no Windows code runs). The newest version of each DLL is kept in imagefs, and
  * turning the component on copies them into the prefix at every launch that needs it.
@@ -52,12 +53,13 @@ import java.util.function.Consumer;
  * makes Wine use its builtin DLLs, and a newer file the user installed is kept.
  * Such a newer file is also kept on the device for that game only (games/<key>),
  * so it comes back when the game runs in another container.
- * Visual C++ 2015~2022 런타임(Win Components "vcrun2015")임. DLL은 APK에 넣지 않고
- * 앱이 받지도 않음. 기기에 이미 있는 Microsoft 설치 파일(vc_redist.x86.exe /
- * vc_redist.x64.exe)에서 꺼냄:
- *   1. 스팀 게임과 함께 받은 설치 파일(steamapps/common, 예: 게임의 _CommonRedist
- *      폴더나 "Steamworks Shared")
- *   2. 사용자가 Download/.EZlator/VCRedist에 넣은 설치 파일
+ * Visual C++ 2015~2022 런타임(Win Components "vcrun2015")임. DLL은 APK에 넣지 않음.
+ * Microsoft 설치 파일(vc_redist.x86.exe / vc_redist.x64.exe)에서 꺼냄:
+ *   1. 사용자가 사용 조건에 동의하면 Microsoft 공식 주소(aka.ms/vc14)에서 받음.
+ *      읽을 때까지만 캐시에 둠
+ *   2. 실패하면 기기에 이미 있는 설치 파일: 스팀 게임과 함께 받은 것(steamapps/common,
+ *      예: _CommonRedist나 "Steamworks Shared")과 Download/.EZlator/VCRedist에 직접
+ *      넣은 것
  * 설치 프로그램은 실행하지 않음: 그 안의 캐비닛에서 DLL을 읽어 냄(Windows 코드는
  * 실행하지 않음). DLL마다 가장 새 버전을 imagefs에 보관하고, 항목을 켜면 필요할 때마다
  * 실행 시 프리픽스에 복사함. 프리픽스에 넣은 파일은 다시 빼지 않음: 항목을 끄면
@@ -88,6 +90,17 @@ public final class VCRedistInstaller {
     // Folder for installers put by hand (Download/.EZlator/VCRedist)
     // 직접 넣는 설치 파일용 폴더(Download/.EZlator/VCRedist)
     public static final String MANUAL_SUBDIR = "VCRedist";
+
+    // Microsoft's official download addresses (Microsoft Learn, "Latest supported
+    // Visual C++ Redistributable downloads"); they always point at the latest build
+    // Microsoft 공식 받기 주소(Microsoft Learn "최신 지원 Visual C++ 재배포 가능 패키지
+    // 다운로드"). 항상 최신 빌드를 가리킴
+    static final String URL_X64 = "https://aka.ms/vc14/vc_redist.x64.exe";
+    static final String URL_X86 = "https://aka.ms/vc14/vc_redist.x86.exe";
+
+    // Cache folder for the downloaded installers, deleted after the DLLs are taken
+    // 받은 설치 파일을 두는 캐시 폴더. DLL을 꺼낸 뒤 지움
+    private static final String DOWNLOAD_SUBDIR = "vcredist-download";
 
     // Installer file names (any letter case; Microsoft writes "VC_redist.x64.exe")
     // 설치 파일 이름(대소문자 무관. Microsoft는 "VC_redist.x64.exe"로 씀)
@@ -893,6 +906,103 @@ public final class VCRedistInstaller {
     }
 
 
+    // ==================== Official download / 공식 주소에서 받기 ====================
+
+    /** Bytes received for one file (total -1 when unknown) / 파일 하나의 받은 크기(전체를 모르면 -1) */
+    public interface DownloadProgress {
+        void onBytes(String name, long done, long total);
+    }
+
+    /**
+     * Downloads vc_redist.x64.exe and vc_redist.x86.exe from Microsoft's official
+     * addresses into dir. Only a PE file (starts with "MZ") is kept; anything else
+     * (an error page, a cut-off file) is deleted. Blocking. Returns null when both
+     * were saved, otherwise what went wrong (a file that did arrive is kept).
+     * Microsoft 공식 주소에서 vc_redist.x64.exe와 vc_redist.x86.exe를 dir에 받음. PE 파일
+     * ("MZ"로 시작)만 남기고, 그 밖의 것(오류 페이지, 끊긴 파일)은 지움. 블로킹임. 둘 다
+     * 저장했으면 null, 아니면 무엇이 잘못됐는지 돌려줌(받은 파일은 남겨 둠)
+     */
+    public static String downloadOfficial(File dir, DownloadProgress progress) {
+        StringBuilder errors = new StringBuilder();
+        String[][] files = {{URL_X64, NAME_X64}, {URL_X86, NAME_X86}};
+        for (String[] f : files) {
+            File out = new File(dir, f[1]);
+            try {
+                download(f[0], out, f[1], progress);
+                if (!startsWithMz(out)) {
+                    out.delete();
+                    throw new IOException("not an installer");
+                }
+                Log.i(TAG, "downloaded " + f[1] + " (" + out.length() + " bytes)");
+            } catch (IOException e) {
+                out.delete();
+                Log.w(TAG, "download " + f[1] + " failed: " + e.getMessage());
+                if (errors.length() > 0) errors.append(", ");
+                errors.append(f[1]).append(": ").append(e.getMessage());
+            }
+        }
+        return errors.length() == 0 ? null : errors.toString();
+    }
+
+    // HTTPS only; redirects are followed by hand (aka.ms -> Microsoft's download host)
+    // HTTPS만 씀. 리디렉션은 직접 따라감(aka.ms -> Microsoft 받기 서버)
+    private static void download(String url, File out, String name, DownloadProgress progress) throws IOException {
+        java.net.HttpURLConnection conn = null;
+        try {
+            for (int hop = 0; ; hop++) {
+                if (hop > 5) throw new IOException("too many redirects");
+                java.net.URL u = new java.net.URL(url);
+                if (!"https".equalsIgnoreCase(u.getProtocol())) throw new IOException("not https: " + u.getHost());
+                conn = (java.net.HttpURLConnection) u.openConnection();
+                conn.setInstanceFollowRedirects(false);
+                conn.setConnectTimeout(15000);
+                conn.setReadTimeout(30000);
+                int code = conn.getResponseCode();
+                if (code >= 300 && code < 400) {
+                    String next = conn.getHeaderField("Location");
+                    conn.disconnect();
+                    if (next == null) throw new IOException("HTTP " + code + " without location");
+                    url = new java.net.URL(u, next).toString();
+                    continue;
+                }
+                if (code != 200) throw new IOException("HTTP " + code);
+                break;
+            }
+            long total = conn.getContentLengthLong();
+            long done = 0, lastReport = 0;
+            try (InputStream in = conn.getInputStream(); OutputStream os = new FileOutputStream(out)) {
+                byte[] buf = new byte[64 * 1024];
+                int n;
+                while ((n = in.read(buf)) > 0) {
+                    os.write(buf, 0, n);
+                    done += n;
+                    if (progress != null && done - lastReport >= 256 * 1024) {
+                        lastReport = done;
+                        progress.onBytes(name, done, total);
+                    }
+                }
+            }
+            if (total > 0 && done != total) throw new IOException("cut off at " + done + " of " + total + " bytes");
+            if (progress != null) progress.onBytes(name, done, total);
+        } finally {
+            if (conn != null) conn.disconnect();
+        }
+    }
+
+    private static boolean startsWithMz(File f) {
+        try (InputStream in = new FileInputStream(f)) {
+            return in.read() == 'M' && in.read() == 'Z';
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    // "12.3 / 25.1 MB" for the progress line / 진행 줄용 "12.3 / 25.1 MB"
+    private static String sizeText(long done, long total) {
+        String d = String.format(Locale.ROOT, "%.1f", done / 1048576.0);
+        return total > 0 ? d + " / " + String.format(Locale.ROOT, "%.1f MB", total / 1048576.0) : d + " MB";
+    }
+
     // ==================== UI / 화면 ====================
 
     /**
@@ -972,11 +1082,33 @@ public final class VCRedistInstaller {
                 // 사용자가 나중에 찾을 수 있게 직접 넣기 폴더를 만들어 둠
                 File manual = manualDir();
                 if (!manual.isDirectory()) manual.mkdirs();
-                usable = harvest(app, steamRoots(app), text -> activity.runOnUiThread(
-                        () -> dialog.setFileStatus(activity.getString(R.string.vcredist_reading, text))));
+                // 1) Microsoft's official download first (agreed to above). Kept only
+                //    in the app's cache until the DLLs are taken out
+                // 1) 먼저 Microsoft 공식 주소에서 받음(위에서 동의함). DLL을 꺼낼 때까지만
+                //    앱 캐시에 둠
+                File dl = new File(app.getCacheDir(), DOWNLOAD_SUBDIR);
+                FileUtils.delete(dl);
+                dl.mkdirs();
+                String dlError = downloadOfficial(dl, (name, got, total) -> activity.runOnUiThread(() -> {
+                    dialog.setFileStatus(activity.getString(R.string.vcredist_downloading, name, sizeText(got, total)));
+                    if (total > 0) dialog.setProgress((int) (got * 100 / total));
+                }));
+                if (dlError != null) error = activity.getString(R.string.vcredist_download_failed, dlError);
+                // 2) The downloaded installers, then the ones already on the device
+                //    (Steam library, manual folder): used when the download failed
+                // 2) 받은 설치 파일, 그리고 기기에 이미 있는 것(스팀 라이브러리, 직접 넣기
+                //    폴더): 받기에 실패했을 때 쓰임
+                List<File> roots = steamRoots(app);
+                roots.add(0, dl);
+                try {
+                    usable = harvest(app, roots, text -> activity.runOnUiThread(
+                            () -> dialog.setFileStatus(activity.getString(R.string.vcredist_reading, text))));
+                } finally {
+                    FileUtils.delete(dl);
+                }
             } catch (Exception e) {
                 Log.w(TAG, "harvest failed", e);
-                error = String.valueOf(e.getMessage());
+                error = (error != null ? error + "\n" : "") + e.getMessage();
             } finally {
                 busy.set(false);
             }
