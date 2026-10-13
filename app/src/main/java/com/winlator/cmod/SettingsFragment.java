@@ -184,8 +184,11 @@ public class SettingsFragment extends Fragment {
         // ShortcutsFragment.isEzMode()가 읽음
         SwitchCompat cbEzMode = view.findViewById(R.id.CBEzMode);
         cbEzMode.setChecked(ShortcutsFragment.isEzMode(context));
-        cbEzMode.setOnCheckedChangeListener((buttonView, isChecked) ->
-                preferences.edit().putBoolean(ShortcutsFragment.PREF_EZ_MODE, isChecked).apply());
+        cbEzMode.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            preferences.edit().putBoolean(ShortcutsFragment.PREF_EZ_MODE, isChecked).apply();
+            showExpertOnly(view, !isChecked);
+        });
+        showExpertOnly(view, !cbEzMode.isChecked());
 
         // Steam download while a game runs: on = pause (resumes after the game),
         // off = no limit. Read by SteamDownloadService every half second
@@ -532,6 +535,18 @@ public class SettingsFragment extends Fragment {
         // Re-read after the user comes back from the system permission screen.
         // 사용자가 시스템 권한 화면에서 돌아온 뒤 다시 읽음
         syncUsbStorageCheckbox();
+    }
+
+    // Whole app-data backup / restore (a tar of everything, VC++ and Steam files
+    // included) is left to experienced users: shown only with EZ mode off.
+    // Beginners have save export and container export for the same purpose
+    // 앱 데이터 전체 백업 / 복원(VC++, 스팀 파일까지 모두 담은 tar)은 숙련자의 선택으로
+    // 남김: EZ 모드를 끈 경우에만 보임. 초보자는 같은 목적으로 세이브 내보내기와
+    // 컨테이너 내보내기를 씀
+    private static void showExpertOnly(View root, boolean expert) {
+        int visibility = expert ? View.VISIBLE : View.GONE;
+        root.findViewById(R.id.BTBackupData).setVisibility(visibility);
+        root.findViewById(R.id.BTRestoreData).setVisibility(visibility);
     }
 
     // Opens / closes one folding section: its fold row and its label both toggle
