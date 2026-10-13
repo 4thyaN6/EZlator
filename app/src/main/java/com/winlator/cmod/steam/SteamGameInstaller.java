@@ -151,6 +151,14 @@ public final class SteamGameInstaller {
         return usable(dir);
     }
 
+    // Total size of the storage holding dir (nearest existing folder), 0 when unknown
+    // dir이 있는 저장소의 전체 용량(가장 가까운 기존 폴더 기준). 모르면 0
+    public static long totalSpace(File dir) {
+        File d = dir;
+        while (d != null && !d.exists()) d = d.getParentFile();
+        return d != null ? d.getTotalSpace() : 0;
+    }
+
     // Free space of the nearest existing folder / 가장 가까운 기존 폴더의 남은 공간
     private static long usable(File dir) {
         File d = dir;

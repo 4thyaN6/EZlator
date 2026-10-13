@@ -29,6 +29,8 @@ import java.util.concurrent.Executors;
  *             SD card, both EZlator folders), then download; or install this
  *             game on the other library instead
  * When the size is unknown (no app info) the download simply starts.
+ * The same values (game size, internal / SD card free and total, target
+ * storage) fill the info block of the download confirm sheet (readInfo, fillInfo).
  * 새 스팀 다운로드 전의 공간 확인. 먼저 게임에 필요한 크기를 계산하고(스팀 앱 정보의
  * depot 크기), 고른 라이브러리(내장 메모리, 또는 설정에서 고르면 SD카드)에 공간이
  * 모자랄 때만 사용자에게 물음. 버튼은 같은 폭으로 왼쪽부터:
@@ -37,11 +39,88 @@ import java.util.concurrent.Executors;
  *   옮기기   - 설치된 게임을 골라 다른 라이브러리(내장 <-> SD카드, 둘 다 EZlator
  *             폴더)로 옮긴 뒤 다운로드. 또는 이 게임을 다른 라이브러리에 설치
  * 크기를 모르면(앱 정보 없음) 그냥 다운로드를 시작함
+ * 같은 값(게임 용량, 내장 / SD카드 남음과 전체, 설치될 저장소)으로 받기 확인창의
+ * 정보 블록도 채움(readInfo, fillInfo)
  */
 public final class SteamSpaceCheck {
     private static final String TAG = "SteamSpaceCheck";
 
     private SteamSpaceCheck() {}
+
+    /**
+     * What the download info block shows: game size, the library it goes to and
+     * free / total space of internal storage and the SD card. Read off the UI
+     * thread (Steam app info is a network call).
+     * 다운로드 정보 블록에 보일 값: 게임 용량, 들어갈 라이브러리, 내장 메모리와
+     * SD카드의 남은 / 전체 공간. UI 스레드 밖에서 읽음(스팀 앱 정보는 네트워크 호출임)
+     */
+    public static final class Info {
+        public long needed;        // size on disk, 0 = unknown / 디스크 크기, 0 = 모름
+        public long download;      // download size, 0 = unknown / 다운로드 크기, 0 = 모름
+        public boolean resume;     // unfinished download goes on in place / 끝나지 않은 다운로드를 그 자리에서 이어감
+        public File library;       // library the game goes to / 게임이 들어갈 라이브러리
+        public long internalFree, internalTotal;
+        public long sdFree = -1, sdTotal = -1;   // -1 = no SD card / -1 = SD카드 없음
+
+        // Room the download still needs (none when it resumes in place)
+        // 다운로드에 새로 필요한 공간(그 자리에서 이어 받으면 없음)
+        public long need() { return resume ? 0 : needed; }
+    }
+
+    /** Reads the info block values; call off the UI thread / 정보 블록 값을 읽음. UI 스레드 밖에서 호출 */
+    public static Info readInfo(Context context, int appId) {
+        Context app = context.getApplicationContext();
+        Info info = new Info();
+        info.library = SteamGameInstaller.chooseLibrary(app);
+        try {
+            SteamSession session = SteamFragment.sharedSession(app);
+            if (session != null) {
+                SteamSession.AppDetails d = session.getAppDetails(appId);
+                info.needed = d.sizeBytes;
+                info.download = d.downloadBytes;
+                // An unfinished download goes on where it is (no new room needed)
+                // 끝나지 않은 다운로드는 있던 곳에서 이어감(새 공간이 필요 없음)
+                File partial = SteamGameInstaller.partialLibrary(app, d.installDir);
+                if (partial != null) { info.library = partial; info.resume = true; }
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "size check failed, download starts without it", e);
+        }
+        File internal = SteamGameInstaller.getLibraryDir(app);
+        info.internalFree = SteamGameInstaller.usableSpace(internal);
+        info.internalTotal = SteamGameInstaller.totalSpace(internal);
+        File sd = SteamGameInstaller.getSdLibraryDir(app);
+        if (sd != null) {
+            info.sdFree = SteamGameInstaller.usableSpace(sd);
+            info.sdTotal = SteamGameInstaller.totalSpace(sd);
+        }
+        return info;
+    }
+
+    /** Fills a steam_download_info block (UI thread) / steam_download_info 블록을 채움(UI 스레드) */
+    public static void fillInfo(View block, Info info) {
+        if (block == null || info == null) return;
+        Context c = block.getContext();
+        // Size on disk (what the space check uses), plus the download size when
+        // it is smaller (compressed)
+        // 디스크 크기(공간 확인에 쓰는 값). 다운로드 크기가 더 작으면(압축) 함께 보임
+        String size;
+        if (info.needed <= 0) size = c.getString(R.string.steam_dl_info_unknown);
+        else if (info.download > 0 && info.download < info.needed) {
+            size = c.getString(R.string.steam_dl_info_size_dl, SaveTransfer.sizeText(info.needed), SaveTransfer.sizeText(info.download));
+        } else size = SaveTransfer.sizeText(info.needed);
+        if (info.resume) size = c.getString(R.string.steam_dl_info_resume, size);
+        ((TextView) block.findViewById(R.id.TVInfoSize)).setText(size);
+        ((TextView) block.findViewById(R.id.TVInfoInternal)).setText(spaceText(c, info.internalFree, info.internalTotal));
+        ((TextView) block.findViewById(R.id.TVInfoSd)).setText(info.sdTotal < 0
+                ? c.getString(R.string.steam_dl_info_none) : spaceText(c, info.sdFree, info.sdTotal));
+        ((TextView) block.findViewById(R.id.TVInfoTarget)).setText(storageName(c, info.library));
+    }
+
+    // "free / total" / "남음 / 전체"
+    private static String spaceText(Context c, long free, long total) {
+        return c.getString(R.string.steam_dl_info_space, SaveTransfer.sizeText(free), SaveTransfer.sizeText(total));
+    }
 
     /** Checks room, then starts the download (or asks) / 공간을 확인한 뒤 다운로드를 시작함(또는 물음) */
     public static void startDownload(Activity activity, int appId, String name, Runnable afterStart) {
@@ -49,24 +128,9 @@ public final class SteamSpaceCheck {
         PreloaderDialog preloader = new PreloaderDialog(activity);
         preloader.showOnUiThread(R.string.steam_space_checking);
         Executors.newSingleThreadExecutor().execute(() -> {
-            File library = SteamGameInstaller.chooseLibrary(app);
-            long needed = 0;
-            boolean resume = false;
-            try {
-                SteamSession session = SteamFragment.sharedSession(app);
-                if (session != null) {
-                    SteamSession.AppDetails d = session.getAppDetails(appId);
-                    needed = d.sizeBytes;
-                    // An unfinished download goes on where it is (no new room needed)
-                    // 끝나지 않은 다운로드는 있던 곳에서 이어감(새 공간이 필요 없음)
-                    File partial = SteamGameInstaller.partialLibrary(app, d.installDir);
-                    if (partial != null) { library = partial; resume = true; }
-                }
-            } catch (Exception e) {
-                Log.w(TAG, "size check failed, download starts without it", e);
-            }
-            final File lib = library;
-            final long need = resume ? 0 : needed;
+            final Info info = readInfo(app, appId);
+            final File lib = info.library;
+            final long need = info.need();
             final long free = SteamGameInstaller.usableSpace(lib);
             final long missing = SteamLibraryPicker.shortfall(free, need);
             Log.i(TAG, "app " + appId + ": needed=" + need + " free=" + free + " missing=" + missing + " in " + lib);
@@ -77,17 +141,21 @@ public final class SteamSpaceCheck {
                     SteamDownloadState.start(app, appId, name, false, lib);
                     if (afterStart != null) afterStart.run();
                 } else {
-                    showShortDialog(activity, appId, name, lib, need, free, missing, afterStart);
+                    showShortDialog(activity, appId, name, info, free, missing, afterStart);
                 }
             });
         });
     }
 
-    private static void showShortDialog(Activity activity, int appId, String name, File lib, long needed,
+    private static void showShortDialog(Activity activity, int appId, String name, Info info,
                                         long free, long missing, Runnable afterStart) {
+        final File lib = info.library;
         View view = LayoutInflater.from(activity).inflate(R.layout.steam_space_dialog, null);
+        // Size and both storages first, then what is short
+        // 용량과 두 저장소를 먼저 보이고, 그다음 모자란 양을 알림
+        fillInfo(view.findViewById(R.id.IncDownloadInfo), info);
         ((TextView) view.findViewById(R.id.TVSpaceMessage)).setText(activity.getString(R.string.steam_space_message,
-                name, SaveTransfer.sizeText(needed), storageName(activity, lib), SaveTransfer.sizeText(free),
+                name, SaveTransfer.sizeText(info.need()), storageName(activity, lib), SaveTransfer.sizeText(free),
                 SaveTransfer.sizeText(missing)));
         AlertDialog dialog = new AlertDialog.Builder(activity)
                 .setTitle(R.string.steam_space_title)

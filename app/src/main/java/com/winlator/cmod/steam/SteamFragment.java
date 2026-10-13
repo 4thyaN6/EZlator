@@ -535,7 +535,9 @@ public class SteamFragment extends Fragment {
             List<SteamSession.OwnedGame> list = new ArrayList<>();
             for (int i = 0; i < arr.length(); i++) {
                 JSONObject o = arr.getJSONObject(i);
-                list.add(new SteamSession.OwnedGame(o.getInt("id"), o.getString("name")));
+                // "size" is missing in lists saved by older versions (0 = unknown)
+                // 예전 버전이 저장한 목록에는 "size"가 없음(0 = 모름)
+                list.add(new SteamSession.OwnedGame(o.getInt("id"), o.getString("name"), o.optLong("size", 0), o.optLong("download", 0)));
             }
             return list;
         } catch (Exception e) {
@@ -548,7 +550,7 @@ public class SteamFragment extends Fragment {
         try {
             JSONArray arr = new JSONArray();
             for (SteamSession.OwnedGame g : games) {
-                arr.put(new JSONObject().put("id", g.appId).put("name", g.name));
+                arr.put(new JSONObject().put("id", g.appId).put("name", g.name).put("size", g.sizeBytes).put("download", g.downloadBytes));
             }
             File parent = file.getParentFile();
             if (parent != null) parent.mkdirs();
@@ -763,6 +765,26 @@ public class SteamFragment extends Fragment {
                 if (b != null) ui(() -> { if (dialog.isShowing()) background.setImageBitmap(b); });
             });
         }
+
+        // Size block on the right of the name: game size, internal / SD card
+        // (free / total) and the storage it goes to. Read in the background
+        // (Steam app info), "…" until then
+        // 이름 오른쪽 용량 블록: 게임 용량, 내장 / SD카드(남음 / 전체), 설치될 저장소.
+        // 백그라운드에서 읽고(스팀 앱 정보) 그 전까지 "…"로 보임
+        final View infoBlock = dialog.findViewById(R.id.IncDownloadInfo);
+        final Context infoApp = context.getApplicationContext();
+        new Thread(() -> {
+            SteamSpaceCheck.Info info = SteamSpaceCheck.readInfo(infoApp, game.appId);
+            // No live app info (a download holds the session, or offline): the
+            // size saved with the game list is used
+            // 실시간 앱 정보가 없으면(다운로드가 세션을 쓰는 중이거나 오프라인) 게임
+            // 목록과 함께 저장한 크기를 씀
+            if (info.needed <= 0 && game.sizeBytes > 0) {
+                info.needed = game.sizeBytes;
+                info.download = game.downloadBytes;
+            }
+            ui(() -> { if (dialog.isShowing()) SteamSpaceCheck.fillInfo(infoBlock, info); });
+        }, "SteamDlInfo").start();
 
         Button btDownload = dialog.findViewById(R.id.BTConfirmDownload);
         btDownload.setText(installed ? R.string.steam_redownload : R.string.steam_download);

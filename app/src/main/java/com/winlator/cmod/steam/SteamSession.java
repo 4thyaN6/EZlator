@@ -50,7 +50,16 @@ public final class SteamSession implements AutoCloseable {
     public static final class OwnedGame {
         public final int appId;
         public final String name;
-        OwnedGame(int appId, String name) { this.appId = appId; this.name = name; }
+        // Size on disk and download size from the same app info as the list
+        // (0 = unknown). Kept in the list cache, so they show while a download
+        // holds the session
+        // 목록과 같은 앱 정보에서 구한 디스크 크기와 다운로드 크기(0 = 모름). 목록
+        // 캐시에 같이 저장해서 다운로드가 세션을 쓰는 중에도 보임
+        public final long sizeBytes, downloadBytes;
+        OwnedGame(int appId, String name) { this(appId, name, 0, 0); }
+        OwnedGame(int appId, String name, long sizeBytes, long downloadBytes) {
+            this.appId = appId; this.name = name; this.sizeBytes = sizeBytes; this.downloadBytes = downloadBytes;
+        }
     }
 
     /** What the appmanifest and shortcut need / appmanifest와 바로가기에 필요한 정보 */
@@ -74,11 +83,11 @@ public final class SteamSession implements AutoCloseable {
         // could make Steam want a download)
         // 특정 언어 전용 depot이 있으면 true(언어를 바꾸면 스팀이 받기를 원할 수 있음)
         public boolean languageDepots;
-        // Estimated download size: "maxsize" of the depots for Windows (or for
-        // every OS) that are not for one language other than English. 0 = unknown
-        // 예상 다운로드 크기: Windows용(또는 모든 OS용)이면서 영어 외 특정 언어 전용이
-        // 아닌 depot의 "maxsize" 합. 0 = 모름
+        // Estimated size on disk and download size of the depots that get
+        // installed (see depotSizes). 0 = unknown
+        // 설치될 depot들의 예상 디스크 크기와 다운로드 크기(depotSizes 참고). 0 = 모름
         public long sizeBytes;
+        public long downloadBytes;
     }
 
     private final SteamClient client = new SteamClient();
@@ -255,7 +264,10 @@ public final class SteamSession implements AutoCloseable {
             KeyValue common = e.getValue().getKeyValues().get("common");
             String type = common.get("type").asString();
             String name = common.get("name").asString();
-            if (type != null && type.equalsIgnoreCase("game") && name != null) out.add(new OwnedGame(e.getKey(), name));
+            if (type != null && type.equalsIgnoreCase("game") && name != null) {
+                long[] size = depotSizes(e.getValue().getKeyValues());
+                out.add(new OwnedGame(e.getKey(), name, size[0], size[1]));
+            }
         }
         Collections.sort(out, (a, b) -> a.name.compareToIgnoreCase(b.name));
         return out;
@@ -293,13 +305,11 @@ public final class SteamSession implements AutoCloseable {
                 if (from != null && !from.isEmpty()) d.sharedDepots.put(id, Integer.parseInt(from.trim()));
                 String lang = depot.get("config").get("language").asString();
                 if (lang != null && !lang.trim().isEmpty()) d.languageDepots = true;
-                String os = depot.get("config").get("oslist").asString();
-                boolean forWindows = os == null || os.trim().isEmpty() || os.toLowerCase(java.util.Locale.ENGLISH).contains("windows");
-                boolean otherLanguage = lang != null && !lang.trim().isEmpty() && !"english".equalsIgnoreCase(lang.trim());
-                String max = depot.get("maxsize").asString();
-                if (forWindows && !otherLanguage && max != null && !max.isEmpty()) d.sizeBytes += Long.parseLong(max.trim());
             } catch (Exception ignored) {}
         }
+        long[] size = depotSizes(root);
+        d.sizeBytes = size[0];
+        d.downloadBytes = size[1];
         // VAC: common/category/category_8 = "1" (store category "Valve Anti-Cheat
         // enabled"). Only an app info that lists categories counts as "no VAC"
         // VAC: common/category/category_8 = "1"(상점 분류 "Valve Anti-Cheat 사용").
@@ -321,6 +331,67 @@ public final class SteamSession implements AutoCloseable {
             }
         }
         return d;
+    }
+
+    /**
+     * Estimated {size on disk, download size} of an app from its app info.
+     * Counted depots: for Windows (or no OS list), not for one language other
+     * than English, not low-violence, not DLC (dlcappid) and not taken from
+     * another app (depotfromapp, e.g. shared redistributables). 32-bit depots
+     * are left out when a 64-bit one exists. Sizes come from the public branch
+     * manifest ("size" = on disk, "download" = compressed; a download larger
+     * than the size is not trusted and the size is used), else the older
+     * "maxsize". {0, 0} = unknown.
+     * 앱 정보로 구한 앱의 예상 {디스크 크기, 다운로드 크기}. 세는 depot: Windows용
+     * (또는 OS 목록 없음), 영어 외 특정 언어 전용 아님, 저폭력판 아님, DLC(dlcappid)
+     * 아님, 다른 앱에서 가져오는 depot(depotfromapp, 예: 공유 재배포 파일) 아님.
+     * 64비트 depot이 있으면 32비트 depot은 뺌. 크기는 public 브랜치 매니페스트에서
+     * 읽고("size" = 디스크, "download" = 압축 상태. download가 size보다 크면 믿지
+     * 않고 size를 씀), 없으면 예전 형식의 "maxsize"를 씀. {0, 0} = 모름
+     */
+    static long[] depotSizes(KeyValue root) {
+        List<KeyValue> counted = new ArrayList<>();
+        boolean has64 = false;
+        for (KeyValue depot : root.get("depots").getChildren()) {
+            try {
+                Integer.parseInt(depot.getName());
+            } catch (NumberFormatException e) {
+                continue;   // "branches", "baselanguages" ... / 숫자가 아닌 항목은 depot이 아님
+            }
+            KeyValue config = depot.get("config");
+            String os = config.get("oslist").asString();
+            if (os != null && !os.trim().isEmpty() && !os.toLowerCase(java.util.Locale.ENGLISH).contains("windows")) continue;
+            String lang = config.get("language").asString();
+            if (lang != null && !lang.trim().isEmpty() && !"english".equalsIgnoreCase(lang.trim())) continue;
+            if ("1".equals(config.get("lowviolence").asString())) continue;
+            if (notEmpty(depot.get("dlcappid").asString())) continue;
+            if (notEmpty(depot.get("depotfromapp").asString())) continue;
+            if ("64".equals(config.get("osarch").asString())) has64 = true;
+            counted.add(depot);
+        }
+        long disk = 0, download = 0;
+        for (KeyValue depot : counted) {
+            if (has64 && "32".equals(depot.get("config").get("osarch").asString())) continue;
+            KeyValue pub = depot.get("manifests").get("public");
+            long size = number(pub.get("size").asString());
+            long dl = number(pub.get("download").asString());
+            if (size <= 0) size = number(depot.get("maxsize").asString());
+            if (size <= 0) continue;
+            disk += size;
+            download += (dl > 0 && dl <= size) ? dl : size;
+        }
+        return new long[]{disk, download};
+    }
+
+    private static boolean notEmpty(String v) {
+        return v != null && !v.trim().isEmpty();
+    }
+
+    // Number from an app info string, 0 when missing or not a number
+    // 앱 정보 문자열의 숫자. 없거나 숫자가 아니면 0
+    private static long number(String v) {
+        if (v == null) return 0;
+        try { return Long.parseLong(v.trim()); } catch (NumberFormatException e) { return 0; }
     }
 
     /** One Steam Cloud save pattern of an app / 앱 하나의 스팀 클라우드 세이브 패턴 */

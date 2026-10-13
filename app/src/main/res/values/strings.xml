@@ -830,6 +830,17 @@ Move: move installed games to the other storage (internal storage and SD card, E
     <string name="steam_space_move_failed">Could not move the game, it stays where it was: %1$s</string>
     <string name="steam_storage_internal">Internal storage (D:)</string>
     <string name="steam_storage_sd">SD card (E:)</string>
+    <!-- Download info block (game size, storage free / total) / 다운로드 정보 블록(게임 용량, 저장소 남음 / 전체) -->
+    <string name="steam_dl_info_size">Game size</string>
+    <string name="steam_dl_info_size_dl">%1$s (download %2$s)</string>
+    <string name="steam_dl_info_internal">Internal (free / total)</string>
+    <string name="steam_dl_info_sd">SD card (free / total)</string>
+    <string name="steam_dl_info_target">Installs to</string>
+    <string name="steam_dl_info_space">%1$s / %2$s</string>
+    <string name="steam_dl_info_none">None</string>
+    <string name="steam_dl_info_unknown">Unknown</string>
+    <string name="steam_dl_info_resume">%1$s (resume)</string>
+    <string name="steam_dl_info_loading">…</string>
     <string name="steam_move_game_running">A game is running. Close it first.</string>
     <string name="steam_move_exists">The folder already exists there: %1$s</string>
     <string name="steam_move_no_room">Not enough space on the other storage.</string>

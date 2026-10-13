@@ -1,18 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Not enough room for a Steam download (SteamSpaceCheck): message and three
-     equal buttons, Close / Delete / Move from left to right
-     스팀 다운로드 공간 부족(SteamSpaceCheck): 안내와 같은 폭의 버튼 3개,
-     왼쪽부터 닫기 / 삭제하기 / 옮기기 -->
+<!-- Not enough room for a Steam download (SteamSpaceCheck): download info,
+     message and three equal buttons, Close / Delete / Move from left to right
+     스팀 다운로드 공간 부족(SteamSpaceCheck): 다운로드 정보, 안내와 같은 폭의
+     버튼 3개, 왼쪽부터 닫기 / 삭제하기 / 옮기기 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="16dp">
 
+    <!-- Game size and both storages (same block as the download confirm sheet)
+         게임 용량과 두 저장소(받기 확인창과 같은 블록) -->
+    <include
+        android:id="@+id/IncDownloadInfo"
+        layout="@layout/steam_download_info"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end" />
+
     <TextView
         android:id="@+id/TVSpaceMessage"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
         android:textSize="14sp"
         android:lineSpacingMultiplier="1.2"
         android:textColor="?attr/neonText" />

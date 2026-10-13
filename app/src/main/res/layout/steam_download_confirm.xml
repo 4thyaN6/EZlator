@@ -3,9 +3,13 @@
      sheet, but the artwork has its own band at the top (full width, natural
      height) and the name / AppID / Back / Download sit below it on the card,
      so nothing covers the artwork. Same 24dp side margins as the detail sheet.
+     Right of the name: game size, internal / SD card space and the storage the
+     game goes to (steam_download_info, filled by SteamSpaceCheck.fillInfo).
      스팀 받기 확인창: 숏컷 상세창처럼 배치하되, 아트워크는 위쪽에 자기
      영역을 따로 가지고(가로 전체, 원래 비율 높이) 이름 / AppID / 뒤로가기 / 받기는
-     그 아래 카드 위에 둬서 아트워크를 가리지 않음. 좌우 24dp 여백은 상세창과 같음 -->
+     그 아래 카드 위에 둬서 아트워크를 가리지 않음. 좌우 24dp 여백은 상세창과 같음.
+     이름 오른쪽에는 게임 용량, 내장 / SD카드 공간, 설치될 저장소를 둠
+     (steam_download_info, SteamSpaceCheck.fillInfo가 채움) -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -34,21 +38,45 @@
             android:orientation="vertical"
             android:padding="22dp">
 
-            <TextView
-                android:id="@+id/TVConfirmName"
-                style="@style/NeonTitle"
+            <!-- Name and AppID (left), size block (right)
+                 이름과 AppID(왼쪽), 용량 블록(오른쪽) -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="?attr/neonText"
-                android:maxLines="2"
-                android:ellipsize="end" />
+                android:orientation="horizontal">
 
-            <TextView
-                android:id="@+id/TVConfirmInfo"
-                style="@style/NeonCaption"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp" />
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginEnd="16dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/TVConfirmName"
+                        style="@style/NeonTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="?attr/neonText"
+                        android:maxLines="2"
+                        android:ellipsize="end" />
+
+                    <TextView
+                        android:id="@+id/TVConfirmInfo"
+                        style="@style/NeonCaption"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp" />
+                </LinearLayout>
+
+                <include
+                    android:id="@+id/IncDownloadInfo"
+                    layout="@layout/steam_download_info"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical" />
+            </LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
