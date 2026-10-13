@@ -49,8 +49,13 @@ android {
         // 버전 규칙: 앞.중간.뒤. 앞 = 대규모 패치, 중간 = 기능 변화, 뒤 = 소규모 수정
         // (오류 수정, 신기술 적용 시험). versionCode는 올리기만 함(안드로이드는 더 낮은
         // 값으로 덮어쓰기 설치를 거부함)
-        versionCode 21
-        versionName "EZlator-0.1.1"
+        // Beta and release: an even versionCode is a beta (pre-release, name ends in
+        // "-beta"), an odd one a release. The update check offers betas only to beta
+        // builds (core/ReleaseVersion)
+        // 베타와 정식: versionCode가 짝수면 베타(프리릴리즈, 이름 끝이 "-beta"), 홀수면
+        // 정식임. 업데이트 확인은 베타 빌드에만 베타를 알려 줌(core/ReleaseVersion)
+        versionCode 22
+        versionName "EZlator-0.2.0-beta"
 
         // External native build from Winlator
         externalNativeBuild {
