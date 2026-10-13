@@ -53,6 +53,18 @@ public final class SharedSaves {
 
     private SharedSaves() {}
 
+    /** Shared save locations, relative to drive_c / 공유 세이브 위치(drive_c 기준 상대 경로) */
+    public static java.util.List<String> entries() {
+        return java.util.Arrays.asList(ENTRIES);
+    }
+
+    /** True for Wine / driver cache folders that are not saves (see NOISE)
+     *  세이브가 아닌 Wine·드라이버 캐시 폴더면 true(NOISE 참고) */
+    public static boolean isNoise(String rel) {
+        for (String n : NOISE) if (rel.equals(n) || rel.startsWith(n + "/")) return true;
+        return false;
+    }
+
     public static File sharedRoot(Context context) {
         return new File(ImageFs.find(context).getRootDir(), "home/" + SHARED_DIR);
     }
@@ -221,22 +233,9 @@ public final class SharedSaves {
     // 구조로 Download/.EZlator/Saves/<게임>-<시각>.tzst에 씀. 만든 파일을 돌려주고,
     // 바뀐 폴더를 못 찾으면 null. 부른 스레드에서 실행됨
     public static File exportGame(Context context, Shortcut shortcut) {
-        java.util.List<long[]> windows = new java.util.ArrayList<>();
-        for (String w : shortcut.getExtra("saveWindows", "").split(";")) {
-            String[] se = w.split("-");
-            if (se.length != 2) continue;
-            try {
-                // A minute of slack on both sides for files written while closing
-                // 종료 중에 쓰인 파일을 위해 양쪽에 1분 여유를 둠
-                windows.add(new long[]{Long.parseLong(se[0]) - 60_000L, Long.parseLong(se[1]) + 60_000L});
-            } catch (NumberFormatException ignored) {}
-        }
-        if (windows.isEmpty()) return null;
-
+        java.util.Set<String> units = gameUnits(context, shortcut);
+        if (units == null || units.isEmpty()) return null;
         File root = sharedRoot(context);
-        java.util.Set<String> units = new java.util.LinkedHashSet<>();
-        for (String entry : ENTRIES) collect(new File(root, entry), entry, 0, windows, units);
-        if (units.isEmpty()) return null;
 
         File dir = AppDirs.downloads("Saves");
         if (!dir.isDirectory() && !dir.mkdirs()) return null;
@@ -257,6 +256,32 @@ public final class SharedSaves {
         if (out.isFile() && out.length() > 0) return out;
         out.delete();
         return null;
+    }
+
+    /**
+     * Save folders of one game (paths relative to the shared root, same as
+     * drive_c): the folders whose files changed while the game was running
+     * (see exportGame). null when the game has no recorded runs.
+     * 게임 하나의 세이브 폴더(공용 폴더 기준 상대 경로, drive_c와 같음): 게임이 도는
+     * 동안 파일이 바뀐 폴더들(exportGame 참고). 실행 기록이 없으면 null
+     */
+    public static java.util.Set<String> gameUnits(Context context, Shortcut shortcut) {
+        java.util.List<long[]> windows = new java.util.ArrayList<>();
+        for (String w : shortcut.getExtra("saveWindows", "").split(";")) {
+            String[] se = w.split("-");
+            if (se.length != 2) continue;
+            try {
+                // A minute of slack on both sides for files written while closing
+                // 종료 중에 쓰인 파일을 위해 양쪽에 1분 여유를 둠
+                windows.add(new long[]{Long.parseLong(se[0]) - 60_000L, Long.parseLong(se[1]) + 60_000L});
+            } catch (NumberFormatException ignored) {}
+        }
+        if (windows.isEmpty()) return null;
+
+        File root = sharedRoot(context);
+        java.util.Set<String> units = new java.util.LinkedHashSet<>();
+        for (String entry : ENTRIES) collect(new File(root, entry), entry, 0, windows, units);
+        return units;
     }
 
     private static void collect(File dir, String rel, int depth, java.util.List<long[]> windows, java.util.Set<String> units) {

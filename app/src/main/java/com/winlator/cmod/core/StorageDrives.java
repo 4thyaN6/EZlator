@@ -246,6 +246,21 @@ public final class StorageDrives {
     }
 
     /**
+     * EZlator folder of the first removable volume (the one mapped to E:), or
+     * null when there is no card or the folder cannot be made. Release builds
+     * only, like the other EZlator folders (see isReleaseBuild()).
+     * 첫 번째 착탈식 볼륨의 EZlator 폴더(E:에 매핑되는 폴더). 카드가 없거나 폴더를
+     * 만들 수 없으면 null. 다른 EZlator 폴더처럼 릴리즈 빌드에서만 씀(isReleaseBuild() 참고)
+     */
+    public static File getSdGamesDir(Context context) {
+        if (context == null || !isReleaseBuild(context)) return null;
+        List<File> volumes = findRemovableVolumes(context);
+        if (volumes.isEmpty()) return null;
+        File dir = new File(volumes.get(0), GAMES_DIR_NAME);
+        return ensureGamesFolder(dir) ? dir : null;
+    }
+
+    /**
      * Mounted removable volumes, primary shared storage excluded (that is already D:).
      * 마운트된 착탈식 볼륨임. 기본 공유 저장소는 이미 D:라서 제외함
      */

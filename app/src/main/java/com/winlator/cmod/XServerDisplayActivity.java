@@ -2430,14 +2430,14 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         // C.UTF-8로 고정한다. imagefs에는 로케일 데이터가 없어 ko_KR.UTF-8 같은 실제 로케일을 넣으면
         // setlocale()이 실패하고 ASCII 전용 "C"로 떨어져 비ASCII 경로가 깨진다.
         // 사용자가 고른 로케일은 LANG으로 대신 전달한다.
-        // Option (Settings, off by default): LC_ALL also gets the game
+        // Option (Settings, on by default): LC_ALL also gets the game
         // language. With LC_ALL pinned to C.UTF-8 it overrides LANG for every
         // category (POSIX rule), so Wine never sees ko_KR - a likely reason why
         // Korean-patched games fell back to their original text
-        // 옵션(설정, 기본 꺼짐): LC_ALL에도 게임 언어를 넣음. LC_ALL을 C.UTF-8로
+        // 옵션(설정, 기본 켜짐): LC_ALL에도 게임 언어를 넣음. LC_ALL을 C.UTF-8로
         // 고정하면 POSIX 규칙상 모든 항목에서 LANG보다 우선해서, Wine이 ko_KR을 보지
         // 못함 - 한국어 패치 게임이 원문으로 돌아간 이유일 가능성이 큼
-        boolean realLocale = preferences.getBoolean("wine_real_locale", false)
+        boolean realLocale = preferences.getBoolean(SettingsFragment.PREF_REAL_LOCALE, SettingsFragment.REAL_LOCALE_DEFAULT)
                 // A locale picked in the shortcut settings always
                 // goes to LC_ALL too (that game needs that language)
                 // 바로가기 설정에서 고른 로캘은 항상 LC_ALL에도 넣음(그 게임이

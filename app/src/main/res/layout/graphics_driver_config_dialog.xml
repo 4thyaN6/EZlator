@@ -28,7 +28,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/SGraphicsDriverVersion"
-            android:spinnerMode="dialog"/>
+            android:spinnerMode="dropdown"/>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -41,7 +41,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/SGraphicsDriverAvailableExtensions"
-            android:spinnerMode="dialog"/>
+            android:spinnerMode="dropdown"/>
 
         <TextView
             android:layout_width="wrap_content"
@@ -56,7 +56,7 @@
             android:layout_height="wrap_content"
             android:id="@+id/SGraphicsDriverMaxDeviceMemory"
             android:entries="@array/device_memory_entries"
-            android:spinnerMode="dialog"/>
+            android:spinnerMode="dropdown"/>
 
 
         <TextView
@@ -72,7 +72,7 @@
             android:layout_height="wrap_content"
             android:id="@+id/SGraphicsDriverFrameSync"
             android:entries="@array/frame_sync_entries"
-            android:spinnerMode="dialog"/>
+            android:spinnerMode="dropdown"/>
 
         <androidx.appcompat.widget.SwitchCompat
             style="@style/NeonSwitch"

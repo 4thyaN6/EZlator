@@ -142,11 +142,18 @@ public final class SteamDownloadState {
     }
 
     public static void start(Context context, int appId, String name, boolean isUpdate) {
+        start(context, appId, name, isUpdate, null);
+    }
+
+    // library: where a new game goes (picked by SteamSpaceCheck); null = Settings choice
+    // library: 새 게임이 들어갈 곳(SteamSpaceCheck가 고름). null = 설정의 선택
+    public static void start(Context context, int appId, String name, boolean isUpdate, File library) {
         Intent i = new Intent(context, SteamDownloadService.class)
                 .setAction(SteamDownloadService.ACTION_START)
                 .putExtra(SteamDownloadService.EXTRA_APP_ID, appId)
                 .putExtra(SteamDownloadService.EXTRA_NAME, name)
                 .putExtra(SteamDownloadService.EXTRA_IS_UPDATE, isUpdate);
+        if (library != null) i.putExtra(SteamDownloadService.EXTRA_LIBRARY, library.getAbsolutePath());
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(i);
         else context.startService(i);
     }

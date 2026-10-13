@@ -136,10 +136,16 @@ public final class LayerTiers {
                     new Component("Box64 0.4.4", BOX64, NIGHTLIES + "Box64-Bionic/Box64-0.4.4-Bionic.wcp"),
                     null));
 
-    // Stable: Proton 10.0-4. The412Banner has no x86_64 10.0-4 layer, so that one is
-    // GameNative's CMOD package (installed as "...-proton-wine", see ContentsManager)
-    // Stable(안정): Proton 10.0-4. The412Banner에 x86_64 10.0-4 레이어가 없어서 그것만
-    // GameNative CMOD용 패키지를 씀("...-proton-wine"으로 설치됨, ContentsManager 참고)
+    // Stable: Proton 10.0-4. No longer offered (not in ALL): the Steam agent fails
+    // on both of its builds (Valve steamclient64.dll dies in DllMain), while 9.0
+    // and 11.0-2 work. Kept only so names an earlier build gave its containers are
+    // still cleaned up (adoptUntagged). Containers already made with it stay as
+    // they are and are shown in the container list (EZ mode off)
+    // Stable(안정): Proton 10.0-4. 더 이상 제공하지 않음(ALL에 없음): 두 빌드 모두
+    // 스팀 에이전트가 실패함(Valve steamclient64.dll이 DllMain에서 죽음). 9.0과
+    // 11.0-2는 동작함. 예전 빌드가 컨테이너에 붙인 이름을 정리하기 위해서만 남김
+    // (adoptUntagged). 이미 만든 컨테이너는 그대로 두고 컨테이너 목록(EZ 모드
+    // 끔)에서 보임
     public static final Tier TIER_STABLE = new Tier(STABLE, R.string.tier_stable,
             new ArchSet(true,
                     new Component("Proton 10.0-4", PROTON, BANNER_LAYERS + "proton-10.0-4-arm64ec.wcp"),
@@ -175,9 +181,13 @@ public final class LayerTiers {
                     new Component("Box64 0.3.8", BOX64, NIGHTLIES + "Box64-Bionic/box64-bionic-0.3.8.wcp"),
                     null));
 
-    // Display / menu order
-    // 표시·메뉴 순서
-    public static final Tier[] ALL = {TIER_LATEST, TIER_STABLE, TIER_LEGACY};
+    // Display / menu order: the tiers offered (tier cards, layer picker, layer hint)
+    // 표시·메뉴 순서: 제공하는 단계(단계 카드, 레이어 선택, 레이어 권유)
+    public static final Tier[] ALL = {TIER_LATEST, TIER_LEGACY};
+
+    // Every tier a container can carry, including ones no longer offered
+    // 컨테이너가 가질 수 있는 모든 단계(더 이상 제공하지 않는 단계 포함)
+    private static final Tier[] KNOWN = {TIER_LATEST, TIER_STABLE, TIER_LEGACY};
 
     private LayerTiers() {}
 
@@ -249,7 +259,7 @@ public final class LayerTiers {
         for (Container c : manager.getContainers()) {
             boolean changed = false;
             String name = c.getName();
-            for (Tier t : ALL) {
+            for (Tier t : KNOWN) {
                 String prefix = context.getString(t.labelRes) + " Proton ";
                 if (name != null && name.startsWith(prefix)) {
                     c.setName(name.substring(prefix.length() - "Proton ".length()));

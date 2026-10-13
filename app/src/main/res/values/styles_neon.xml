@@ -115,6 +115,44 @@
         <item name="android:layout_marginTop">14dp</item>
     </style>
 
+    <!-- Fold row of a settings section that starts closed (SettingsFragment.setupFold()):
+         "▼ unfold" / "▲ fold" at the right, the whole row is the touch target
+         닫힌 채 시작하는 설정 구역의 접기 줄(SettingsFragment.setupFold()): 오른쪽에
+         "▼ 펼치기" / "▲ 접기", 줄 전체가 누르는 곳임 -->
+    <style name="NeonFoldRow">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:minHeight">36dp</item>
+        <item name="android:gravity">center_vertical|end</item>
+        <item name="android:textColor">?attr/neonAccent</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:background">?attr/selectableItemBackground</item>
+        <item name="android:text">@string/detail_unfold</item>
+    </style>
+
+    <!-- Body of a folding settings section, hidden until the fold row is pressed
+         접히는 설정 구역의 본문. 접기 줄을 누르기 전에는 숨겨 둠 -->
+    <style name="NeonFoldBody">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:layout_marginTop">8dp</item>
+        <item name="android:visibility">gone</item>
+    </style>
+
+    <!-- Group title inside a settings section (e.g. "XServer" in Container)
+         설정 구역 안의 묶음 제목(예: 컨테이너 안의 "XServer") -->
+    <style name="NeonSubHeader">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">?attr/neonText</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
     <style name="NeonSeparator">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">1dp</item>

@@ -65,6 +65,99 @@ public final class SteamGameInstaller {
         return new File(base, "SteamLibrary/steamapps");
     }
 
+    // Setting "install Steam games on the SD card" (off = internal storage first)
+    // 설정 "스팀 게임을 SD카드에 설치"(꺼짐 = 내장 메모리 우선)
+    public static final String PREF_LIBRARY_SD = "steam_library_sd";
+
+    /**
+     * Second library on the SD card: <card EZlator>/SteamLibrary/steamapps
+     * (E:). null without a card, and in debug builds (no EZlator folders there).
+     * SD카드의 두 번째 라이브러리: <카드 EZlator>/SteamLibrary/steamapps(E:).
+     * 카드가 없으면 null, 디버그 빌드에서도 null(EZlator 폴더를 만들지 않음)
+     */
+    public static File getSdLibraryDir(Context context) {
+        File sd = StorageDrives.getSdGamesDir(context);
+        return sd != null ? new File(sd, "SteamLibrary/steamapps") : null;
+    }
+
+    /** Every library: internal first, then the SD card's / 모든 라이브러리: 내장 먼저, 다음 SD카드 */
+    public static List<File> getLibraryDirs(Context context) {
+        List<File> list = new ArrayList<>();
+        list.add(getLibraryDir(context));
+        File sd = getSdLibraryDir(context);
+        if (sd != null) list.add(sd);
+        return list;
+    }
+
+    /** Library holding this game (its appmanifest), or null / 이 게임(appmanifest)이 있는 라이브러리, 없으면 null */
+    public static File libraryOf(Context context, int appId) {
+        for (File lib : getLibraryDirs(context)) {
+            if (new File(lib, "appmanifest_" + appId + ".acf").isFile()) return lib;
+        }
+        return null;
+    }
+
+    /** The game's appmanifest wherever it is (internal path when not installed)
+     *  게임의 appmanifest. 어느 라이브러리에 있든 찾음(설치 안 됐으면 내장 경로) */
+    public static File acfOf(Context context, int appId) {
+        File lib = libraryOf(context, appId);
+        return new File(lib != null ? lib : getLibraryDir(context), "appmanifest_" + appId + ".acf");
+    }
+
+    // Library for a new download: internal storage, or the SD card when the user
+    // chose it in Settings (see SteamLibraryPicker). Room is checked before the
+    // download starts (SteamSpaceCheck), not here
+    // 새 다운로드를 넣을 라이브러리: 내장 메모리, 또는 사용자가 설정에서 고르면 SD카드
+    // (SteamLibraryPicker 참고). 공간은 여기가 아니라 다운로드 시작 전에 확인함
+    // (SteamSpaceCheck)
+    public static File chooseLibrary(Context context) {
+        File sd = getSdLibraryDir(context);
+        boolean sdChosen = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)
+                .getBoolean(PREF_LIBRARY_SD, false);
+        return SteamLibraryPicker.preferred(sdChosen, sd != null) == SteamLibraryPicker.SD ? sd : getLibraryDir(context);
+    }
+
+    // The other library (internal <-> SD card), or null without a card
+    // 다른 쪽 라이브러리(내장 <-> SD카드). 카드가 없으면 null
+    public static File otherLibrary(Context context, File library) {
+        File internal = getLibraryDir(context);
+        File sd = getSdLibraryDir(context);
+        if (sd == null) return null;
+        return samePath(library, internal) ? sd : internal;
+    }
+
+    public static boolean isSdLibrary(Context context, File library) {
+        File sd = getSdLibraryDir(context);
+        return sd != null && samePath(library, sd);
+    }
+
+    private static boolean samePath(File a, File b) {
+        return a != null && b != null && a.getAbsolutePath().equals(b.getAbsolutePath());
+    }
+
+    // Library holding an unfinished download of this game (its folder without
+    // an appmanifest), so a resumed download keeps going in the same place
+    // 이 게임의 끝나지 않은 다운로드(appmanifest 없이 폴더만 있음)가 있는 라이브러리.
+    // 이어 받기가 같은 곳에서 계속되게 함
+    static File partialLibrary(Context context, String installDir) {
+        if (installDir == null || installDir.isEmpty()) return null;
+        for (File lib : getLibraryDirs(context)) {
+            if (new File(lib, "common/" + installDir).isDirectory()) return lib;
+        }
+        return null;
+    }
+
+    public static long usableSpace(File dir) {
+        return usable(dir);
+    }
+
+    // Free space of the nearest existing folder / 가장 가까운 기존 폴더의 남은 공간
+    private static long usable(File dir) {
+        File d = dir;
+        while (d != null && !d.exists()) d = d.getParentFile();
+        return d != null ? d.getUsableSpace() : 0;
+    }
+
     /**
      * Blocking: download + appmanifest + shortcut. Returns the shortcut name.
      * 블로킹: 다운로드 + appmanifest + 바로가기. 바로가기 이름을 돌려줌
@@ -87,12 +180,27 @@ public final class SteamGameInstaller {
     // 것만 받음
     public static String install(Context context, SteamSession session, int appId, Progress progress,
                                  java.util.concurrent.atomic.AtomicBoolean cancel) throws Exception {
+        return install(context, session, appId, progress, cancel, null);
+    }
+
+    // requestedLibrary: the library picked before the download (SteamSpaceCheck);
+    // null = the Settings choice
+    // requestedLibrary: 다운로드 전에 고른 라이브러리(SteamSpaceCheck). null = 설정의 선택
+    public static String install(Context context, SteamSession session, int appId, Progress progress,
+                                 java.util.concurrent.atomic.AtomicBoolean cancel, File requestedLibrary) throws Exception {
         long steamId = new SteamAccountStore(context).getSteamId64();
         SteamSession.AppDetails app = session.getAppDetails(appId);
         if (app.installDir.isEmpty()) throw new IllegalStateException("App has no install folder");
         if (app.exePath.isEmpty()) throw new IllegalStateException("No Windows executable in app info");
 
-        File library = getLibraryDir(context);
+        // An installed game (update) or an unfinished download stays in its
+        // library; a new one goes to the library picked before the download
+        // 설치된 게임(업데이트)이나 끝나지 않은 다운로드는 원래 라이브러리에 남음. 새 게임은
+        // 다운로드 전에 고른 라이브러리로 감
+        File library = libraryOf(context, appId);
+        if (library == null) library = partialLibrary(context, app.installDir);
+        if (library == null) library = requestedLibrary != null ? requestedLibrary : chooseLibrary(context);
+        Log.i(DLTAG, "library for app " + appId + ": " + library.getAbsolutePath());
         File common = new File(library, "common");
         common.mkdirs();
         Log.i(DLTAG, "app=" + appId + " name=" + app.name + " installdir=" + app.installDir
@@ -377,7 +485,13 @@ public final class SteamGameInstaller {
      * 복사, common/<폴더>는 링크. 실행할 때마다 불러도 안전함
      */
     public static void linkLibraryInto(Context context, File driveC) {
-        File lib = getLibraryDir(context);
+        // Both libraries (internal, SD card) appear as the one default library of
+        // the container
+        // 두 라이브러리(내장, SD카드)를 컨테이너의 기본 라이브러리 하나로 보이게 함
+        for (File lib : getLibraryDirs(context)) linkOneLibrary(lib, driveC);
+    }
+
+    private static void linkOneLibrary(File lib, File driveC) {
         File[] acfs = lib.listFiles((d, n) -> n.startsWith("appmanifest_") && n.endsWith(".acf"));
         if (acfs == null) return;
         File steamApps = new File(driveC, "Program Files (x86)/Steam/steamapps");
@@ -389,7 +503,13 @@ public final class SteamGameInstaller {
             if (dir == null) continue;
             File target = new File(lib, "common/" + dir);
             File link = new File(containerCommon, dir);
-            if (target.isDirectory() && !link.exists()) FileUtils.symlink(target.getAbsolutePath(), link.getAbsolutePath());
+            if (!target.isDirectory()) continue;
+            // A link left over from the other library (game moved or downloaded
+            // again there) is pointed at the folder that exists now
+            // 다른 라이브러리를 가리키던 링크(게임을 옮겼거나 그쪽에 다시 받음)는 지금
+            // 있는 폴더를 가리키게 고침
+            if (Files.isSymbolicLink(link.toPath()) && !link.exists()) link.delete();
+            if (!link.exists()) FileUtils.symlink(target.getAbsolutePath(), link.getAbsolutePath());
         }
     }
 
@@ -572,6 +692,177 @@ public final class SteamGameInstaller {
         }
     }
 
+    // ==================== Installed games, move / 설치된 게임, 옮기기 ====================
+
+    /** An installed game of one library / 라이브러리 하나의 설치된 게임 */
+    public static final class InstalledGame {
+        public final int appId;
+        public final String name;
+        public final File dir;
+        public final long bytes;
+
+        InstalledGame(int appId, String name, File dir, long bytes) {
+            this.appId = appId;
+            this.name = name;
+            this.dir = dir;
+            this.bytes = bytes;
+        }
+    }
+
+    /**
+     * Installed games of a library with their folder sizes, biggest first.
+     * Reads every file size, so call it off the UI thread.
+     * 라이브러리의 설치된 게임과 폴더 크기, 큰 것부터. 파일 크기를 모두 읽으므로 UI
+     * 스레드 밖에서 부를 것
+     */
+    public static List<InstalledGame> installedGames(File library) {
+        List<InstalledGame> list = new ArrayList<>();
+        File[] acfs = library.listFiles((d, n) -> n.startsWith("appmanifest_") && n.endsWith(".acf"));
+        if (acfs == null) return list;
+        for (File acf : acfs) {
+            String dir = readInstallDir(acf);
+            if (dir == null || dir.isEmpty() || dir.contains("..")) continue;
+            File gameDir = new File(library, "common/" + dir);
+            if (!gameDir.isDirectory()) continue;
+            int appId;
+            try {
+                appId = Integer.parseInt(acf.getName().substring(12, acf.getName().length() - 4));
+            } catch (NumberFormatException e) {
+                continue;
+            }
+            String name = readAcfValue(acf, "name");
+            list.add(new InstalledGame(appId, name != null ? name : dir, gameDir, folderSize(gameDir)));
+        }
+        list.sort((x, y) -> Long.compare(y.bytes, x.bytes));
+        return list;
+    }
+
+    public static long folderSize(File dir) {
+        long total = 0;
+        File[] children = dir.listFiles();
+        if (children == null) return 0;
+        for (File c : children) {
+            if (Files.isSymbolicLink(c.toPath())) continue;
+            total += c.isDirectory() ? folderSize(c) : c.length();
+        }
+        return total;
+    }
+
+    /** Progress of a move: bytes copied so far of the total / 옮기기 진행: 전체 중 복사한 바이트 */
+    public interface MoveProgress {
+        void onCopied(long done, long total);
+    }
+
+    /**
+     * Moves an installed game to the other library (internal <-> SD card), both
+     * inside the EZlator folders. The two are different storages, so the folder
+     * is copied, checked (file count and size), and only then the install record
+     * moves and the old folder is deleted; on any failure the copy is removed and
+     * the game stays where it was. Shortcuts keep working: they point at
+     * C:\Program Files (x86)\Steam\steamapps\common\<folder>, and the
+     * container links are pointed at the new place at the next launch
+     * (linkLibraryInto). The downloader's depot record of the old library is
+     * cleared, so the next update checks the files once. Blocking.
+     * 설치된 게임을 다른 라이브러리로 옮김(내장 <-> SD카드, 둘 다 EZlator 폴더 안).
+     * 서로 다른 저장소라 폴더를 복사하고 확인(파일 수와 크기)한 뒤에야 설치 기록을
+     * 옮기고 원래 폴더를 지움. 중간에 실패하면 사본을 지우고 게임은 원래 자리에 남음.
+     * 바로가기는 그대로 동작함: C:\Program Files (x86)\Steam\steamapps\common\<폴더>를
+     * 가리키고, 컨테이너 링크는 다음 실행 때 새 위치로 고쳐짐(linkLibraryInto). 원래
+     * 라이브러리의 다운로더 depot 기록은 지우므로 다음 업데이트 때 파일을 한 번 확인함.
+     * 블로킹임
+     */
+    public static void moveGame(Context context, int appId, File toLibrary, MoveProgress progress) throws Exception {
+        File from = libraryOf(context, appId);
+        if (from == null) throw new IllegalStateException("not installed: " + appId);
+        if (from.getAbsolutePath().equals(toLibrary.getAbsolutePath())) return;
+        if (SteamDownloadState.isGameRunning(context)) throw new IllegalStateException(context.getString(R.string.steam_move_game_running));
+        File acf = new File(from, "appmanifest_" + appId + ".acf");
+        String dir = readInstallDir(acf);
+        if (dir == null || dir.isEmpty() || dir.contains("..")) throw new IllegalStateException("bad install folder");
+        File src = new File(from, "common/" + dir);
+        File dst = new File(toLibrary, "common/" + dir);
+        if (dst.exists()) throw new IllegalStateException(context.getString(R.string.steam_move_exists, dst.getAbsolutePath()));
+        long total = folderSize(src);
+        File parent = new File(toLibrary, "common");
+        if (!parent.isDirectory() && !parent.mkdirs()) throw new IllegalStateException("cannot create " + parent);
+        if (SteamLibraryPicker.shortfall(usable(parent), total) > 0) {
+            throw new IllegalStateException(context.getString(R.string.steam_move_no_room));
+        }
+        Log.i(DLTAG, "move app=" + appId + " " + src + " -> " + dst + " (" + total + " bytes)");
+        long[] done = {0};
+        long[] count = {0};
+        try {
+            copyTree(src, dst, done, count, total, progress);
+            // Check: same number of files and bytes / 확인: 파일 수와 바이트가 같음
+            long[] checkCount = {0};
+            long checkBytes = countTree(dst, checkCount);
+            long[] srcCount = {0};
+            long srcBytes = countTree(src, srcCount);
+            if (checkBytes != srcBytes || checkCount[0] != srcCount[0]) {
+                throw new IllegalStateException("copy check failed: " + checkCount[0] + "/" + srcCount[0] + " files");
+            }
+            FileUtils.copy(acf, new File(toLibrary, acf.getName()));
+            if (!new File(toLibrary, acf.getName()).isFile()) throw new IllegalStateException("install record not copied");
+        } catch (Exception e) {
+            FileUtils.delete(dst);
+            throw e;
+        }
+        // From here the new place is complete: the old one goes
+        // 여기부터 새 자리가 완성됨: 원래 자리를 지움
+        List<Integer> depots = new ArrayList<>();
+        for (String entry : readAcfDepots(acf).split(",")) {
+            String[] p = entry.split(":");
+            try { if (p.length > 0 && !p[0].isEmpty()) depots.add(Integer.parseInt(p[0])); }
+            catch (NumberFormatException ignored) {}
+        }
+        forgetDepotRecords(from, null, depots);
+        if (!acf.delete()) Log.w(DLTAG, "could not delete old record " + acf);
+        if (!FileUtils.delete(src)) Log.w(DLTAG, "old folder not fully deleted: " + src);
+        Log.i(DLTAG, "moved app=" + appId + ": " + count[0] + " files");
+    }
+
+    private static void copyTree(File src, File dst, long[] done, long[] count, long total, MoveProgress progress) throws java.io.IOException {
+        if (Files.isSymbolicLink(src.toPath())) {
+            Files.createSymbolicLink(dst.toPath(), Files.readSymbolicLink(src.toPath()));
+            // Counted like countTree() does (a link is one entry)
+            // countTree()와 같게 셈(링크 하나가 항목 하나)
+            count[0]++;
+            return;
+        }
+        if (src.isDirectory()) {
+            if (!dst.isDirectory() && !dst.mkdirs()) throw new java.io.IOException("cannot create " + dst);
+            File[] children = src.listFiles();
+            if (children == null) throw new java.io.IOException("cannot list " + src);
+            for (File c : children) copyTree(c, new File(dst, c.getName()), done, count, total, progress);
+            return;
+        }
+        byte[] buf = new byte[1 << 20];
+        try (java.io.InputStream in = new java.io.FileInputStream(src);
+             java.io.OutputStream out = new java.io.FileOutputStream(dst)) {
+            int n;
+            while ((n = in.read(buf)) > 0) {
+                out.write(buf, 0, n);
+                done[0] += n;
+                if (progress != null) progress.onCopied(done[0], total);
+            }
+        }
+        //noinspection ResultOfMethodCallIgnored
+        dst.setLastModified(src.lastModified());
+        count[0]++;
+    }
+
+    // Bytes and file count of a folder (links counted as files of size 0)
+    // 폴더의 바이트와 파일 수(링크는 크기 0인 파일로 셈)
+    private static long countTree(File dir, long[] count) {
+        if (Files.isSymbolicLink(dir.toPath())) { count[0]++; return 0; }
+        if (!dir.isDirectory()) { count[0]++; return dir.length(); }
+        long total = 0;
+        File[] children = dir.listFiles();
+        if (children == null) return 0;
+        for (File c : children) total += countTree(c, count);
+        return total;
+    }
+
     // ==================== Uninstall / 삭제 ====================
 
     /**
@@ -588,7 +879,8 @@ public final class SteamGameInstaller {
      * 블로킹이라 백그라운드 스레드에서 불러야 함
      */
     public static void uninstall(Context context, int appId) throws Exception {
-        File library = getLibraryDir(context);
+        File library = libraryOf(context, appId);
+        if (library == null) library = getLibraryDir(context);
         File acf = new File(library, "appmanifest_" + appId + ".acf");
         String dir = readInstallDir(acf);
         // Never touch the common folder itself or anything outside it

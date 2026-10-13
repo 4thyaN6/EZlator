@@ -679,4 +679,55 @@
     <string name="report_log_failed">제보용 로그를 만들지 못했습니다.</string>
     <string name="report_log_share">제보용 로그 공유</string>
     <string name="report_log_saved">저장됨: %1$s</string>
+
+    <!-- Saves to / from other apps / 다른 앱과 세이브 주고받기 -->
+    <string name="save_transfer_export">다른 앱용 세이브 내보내기</string>
+    <string name="save_transfer_import">다른 앱의 세이브 가져오기</string>
+    <string name="save_transfer_failed">세이브를 옮기지 못했습니다: %1$s</string>
+    <string name="save_target_gamenative">GameNative (스팀 게임)</string>
+    <string name="save_target_gamehub">GameHub</string>
+    <string name="save_target_winlator">Winlator 계열 (Winlator, WinNative, Bannerlator, DroidDeck)</string>
+    <string name="save_gamenative_sign_in">GameNative 형식은 스팀의 세이브 목록이 필요합니다. 먼저 스팀에 로그인해 주세요.</string>
+    <string name="save_gamenative_none">세이브 파일이 있는 스팀 게임을 찾지 못했습니다.</string>
+    <string name="save_export_game_title">세이브 추출: %1$s</string>
+    <string name="save_export_size">파일 %1$d개, 약 %2$s입니다. 내보낼까요?</string>
+    <string name="save_export_go">내보내기</string>
+    <string name="save_export_written">파일 %1$d개를 썼습니다: %2$s</string>
+    <string name="save_import_confirm">먼저 현재 세이브를 백업합니다(설정 > 세이브 복원으로 되돌릴 수 있음). 묶음 안의 세이브가 같은 이름의 파일을 덮어씁니다. 가져올까요?</string>
+    <string name="save_import_done">가져왔습니다(%1$s): 파일 %2$d개, 건너뜀 %3$d개</string>
+    <!-- Steam library on the SD card / SD카드의 스팀 라이브러리 -->
+    <string name="steam_library_sd">스팀 게임을 SD카드(E:)에 설치</string>
+    <string name="steam_library_sd_hint">끄면 새 게임을 내장 메모리(D:)에 설치합니다. 공간이 부족하면 다운로드 전에 설치된 게임을 지울지 옮길지 묻습니다. 이미 설치한 게임은 그대로 둡니다.</string>
+    <string name="steam_library_sd_missing">EZlator 폴더가 있는 SD카드를 찾지 못했습니다.</string>
+
+    <!-- Room check before a Steam download / 스팀 다운로드 전 공간 확인 -->
+    <string name="steam_space_checking">필요한 공간을 확인하는 중…</string>
+    <string name="steam_space_title">공간이 부족합니다</string>
+    <string name="steam_space_message">%1$s에 약 %2$s가 필요합니다. %3$s의 남은 공간은 %4$s로 %5$s가 부족합니다.
+
+삭제하기: 이곳에 설치된 게임을 지웁니다.
+옮기기: 설치된 게임을 다른 저장소로 옮깁니다(내장 메모리와 SD카드의 EZlator 폴더끼리만).</string>
+    <string name="steam_space_close">닫기</string>
+    <string name="steam_space_delete">삭제하기</string>
+    <string name="steam_space_move">옮기기</string>
+    <string name="steam_space_reading">설치된 게임을 읽는 중…</string>
+    <string name="steam_space_no_games">이곳에 설치된 다른 게임이 없습니다.</string>
+    <string name="steam_space_pick_move">옮길 게임(%1$s 이상 비우기)</string>
+    <string name="steam_space_pick_delete">지울 게임(%1$s 이상 비우기)</string>
+    <string name="steam_space_not_enough">%1$s가 더 필요합니다. 게임을 더 골라 주세요.</string>
+    <string name="steam_space_install_other">%1$s에 설치</string>
+    <string name="steam_space_delete_confirm">게임 %1$d개(%2$s)를 지울까요? 공용 세이브 폴더의 세이브는 남지만, 게임 폴더 안에 저장하는 세이브는 함께 지워집니다.</string>
+    <string name="steam_space_working">공간을 비우는 중…</string>
+    <string name="steam_space_deleting">%1$s 지우는 중…</string>
+    <string name="steam_space_moving">%1$s 옮기는 중… %2$d%%</string>
+    <string name="steam_space_other_full">%1$s에 공간이 부족합니다(남은 공간 %2$s).</string>
+    <string name="steam_space_move_failed">게임을 옮기지 못해 원래 자리에 그대로 두었습니다: %1$s</string>
+    <string name="steam_storage_internal">내장 메모리(D:)</string>
+    <string name="steam_storage_sd">SD카드(E:)</string>
+    <string name="steam_move_game_running">게임이 실행 중입니다. 먼저 게임을 닫아 주세요.</string>
+    <string name="steam_move_exists">옮길 곳에 같은 폴더가 이미 있습니다: %1$s</string>
+    <string name="steam_move_no_room">다른 저장소에 공간이 부족합니다.</string>
+    <!-- Settings sections / 설정 구역 -->
+    <string name="settings_download">다운로드</string>
+    <string name="settings_controller_frontend">컨트롤러·프런트엔드</string>
 </resources>

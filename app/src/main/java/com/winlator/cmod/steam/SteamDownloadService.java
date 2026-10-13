@@ -48,6 +48,9 @@ public class SteamDownloadService extends Service {
     public static final String EXTRA_APP_ID = "appId";
     public static final String EXTRA_NAME = "name";
     public static final String EXTRA_IS_UPDATE = "isUpdate";
+    // Library folder picked before the download (SteamSpaceCheck); absent = Settings choice
+    // 다운로드 전에 고른 라이브러리 폴더(SteamSpaceCheck). 없으면 설정의 선택
+    public static final String EXTRA_LIBRARY = "library";
     public static final String PREF_PAUSE_DURING_GAME = "steam_dl_pause_during_game";
     private static final String CHANNEL_ID = "steam_download";
     private static final int NOTIFICATION_ID = 4901;
@@ -105,6 +108,8 @@ public class SteamDownloadService extends Service {
                 state.appId = appId;
                 state.name = intent.getStringExtra(EXTRA_NAME);
                 state.isUpdate = intent.getBooleanExtra(EXTRA_IS_UPDATE, false);
+                String lib = intent.getStringExtra(EXTRA_LIBRARY);
+                requestedLibrary = lib != null && !lib.isEmpty() ? new File(lib) : null;
                 state.percent = 0;
                 state.result = "";
                 state.paused = false;
@@ -178,6 +183,9 @@ public class SteamDownloadService extends Service {
         } catch (Exception ignored) {}
     }
 
+    // See EXTRA_LIBRARY / EXTRA_LIBRARY 참고
+    private File requestedLibrary;
+
     private void startWorker() {
         acquireLocks();
         stopRequested = false;
@@ -199,7 +207,7 @@ public class SteamDownloadService extends Service {
                             @Override public void onStatus(String text) { state.status = text; }
                             @Override public void onPercent(int p) { state.percent = p; }
                             @Override public void onInstallDir(File dir) { state.installDir = dir.getAbsolutePath(); }
-                        }, myCancel);
+                        }, myCancel, requestedLibrary);
                 // Visual C++ 2015-2022: read the Microsoft installers that came with
                 // the game (or Steamworks Shared) and keep the newest DLLs in imagefs
                 // Visual C++ 2015~2022: 게임(또는 Steamworks Shared)과 함께 받은

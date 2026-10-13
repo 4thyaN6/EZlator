@@ -785,4 +785,55 @@
     <string name="report_log_failed">Could not make the report log.</string>
     <string name="report_log_share">Share the report log</string>
     <string name="report_log_saved">Saved: %1$s</string>
+
+    <!-- Saves to / from other apps / 다른 앱과 세이브 주고받기 -->
+    <string name="save_transfer_export">Export saves for another app</string>
+    <string name="save_transfer_import">Import saves from another app</string>
+    <string name="save_transfer_failed">Could not move the saves: %1$s</string>
+    <string name="save_target_gamenative">GameNative (Steam games)</string>
+    <string name="save_target_gamehub">GameHub</string>
+    <string name="save_target_winlator">Winlator family (Winlator, WinNative, Bannerlator, DroidDeck)</string>
+    <string name="save_gamenative_sign_in">The GameNative format needs the save list from Steam. Sign in to Steam first.</string>
+    <string name="save_gamenative_none">No Steam game with save files was found.</string>
+    <string name="save_export_game_title">Export saves: %1$s</string>
+    <string name="save_export_size">%1$d files, about %2$s. Export?</string>
+    <string name="save_export_go">Export</string>
+    <string name="save_export_written">%1$d files written: %2$s</string>
+    <string name="save_import_confirm">The current saves are backed up first (Settings > Restore saves can bring them back). Saves in the archive replace files with the same name. Import?</string>
+    <string name="save_import_done">Imported (%1$s): %2$d files, %3$d skipped</string>
+    <!-- Steam library on the SD card / SD카드의 스팀 라이브러리 -->
+    <string name="steam_library_sd">Install Steam games on the SD card (E:)</string>
+    <string name="steam_library_sd_hint">Off: new games go to internal storage (D:). When the space is short, the app asks before the download whether to delete or move installed games. Games already installed stay where they are.</string>
+    <string name="steam_library_sd_missing">No SD card with an EZlator folder was found.</string>
+
+    <!-- Room check before a Steam download / 스팀 다운로드 전 공간 확인 -->
+    <string name="steam_space_checking">Checking the space needed…</string>
+    <string name="steam_space_title">Not enough space</string>
+    <string name="steam_space_message">%1$s needs about %2$s. %3$s has %4$s free, %5$s short.
+
+Delete: remove installed games here.
+Move: move installed games to the other storage (internal storage and SD card, EZlator folders only).</string>
+    <string name="steam_space_close">Close</string>
+    <string name="steam_space_delete">Delete</string>
+    <string name="steam_space_move">Move</string>
+    <string name="steam_space_reading">Reading installed games…</string>
+    <string name="steam_space_no_games">There are no other installed games here.</string>
+    <string name="steam_space_pick_move">Games to move (free %1$s or more)</string>
+    <string name="steam_space_pick_delete">Games to delete (free %1$s or more)</string>
+    <string name="steam_space_not_enough">%1$s more is needed. Pick more games.</string>
+    <string name="steam_space_install_other">Install on %1$s</string>
+    <string name="steam_space_delete_confirm">Delete %1$d game(s), %2$s? Saves in the shared save folder stay; saves a game keeps inside its own folder are deleted with it.</string>
+    <string name="steam_space_working">Making room…</string>
+    <string name="steam_space_deleting">Deleting %1$s…</string>
+    <string name="steam_space_moving">Moving %1$s… %2$d%%</string>
+    <string name="steam_space_other_full">%1$s does not have enough space (%2$s free).</string>
+    <string name="steam_space_move_failed">Could not move the game, it stays where it was: %1$s</string>
+    <string name="steam_storage_internal">Internal storage (D:)</string>
+    <string name="steam_storage_sd">SD card (E:)</string>
+    <string name="steam_move_game_running">A game is running. Close it first.</string>
+    <string name="steam_move_exists">The folder already exists there: %1$s</string>
+    <string name="steam_move_no_room">Not enough space on the other storage.</string>
+    <!-- Settings sections / 설정 구역 -->
+    <string name="settings_download">Downloads</string>
+    <string name="settings_controller_frontend">Controller &amp; frontend</string>
 </resources>

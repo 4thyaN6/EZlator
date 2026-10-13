@@ -1542,13 +1542,11 @@ public class ShortcutsFragment extends Fragment {
             listItemMenu.inflate(R.menu.shortcut_popup_menu);
             listItemMenu.setOnMenuItemClickListener((menuItem) -> {
                 int itemId = menuItem.getItemId();
-                if (itemId == R.id.shortcut_run) {
-                    runFromShortcut(shortcut);
-                }
-                else if (itemId == R.id.shortcut_settings) {
-                    (new ShortcutSettingsDialog(ShortcutsFragment.this, shortcut)).show();
-                }
-                else if (itemId == R.id.shortcut_multiplayer) {
+                // Run / Settings / Remove / Clone left this menu: the first three are
+                // on the detail sheet (see shortcut_popup_menu.xml)
+                // 실행 / 설정 / 삭제 / 복제는 이 메뉴에서 뺌: 앞의 셋은 상세창에 있음
+                // (shortcut_popup_menu.xml 참고)
+                if (itemId == R.id.shortcut_multiplayer) {
                     // "Multiplayer settings": which physical controller is which
                     // player. Works outside a game (no WinHandler) and is saved
                     // by the controller manager for the next launch
@@ -1556,41 +1554,6 @@ public class ShortcutsFragment extends Fragment {
                     // 동작하고(WinHandler 없음) 컨트롤러 관리자가 저장해서 다음 실행에
                     // 쓰임
                     com.winlator.cmod.contentdialog.ControllerAssignmentDialog.show(context);
-                }
-                else if (itemId == R.id.shortcut_remove) {
-                    // Same path as the detail sheet's Remove button
-                    // 상세창의 삭제 버튼과 같은 경로임
-                    confirmRemoveShortcut(shortcut);
-                }
-                else if (itemId == R.id.shortcut_clone_to_container) {
-                    // Every container except the one the shortcut is already in
-                    // 숏컷이 이미 들어 있는 컨테이너를 뺀 나머지 전부
-                    ArrayList<Container> containers = new ArrayList<>();
-                    for (Container c : new ContainerManager(context).getContainers()) {
-                        if (c.id != shortcut.container.id) containers.add(c);
-                    }
-                    if (containers.isEmpty()) {
-                        Toast.makeText(context, R.string.shortcut_clone_no_other_container, Toast.LENGTH_SHORT).show();
-                        return true;
-                    }
-                    showContainerSelectionDialog(containers, selectedContainer -> {
-                        // Same refusals as moving: an exe on this container's C:
-                        // cannot run elsewhere, and an existing same-name shortcut
-                        // in the target would be overwritten
-                        // 이동과 같은 거부 조건임: 이 컨테이너의 C:에 있는 exe는 다른
-                        // 곳에서 실행 안 되고, 대상에 같은 이름이 있으면 덮어써짐
-                        int checked = com.winlator.cmod.container.ShortcutMover.check(shortcut, selectedContainer);
-                        if (checked == com.winlator.cmod.container.ShortcutMover.C_DRIVE_BLOCKED) {
-                            Toast.makeText(context, R.string.shortcut_move_c_drive_blocked, Toast.LENGTH_LONG).show();
-                        } else if (checked == com.winlator.cmod.container.ShortcutMover.NAME_EXISTS) {
-                            Toast.makeText(context, R.string.shortcut_move_name_exists, Toast.LENGTH_LONG).show();
-                        } else if (shortcut.cloneToContainer(selectedContainer)) {
-                            Toast.makeText(context, R.string.shortcut_cloned, Toast.LENGTH_SHORT).show();
-                            loadShortcutsList();
-                        } else {
-                            Toast.makeText(context, R.string.shortcut_clone_failed, Toast.LENGTH_SHORT).show();
-                        }
-                    });
                 }
                 else if (itemId == R.id.shortcut_export_to_frontend) {
                     exportShortcutToFrontend(shortcut);
@@ -1610,40 +1573,6 @@ public class ShortcutsFragment extends Fragment {
                 return true;
             });
             listItemMenu.show();
-        }
-
-        // Define the listener interface for selecting a container
-        public interface OnContainerSelectedListener {
-            void onContainerSelected(Container container);
-        }
-
-        private void showContainerSelectionDialog(ArrayList<Container> containers, OnContainerSelectedListener listener) {
-            // Create an AlertDialog to show the list of containers
-            AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-            builder.setTitle(R.string.shortcut_select_container);
-
-            // Create an array of container names to display
-            String[] containerNames = new String[containers.size()];
-            for (int i = 0; i < containers.size(); i++) {
-                containerNames[i] = containers.get(i).getName();
-            }
-
-            // Set up the list in the dialog
-            builder.setItems(containerNames, (dialog, which) -> {
-                // Call the listener when a container is selected
-                listener.onContainerSelected(containers.get(which));
-            });
-
-            // Show the dialog
-            builder.show();
-        }
-
-        private void runFromShortcut(Shortcut shortcut) {
-            // Delegates so that every launch path - popup menu and the START
-            // button in the detail sheet - records playtime the same way.
-            // 팝업 메뉴든 상세창의 시작 버튼이든, 모든 실행 경로가 똑같이
-            // 플레이 시간을 기록하도록 위임함
-            ShortcutsFragment.this.launchShortcut(shortcut);
         }
 
         // Turns the export folder into a short label for the guide (e.g. "Download/.EZlator/Frontend")
@@ -2149,8 +2078,19 @@ public class ShortcutsFragment extends Fragment {
     // 바로가기 extra: 게임 폴더의 재배포 설치 파일을 이미 확인함
     private static final String EXTRA_REDIST_CHECKED = "redistChecked";
 
-    // Looks in the game folder off the main thread, then asks or goes on
-    // 게임 폴더를 메인 스레드 밖에서 살펴본 뒤 묻거나 그대로 진행함
+    // Looks in the game folder off the main thread and goes on without asking.
+    // A game that ships the Visual C++ 2015-2022 installer gets the option turned
+    // on for this game only, when the Microsoft files were already taken (the
+    // user agreed to the license once, in Win Components). Before that agreement
+    // nothing is changed and Wine's builtin DLLs are used; the agreement screen is
+    // never opened from here. Steam games are covered anyway: the Steam agent runs
+    // the game's own redistributable installers inside the container
+    // 게임 폴더를 메인 스레드 밖에서 살펴보고 묻지 않고 진행함. Visual C++
+    // 2015~2022 설치 파일을 함께 주는 게임은, Microsoft 파일을 이미 받아 둔 경우
+    // (사용자가 Windows 구성요소에서 사용 조건에 한 번 동의함) 이 게임에만 항목을 켬.
+    // 동의 전에는 아무것도 바꾸지 않고 Wine 기본 DLL을 씀. 여기서 동의 화면을 열지
+    // 않음. 스팀 게임은 어차피 스팀 에이전트가 게임의 재배포 설치 파일을 컨테이너
+    // 안에서 실행함
     private void checkRedistThenLaunch(Activity activity, Shortcut shortcut) {
         String wincomponents = shortcut.getExtra("wincomponents", shortcut.container.getWinComponents());
         boolean vcOn = "1".equals(new KeyValueSet(wincomponents).get(com.winlator.cmod.core.VCRedistInstaller.ID, "0"));
@@ -2161,8 +2101,10 @@ public class ShortcutsFragment extends Fragment {
             return;
         }
         final String exeWin = com.winlator.cmod.container.ShortcutRelocator.exePart(shortcut.path);
+        final Context app = activity.getApplicationContext();
         Executors.newSingleThreadExecutor().execute(() -> {
             java.util.List<File> found = java.util.Collections.emptyList();
+            boolean turnedOn = false;
             try {
                 File exe = winPathToFile(shortcut.container, exeWin);
                 File gameDir = exe != null ? exe.getParentFile() : null;
@@ -2173,40 +2115,25 @@ public class ShortcutsFragment extends Fragment {
                         && !isDriveRoot(shortcut.container, gameDir.getParentFile())) {
                     found = com.winlator.cmod.core.RedistDetector.findVcRedist2015(gameDir.getParentFile());
                 }
+                if (!found.isEmpty()) {
+                    if (com.winlator.cmod.core.VCRedistInstaller.isInstalled(com.winlator.cmod.xenvironment.ImageFs.find(app))) {
+                        // Turned on for this game only (shortcut setting)
+                        // 이 게임에만 켬(바로가기 설정)
+                        KeyValueSet set = new KeyValueSet(wincomponents);
+                        set.put(com.winlator.cmod.core.VCRedistInstaller.ID, "1");
+                        shortcut.putExtra("wincomponents", set.toString());
+                        shortcut.saveData();
+                        turnedOn = true;
+                    }
+                    android.util.Log.i("ShortcutsFragment", "Visual C++ 2015-2022 installer with the game: "
+                            + found.get(0).getName() + (turnedOn ? " - turned on for this game"
+                            : " - Microsoft files not taken yet, left off"));
+                }
             } catch (Exception e) {
                 android.util.Log.w("ShortcutsFragment", "redist check failed", e);
             }
-            final boolean hasVc = !found.isEmpty();
-            if (hasVc) android.util.Log.i("ShortcutsFragment", "Visual C++ 2015-2022 installer with the game: " + found.get(0).getName());
             activity.runOnUiThread(() -> {
-                if (!isAdded()) return;
-                if (!hasVc) { launchShortcutChecked(shortcut); return; }
-                new AlertDialog.Builder(activity)
-                        .setTitle(R.string.vcrun2015)
-                        .setMessage(getString(R.string.redist_vc_suggest, shortcut.name))
-                        .setPositiveButton(R.string.redist_vc_turn_on, (d, w) -> {
-                            // Turned on for this game only (shortcut setting)
-                            // 이 게임에만 켬(바로가기 설정)
-                            final String before = shortcut.getExtra("wincomponents", null);
-                            KeyValueSet set = new KeyValueSet(wincomponents);
-                            set.put(com.winlator.cmod.core.VCRedistInstaller.ID, "1");
-                            shortcut.putExtra("wincomponents", set.toString());
-                            shortcut.saveData();
-                            // Agreement and download the first time; cancelling the agreement
-                            // puts the setting back. The launch goes on either way
-                            // 처음이면 동의와 받기를 거침. 동의를 취소하면 설정을 되돌림. 결과와
-                            // 상관없이 실행은 이어짐
-                            com.winlator.cmod.core.VCRedistInstaller.ensureInstalled(activity, ok -> {
-                                if (!ok) {
-                                    shortcut.putExtra("wincomponents", before);
-                                    shortcut.saveData();
-                                }
-                                if (isAdded()) launchShortcutChecked(shortcut);
-                            });
-                        })
-                        .setNegativeButton(R.string.redist_vc_keep_off, (d, w) -> launchShortcutChecked(shortcut))
-                        .setOnCancelListener(d -> launchShortcutChecked(shortcut))
-                        .show();
+                if (isAdded()) launchShortcutChecked(shortcut);
             });
         });
     }
@@ -2738,10 +2665,11 @@ public class ShortcutsFragment extends Fragment {
     // Windows environment with its own settings and save location in drive C)
     // 먼저 물어봄. 게임이 다른 컨테이너(설정과 C 드라이브 저장 위치가 따로인 별도
     // Windows 환경)로 옮겨지기 때문임
-    // After a game ended within 30 s: offer a tier that is not installed yet,
-    // Stable first, then Legacy - each tier is offered only once
-    // 게임이 30초 안에 끝난 뒤: 아직 설치하지 않은 단계를 권함. Stable(안정) 다음
-    // Legacy(레거시) 순이고, 단계마다 한 번만 권함
+    // After a game ended within 30 s: offer a tier that is not installed yet and
+    // is not the game's own, in menu order (Latest, Legacy) - each tier is offered
+    // only once
+    // 게임이 30초 안에 끝난 뒤: 아직 설치하지 않았고 게임 자신의 단계도 아닌 단계를
+    // 메뉴 순서(Latest(최신), Legacy(레거시))로 권함. 단계마다 한 번만 권함
     private void maybeRecommendLayer() {
         final Context context = getContext();
         if (context == null) return;
@@ -2774,8 +2702,9 @@ public class ShortcutsFragment extends Fragment {
             return;
         }
         final boolean arm64ec = ContainerManager.isArm64EC(shortcut.container);
-        for (com.winlator.cmod.container.LayerTiers.Tier tier : new com.winlator.cmod.container.LayerTiers.Tier[]{
-                com.winlator.cmod.container.LayerTiers.TIER_STABLE, com.winlator.cmod.container.LayerTiers.TIER_LEGACY}) {
+        final String ownTier = com.winlator.cmod.container.LayerTiers.tierOf(shortcut.container);
+        for (com.winlator.cmod.container.LayerTiers.Tier tier : com.winlator.cmod.container.LayerTiers.ALL) {
+            if (tier.id.equals(ownTier)) continue;
             String shownKey = "layer_hint_shown_" + tier.id;
             if (prefs.getBoolean(shownKey, false)) continue;
             if (com.winlator.cmod.container.LayerTiers.findContainer(manager, tier.id, arm64ec) != null) continue;
@@ -2793,28 +2722,17 @@ public class ShortcutsFragment extends Fragment {
     }
 
     // Long-press menu "Export saves": packs only this game's save folders
-    // (SharedSaves.exportGame()) into Download/.EZlator/Saves
+    // (SharedSaves.gameUnits(), SaveTransferUi.exportGame()) into Download/.EZlator/Saves
     // 길게 누르기 메뉴 "세이브 추출": 이 게임의 세이브 폴더만
-    // (SharedSaves.exportGame()) Download/.EZlator/Saves로 묶음
+    // (SharedSaves.gameUnits(), SaveTransferUi.exportGame()) Download/.EZlator/Saves로 묶음
     private void exportGameSaves(final Shortcut shortcut) {
         final Activity activity = getActivity();
         if (activity == null) return;
-        final Context app = activity.getApplicationContext();
-        preloaderDialog.show(R.string.save_working);
-        Executors.newSingleThreadExecutor().execute(() -> {
-            java.io.File out = null;
-            try {
-                out = com.winlator.cmod.container.SharedSaves.exportGame(app, shortcut);
-            } catch (Exception e) {
-                android.util.Log.e("ShortcutsFragment", "save export failed", e);
-            }
-            final java.io.File result = out;
-            activity.runOnUiThread(() -> {
-                preloaderDialog.close();
-                Toast.makeText(app, result != null ? app.getString(R.string.save_export_done, result.getName())
-                        : app.getString(R.string.save_export_none), Toast.LENGTH_LONG).show();
-            });
-        });
+        // Asks the target app (GameNative for Steam games, GameHub, Winlator family)
+        // and shows the size first; written as a zip to Download/.EZlator/Saves
+        // 대상 앱(스팀 게임은 GameNative, GameHub, Winlator 계열)을 묻고 크기를 먼저
+        // 보여 줌. Download/.EZlator/Saves에 zip으로 씀
+        com.winlator.cmod.container.SaveTransferUi.exportGame(activity, shortcut);
     }
 
     // Text of the layer picker button

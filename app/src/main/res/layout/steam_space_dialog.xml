@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Not enough room for a Steam download (SteamSpaceCheck): message and three
+     equal buttons, Close / Delete / Move from left to right
+     스팀 다운로드 공간 부족(SteamSpaceCheck): 안내와 같은 폭의 버튼 3개,
+     왼쪽부터 닫기 / 삭제하기 / 옮기기 -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/TVSpaceMessage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="14sp"
+        android:lineSpacingMultiplier="1.2"
+        android:textColor="?attr/neonText" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/BTSpaceClose"
+            style="@style/NeonButtonGhost"
+            android:layout_width="0dp"
+            android:layout_height="46dp"
+            android:layout_weight="1"
+            android:paddingLeft="4dp"
+            android:paddingRight="4dp"
+            android:text="@string/steam_space_close" />
+
+        <Button
+            android:id="@+id/BTSpaceDelete"
+            style="@style/NeonButtonGhost"
+            android:layout_width="0dp"
+            android:layout_height="46dp"
+            android:layout_weight="1"
+            android:paddingLeft="4dp"
+            android:paddingRight="4dp"
+            android:layout_marginStart="6dp"
+            android:text="@string/steam_space_delete" />
+
+        <Button
+            android:id="@+id/BTSpaceMove"
+            style="@style/NeonButtonGhost"
+            android:layout_width="0dp"
+            android:layout_height="46dp"
+            android:layout_weight="1"
+            android:paddingLeft="4dp"
+            android:paddingRight="4dp"
+            android:layout_marginStart="6dp"
+            android:text="@string/steam_space_move" />
+    </LinearLayout>
+</LinearLayout>

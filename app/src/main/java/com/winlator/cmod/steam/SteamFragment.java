@@ -79,8 +79,27 @@ public class SteamFragment extends Fragment {
     // from a background thread. null when signed out or the sign-in fails
     // SteamUpdateChecker와 함께 쓰는 세션임(같은 UI 프로세스). 동기식이라
     // 백그라운드 스레드에서 불러야 함. 로그아웃 상태거나 로그인 실패면 null
-    static synchronized SteamSession sharedSession(Context context) {
-        if (session != null) return session;
+    // A kept session that Steam has logged off (the same account logged on again
+    // from this device, e.g. a save export or the download process) is closed and
+    // opened again; it used to be handed out as it was and every request failed
+    // 스팀이 로그오프한 보관 세션(같은 계정이 이 기기에서 다시 로그온함, 예: 세이브
+    // 내보내기, 다운로드 프로세스)은 닫고 다시 엶. 예전에는 그대로 내줘서 모든 요청이
+    // 실패했음
+    public static synchronized SteamSession sharedSession(Context context) {
+        if (session != null && session.isAlive()) return session;
+        // While the download process is signed in, a new log on here would make
+        // Steam log that one off and break the download: no session until it ends
+        // 다운로드 프로세스가 로그온해 있는 동안 여기서 새로 로그온하면 스팀이 그쪽을
+        // 로그오프해 다운로드가 깨짐: 다운로드가 끝날 때까지 세션을 주지 않음
+        if (SteamDownloadState.read(context).running) {
+            Log.i(TAG, "shared session not opened: a download is signed in");
+            return null;
+        }
+        if (session != null) {
+            Log.i(TAG, "shared session was logged off, opening it again");
+            session.close();
+            session = null;
+        }
         SteamAccountStore st = new SteamAccountStore(context);
         if (!st.isLoggedIn()) return null;
         try {
@@ -470,6 +489,12 @@ public class SteamFragment extends Fragment {
         tvLibraryStatus.setText(R.string.steam_loading_games);
         new Thread(() -> {
             try {
+                // Same rule as sharedSession(): a logged-off session is opened again
+                // sharedSession()과 같은 규칙: 로그오프된 세션은 다시 엶
+                if (session != null && !session.isAlive()) {
+                    session.close();
+                    session = null;
+                }
                 if (session == null) {
                     SteamSession s = new SteamSession();
                     s.open(store);
@@ -546,7 +571,8 @@ public class SteamFragment extends Fragment {
     // 이미 받은 게임은 끝쪽의 별도 구역으로 "설치됨 (n)" 머리글 아래에 모음.
     // 설치됨 = EZlator 스팀 라이브러리에 appmanifest가 있음
     private boolean isInstalled(int appId) {
-        return new File(SteamGameInstaller.getLibraryDir(requireContext()), "appmanifest_" + appId + ".acf").isFile();
+        // Either library (internal or SD card) / 어느 라이브러리든(내장 또는 SD카드)
+        return SteamGameInstaller.libraryOf(requireContext(), appId) != null;
     }
 
     private void applyFilter() {
@@ -886,8 +912,13 @@ public class SteamFragment extends Fragment {
             tvLibraryStatus.setText(getString(R.string.steam_dl_busy, current.name));
             return;
         }
-        SteamDownloadState.start(requireContext(), game.appId, game.name);
-        dlPanel.refresh();
+        // Room is checked first; only when it is short the user picks
+        // close / delete / move (SteamSpaceCheck)
+        // 먼저 공간을 확인함. 모자랄 때만 사용자가 닫기 / 삭제하기 / 옮기기를 고름
+        // (SteamSpaceCheck)
+        SteamSpaceCheck.startDownload(requireActivity(), game.appId, game.name, () -> {
+            if (isAdded()) dlPanel.refresh();
+        });
     }
 
     // Fetch the SteamLite agent once, right after sign-in

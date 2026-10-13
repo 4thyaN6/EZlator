@@ -152,7 +152,7 @@
                         android:focusable="true"
                         android:focusableInTouchMode="true"
                         android:clickable="true"
-                        android:spinnerMode="dialog" />
+                        android:spinnerMode="dropdown" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -515,7 +515,7 @@
                         android:focusable="true"
                         android:focusableInTouchMode="true"
                         android:clickable="true"
-                        android:spinnerMode="dialog" />
+                        android:spinnerMode="dropdown" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -593,7 +593,7 @@
                         style="@style/NeonComboBox"
                         android:id="@+id/SBox64Version"
                         android:layout_width="match_parent"
-                        android:spinnerMode="dialog" />
+                        android:spinnerMode="dropdown" />
 
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/box64_preset" />
@@ -604,7 +604,7 @@
                         style="@style/NeonComboBox"
                         android:id="@+id/SBox64Preset"
                         android:layout_width="match_parent"
-                        android:spinnerMode="dialog" />
+                        android:spinnerMode="dropdown" />
 
                     <LinearLayout
                         android:layout_width="match_parent"

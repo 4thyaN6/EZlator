@@ -23,7 +23,7 @@
             android:layout_width="match_parent"
             android:id="@+id/Spinner"
             android:visibility="gone"
-            android:spinnerMode="dialog"/>
+            android:spinnerMode="dropdown"/>
 
         <LinearLayout
             android:id="@+id/LLMultiSelectArea"

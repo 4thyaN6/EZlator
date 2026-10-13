@@ -37,7 +37,8 @@ public final class SteamUpdateChecker {
             boolean available = false;
             boolean known = false;
             try {
-                File acf = new File(SteamGameInstaller.getLibraryDir(app), "appmanifest_" + appId + ".acf");
+                // Internal or SD card library / 내장 또는 SD카드 라이브러리
+                File acf = SteamGameInstaller.acfOf(app, appId);
                 String local = acf.isFile() ? SteamGameInstaller.readAcfValue(acf, "buildid") : null;
                 if (local != null && !local.isEmpty()) {
                     String remote;

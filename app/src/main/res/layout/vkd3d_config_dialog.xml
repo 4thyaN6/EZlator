@@ -39,7 +39,7 @@
             style="@style/NeonComboBox"
             android:layout_width="match_parent"
             android:id="@+id/SDxvkVersion"
-            android:spinnerMode="dialog" />
+            android:spinnerMode="dropdown" />
 
         <!-- VKD3D-Proton version itself -->
         <!-- VKD3D-Proton 자체 버전 -->
@@ -52,7 +52,7 @@
             style="@style/NeonComboBox"
             android:layout_width="match_parent"
             android:id="@+id/SVKD3D_Version"
-            android:spinnerMode="dialog" />
+            android:spinnerMode="dropdown" />
 
         <!-- Direct3D 12 feature level exposed to the game -->
         <!-- 게임에 노출할 Direct3D 12 기능 레벨(Feature Level) -->
@@ -65,7 +65,7 @@
             style="@style/NeonComboBox"
             android:layout_width="match_parent"
             android:id="@+id/SFeatureLevel"
-            android:spinnerMode="dialog" />
+            android:spinnerMode="dropdown" />
 
     </LinearLayout>
 </ScrollView>

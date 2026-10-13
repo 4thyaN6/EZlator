@@ -115,6 +115,17 @@ public class SettingsFragment extends Fragment {
 
     private static final int REQUEST_CODE_FRONTEND_EXPORT_PATH = 1002;
     private static final int REQUEST_CODE_INSTALL_SOUNDFONT = 1001;
+    // Save archive from another app (SaveTransferUi.importPicked)
+    // 다른 앱의 세이브 묶음(SaveTransferUi.importPicked)
+    private static final int REQUEST_CODE_SAVE_IMPORT = 1003;
+
+    // Game language also in LC_ALL (Container section). On by default: Korean-patched
+    // games need it, and it is only turned off when a game in a folder with a Korean
+    // name does not start. Read by XServerDisplayActivity
+    // LC_ALL에도 게임 언어 적용(컨테이너 구역). 기본 켜짐: 한국어 패치 게임에 필요하고,
+    // 한글 이름 폴더의 게임이 실행되지 않을 때만 끔. XServerDisplayActivity가 읽음
+    public static final String PREF_REAL_LOCALE = "wine_real_locale";
+    public static final boolean REAL_LOCALE_DEFAULT = true;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -141,6 +152,17 @@ public class SettingsFragment extends Fragment {
 
         // Check for Dark Mode preference
         isDarkMode = preferences.getBoolean("dark_mode", false);
+
+        // Sections a beginner does not need start closed; Theme and System files
+        // stay open (see settings_fragment.xml)
+        // 초보자에게 필요 없는 구역은 닫힌 채 시작함. 테마와 시스템 파일은 펼친 채
+        // 둠(settings_fragment.xml 참고)
+        setupFold(view, R.id.TVFoldDownload, R.id.LLBodyDownload, R.id.TVDownload);
+        setupFold(view, R.id.TVFoldFrameRate, R.id.LLBodyFrameRate, R.id.TVFrameRate);
+        setupFold(view, R.id.TVFoldContainer, R.id.LLBodyContainer, R.id.TVBox86Box64);
+        setupFold(view, R.id.TVFoldController, R.id.LLBodyController, R.id.TVGameControllerLabel);
+        setupFold(view, R.id.TVFoldExperimental, R.id.LLBodyExperimental, R.id.TVExperimental);
+        setupFold(view, R.id.TVFoldLogs, R.id.LLBodyLogs, R.id.TVLogs);
 
         // Initialize the Dark Mode checkbox
         cbDarkMode = view.findViewById(R.id.CBDarkMode);
@@ -169,12 +191,12 @@ public class SettingsFragment extends Fragment {
         // off = no limit. Read by SteamDownloadService every half second
         // 게임 중 스팀 다운로드: 켜짐 = 일시정지(게임이 끝나면 이어 받음),
         // 꺼짐 = 제한 없음. SteamDownloadService가 0.5초마다 읽음
-        // Game language in LC_ALL too (off by default)
-        // LC_ALL에도 게임 언어 적용(기본 꺼짐)
+        // Game language in LC_ALL too (on by default, see PREF_REAL_LOCALE)
+        // LC_ALL에도 게임 언어 적용(기본 켜짐, PREF_REAL_LOCALE 참고)
         SwitchCompat cbRealLocale = view.findViewById(R.id.CBWineRealLocale);
-        cbRealLocale.setChecked(preferences.getBoolean("wine_real_locale", false));
+        cbRealLocale.setChecked(preferences.getBoolean(PREF_REAL_LOCALE, REAL_LOCALE_DEFAULT));
         cbRealLocale.setOnCheckedChangeListener((buttonView, isChecked) ->
-                preferences.edit().putBoolean("wine_real_locale", isChecked).apply());
+                preferences.edit().putBoolean(PREF_REAL_LOCALE, isChecked).apply());
 
         // Shortcut detail sheet: start with the lower part folded
         // 숏컷 상세창: 아래 부분을 접은 채 시작
@@ -412,6 +434,35 @@ public class SettingsFragment extends Fragment {
         });
         view.findViewById(R.id.BTSaveRestore).setOnClickListener(v -> pickSaveBackup());
 
+        // Saves to / from other apps: the target app is asked first, the size is
+        // shown before writing; an import backs the current saves up first
+        // 다른 앱과 세이브 주고받기: 먼저 대상 앱을 묻고, 쓰기 전에 크기를 보여 줌.
+        // 가져오기는 먼저 현재 세이브를 백업함
+        view.findViewById(R.id.BTSaveExport).setOnClickListener(v -> {
+            if (getActivity() != null) com.winlator.cmod.container.SaveTransferUi.exportAll(getActivity());
+        });
+        view.findViewById(R.id.BTSaveImport).setOnClickListener(v -> {
+            Intent pick = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+            pick.addCategory(Intent.CATEGORY_OPENABLE);
+            pick.setType("*/*");
+            startActivityForResult(pick, REQUEST_CODE_SAVE_IMPORT);
+        });
+
+        // Steam library on the SD card (E:): saved at once, used by the next download
+        // SD카드(E:)의 스팀 라이브러리: 바로 저장하고 다음 다운로드부터 씀
+        final SwitchCompat cbSteamLibrarySd = view.findViewById(R.id.CBSteamLibrarySd);
+        cbSteamLibrarySd.setChecked(preferences.getBoolean(com.winlator.cmod.steam.SteamGameInstaller.PREF_LIBRARY_SD, false));
+        cbSteamLibrarySd.setOnCheckedChangeListener((b, checked) -> {
+            if (checked && com.winlator.cmod.steam.SteamGameInstaller.getSdLibraryDir(context) == null) {
+                // No card (or a debug build): nothing to switch to
+                // 카드가 없음(또는 디버그 빌드): 바꿀 곳이 없음
+                b.setChecked(false);
+                AppUtils.showToast(context, R.string.steam_library_sd_missing);
+                return;
+            }
+            preferences.edit().putBoolean(com.winlator.cmod.steam.SteamGameInstaller.PREF_LIBRARY_SD, checked).apply();
+        });
+
         view.findViewById(R.id.BTConfirm).setOnClickListener((v) -> {
             SharedPreferences.Editor editor = preferences.edit();
 
@@ -481,6 +532,23 @@ public class SettingsFragment extends Fragment {
         // Re-read after the user comes back from the system permission screen.
         // 사용자가 시스템 권한 화면에서 돌아온 뒤 다시 읽음
         syncUsbStorageCheckbox();
+    }
+
+    // Opens / closes one folding section: its fold row and its label both toggle
+    // the body; the row text follows ("▼ unfold" / "▲ fold")
+    // 접히는 구역 하나를 열고 닫음: 접기 줄과 구역 이름 모두 본문을 여닫고, 줄 글자가
+    // 따라 바뀜("▼ 펼치기" / "▲ 접기")
+    private static void setupFold(View root, int rowId, int bodyId, int labelId) {
+        final TextView row = root.findViewById(rowId);
+        final View body = root.findViewById(bodyId);
+        View label = root.findViewById(labelId);
+        View.OnClickListener toggle = v -> {
+            boolean open = body.getVisibility() != View.VISIBLE;
+            body.setVisibility(open ? View.VISIBLE : View.GONE);
+            row.setText(open ? R.string.detail_fold : R.string.detail_unfold);
+        };
+        row.setOnClickListener(toggle);
+        label.setOnClickListener(toggle);
     }
 
     private void updateTheme(boolean isDarkMode) {
@@ -716,6 +784,11 @@ public class SettingsFragment extends Fragment {
                                 installSoundFontCallback = null;
                             }
                         }
+                        break;
+
+                    // Save archive picked for import / 가져올 세이브 묶음을 고름
+                    case REQUEST_CODE_SAVE_IMPORT:
+                        if (getActivity() != null) com.winlator.cmod.container.SaveTransferUi.importPicked(getActivity(), uri);
                         break;
 
                     // Add future cases here for other request codes...

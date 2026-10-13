@@ -21,6 +21,7 @@ import in.dragonbra.javasteam.steam.handlers.steamapps.callback.PICSProductInfoC
 import in.dragonbra.javasteam.steam.handlers.steamapps.callback.PICSTokensCallback;
 import in.dragonbra.javasteam.steam.handlers.steamuser.LogOnDetails;
 import in.dragonbra.javasteam.steam.handlers.steamuser.SteamUser;
+import in.dragonbra.javasteam.steam.handlers.steamuser.callback.LoggedOffCallback;
 import in.dragonbra.javasteam.steam.handlers.steamuser.callback.LoggedOnCallback;
 import in.dragonbra.javasteam.steam.steamclient.SteamClient;
 import in.dragonbra.javasteam.steam.steamclient.callbackmgr.CallbackManager;
@@ -73,6 +74,11 @@ public final class SteamSession implements AutoCloseable {
         // could make Steam want a download)
         // 특정 언어 전용 depot이 있으면 true(언어를 바꾸면 스팀이 받기를 원할 수 있음)
         public boolean languageDepots;
+        // Estimated download size: "maxsize" of the depots for Windows (or for
+        // every OS) that are not for one language other than English. 0 = unknown
+        // 예상 다운로드 크기: Windows용(또는 모든 OS용)이면서 영어 외 특정 언어 전용이
+        // 아닌 depot의 "maxsize" 합. 0 = 모름
+        public long sizeBytes;
     }
 
     private final SteamClient client = new SteamClient();
@@ -82,6 +88,13 @@ public final class SteamSession implements AutoCloseable {
     private volatile List<License> licenses;
     private final CountDownLatch loggedOn = new CountDownLatch(1);
     private final CountDownLatch licensesReady = new CountDownLatch(1);
+    // True while logged on. Steam logs a session off when the same account logs on
+    // again from this device (another session of this app, or the download
+    // process): "LogonSessionReplaced". A kept session must then be opened again
+    // 로그온 상태인 동안 true. 같은 계정이 이 기기에서 다시 로그온하면(이 앱의 다른 세션,
+    // 또는 다운로드 프로세스) 스팀이 이전 세션을 로그오프함("LogonSessionReplaced").
+    // 그러면 보관해 둔 세션은 다시 열어야 함
+    private volatile boolean alive;
 
     /**
      * Steam refused the saved refresh token (expired, revoked, password changed).
@@ -98,6 +111,14 @@ public final class SteamSession implements AutoCloseable {
     }
 
     public SteamClient getClient() { return client; }
+
+    /**
+     * False once Steam logged this session off or the connection dropped; such a
+     * session answers every request with a failure (AsyncJobFailedException)
+     * 스팀이 이 세션을 로그오프했거나 연결이 끊기면 false. 그런 세션은 모든 요청에 실패로
+     * 답함(AsyncJobFailedException)
+     */
+    public boolean isAlive() { return alive && running; }
     public List<License> getLicenses() { return licenses; }
 
     /** Connect + log on with the stored token. / 저장된 토큰으로 연결 + 로그온 */
@@ -145,13 +166,19 @@ public final class SteamSession implements AutoCloseable {
         });
         manager.subscribe(LoggedOnCallback.class, cb -> {
             logOnResult = cb.getResult();
+            alive = logOnResult == EResult.OK;
             loggedOn.countDown();
+        });
+        manager.subscribe(LoggedOffCallback.class, cb -> {
+            alive = false;
+            Log.i(TAG, "logged off by Steam: " + cb.getResult());
         });
         manager.subscribe(LicenseListCallback.class, cb -> {
             licenses = cb.getLicenseList();
             licensesReady.countDown();
         });
         manager.subscribe(DisconnectedCallback.class, cb -> {
+            alive = false;
             loggedOn.countDown();
             licensesReady.countDown();
         });
@@ -266,6 +293,11 @@ public final class SteamSession implements AutoCloseable {
                 if (from != null && !from.isEmpty()) d.sharedDepots.put(id, Integer.parseInt(from.trim()));
                 String lang = depot.get("config").get("language").asString();
                 if (lang != null && !lang.trim().isEmpty()) d.languageDepots = true;
+                String os = depot.get("config").get("oslist").asString();
+                boolean forWindows = os == null || os.trim().isEmpty() || os.toLowerCase(java.util.Locale.ENGLISH).contains("windows");
+                boolean otherLanguage = lang != null && !lang.trim().isEmpty() && !"english".equalsIgnoreCase(lang.trim());
+                String max = depot.get("maxsize").asString();
+                if (forWindows && !otherLanguage && max != null && !max.isEmpty()) d.sizeBytes += Long.parseLong(max.trim());
             } catch (Exception ignored) {}
         }
         // VAC: common/category/category_8 = "1" (store category "Valve Anti-Cheat
@@ -289,6 +321,46 @@ public final class SteamSession implements AutoCloseable {
             }
         }
         return d;
+    }
+
+    /** One Steam Cloud save pattern of an app / 앱 하나의 스팀 클라우드 세이브 패턴 */
+    public static final class SavePattern {
+        public final String root, path, pattern;
+        public final int recursive;
+
+        SavePattern(String root, String path, String pattern, int recursive) {
+            this.root = root;
+            this.path = path;
+            this.pattern = pattern;
+            this.recursive = recursive;
+        }
+    }
+
+    /**
+     * Save patterns from the app info (ufs/savefiles: root, path, pattern,
+     * recursive). Empty when the game declares none (no Steam Cloud). Used for
+     * the GameNative save layout, whose root ids come from these.
+     * 앱 정보의 세이브 패턴(ufs/savefiles: root, path, pattern, recursive). 게임이
+     * 선언하지 않으면(스팀 클라우드 없음) 빈 목록. GameNative 세이브 형식에 씀.
+     * 그 형식의 루트 이름이 여기서 나옴
+     */
+    public List<SavePattern> getSavePatterns(int appId) throws Exception {
+        PICSProductInfo info = appInfo(Collections.singletonList(appId)).get(appId);
+        List<SavePattern> out = new ArrayList<>();
+        if (info == null) return out;
+        for (KeyValue f : info.getKeyValues().get("ufs").get("savefiles").getChildren()) {
+            String root = f.get("root").asString();
+            if (root == null || root.isEmpty()) continue;
+            String path = f.get("path").asString();
+            String pattern = f.get("pattern").asString();
+            int recursive = 0;
+            try {
+                String r = f.get("recursive").asString();
+                if (r != null && !r.isEmpty()) recursive = Integer.parseInt(r.trim());
+            } catch (NumberFormatException ignored) {}
+            out.add(new SavePattern(root, path != null ? path : "", pattern != null ? pattern : "*", recursive));
+        }
+        return out;
     }
 
     private Map<Integer, PICSProductInfo> appInfo(List<Integer> appIds) throws Exception {
@@ -442,6 +514,7 @@ public final class SteamSession implements AutoCloseable {
     @Override
     public void close() {
         running = false;
+        alive = false;
         try { client.disconnect(); } catch (Exception ignored) {}
     }
 }

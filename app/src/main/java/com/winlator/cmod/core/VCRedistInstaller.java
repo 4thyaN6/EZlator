@@ -772,7 +772,8 @@ public final class VCRedistInstaller {
     // 스팀 라이브러리(steamapps/common). 스팀 게임과 "Steamworks Shared"가 들어가는 곳
     public static List<File> steamRoots(Context context) {
         List<File> roots = new ArrayList<>();
-        roots.add(new File(SteamGameInstaller.getLibraryDir(context), "common"));
+        // Both libraries (internal, SD card) / 두 라이브러리(내장, SD카드)
+        for (File lib : SteamGameInstaller.getLibraryDirs(context)) roots.add(new File(lib, "common"));
         return roots;
     }
 

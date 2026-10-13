@@ -1,20 +1,19 @@
 <!--
-    Long-press menu on a shortcut. "Set as Favorite" and "Add to home screen"
-    were removed (no reader for the favorite, home-screen pinning did not work
-    on device). Every title is a string resource so it follows the app language.
-    숏컷 길게 누르기 메뉴임. "즐겨찾기"와 "홈 화면에 추가"는 지움(즐겨찾기를 읽는
-    곳이 없었고, 홈 화면 고정은 실기기에서 동작하지 않았음). 모든 제목을 문자열
+    Long-press menu on a shortcut. Only what the detail sheet does not offer:
+    multiplayer, frontend export, save export, reset record. Run, Settings and
+    Remove are on the detail sheet (Start, Edit, Remove); "Clone to another
+    container" was removed with them. "Set as Favorite" and "Add to home screen"
+    were removed earlier (no reader for the favorite, home-screen pinning did not
+    work on device). Every title is a string resource so it follows the app language.
+    숏컷 길게 누르기 메뉴임. 상세창에 없는 것만 둠: 다인 설정, 프론트엔드용 내보내기,
+    세이브 추출, 기록 초기화. 실행·설정·삭제는 상세창에 있음(시작, 편집, 삭제). "다른
+    컨테이너로 복제"도 함께 뺌. "즐겨찾기"와 "홈 화면에 추가"는 예전에 지움(즐겨찾기를
+    읽는 곳이 없었고, 홈 화면 고정은 실기기에서 동작하지 않았음). 모든 제목을 문자열
     리소스로 바꿔 앱 언어를 따르게 함
 -->
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:id="@+id/shortcut_run" android:title="@string/run" android:icon="@drawable/icon_run" android:iconTint="?attr/neonAccent" />
-    <item android:id="@+id/shortcut_settings" android:title="@string/settings" android:icon="@drawable/icon_popup_menu_settings" android:iconTint="?attr/neonAccent" />
-    <!-- Order Run / Settings / Multiplayer / Remove ...
-         실행 / 설정 / 다인 설정 / 삭제 ... 순서임 -->
     <item android:id="@+id/shortcut_multiplayer" android:title="@string/shortcut_multiplayer" android:icon="@drawable/icon_gamepad" android:iconTint="?attr/neonAccent" />
-    <item android:id="@+id/shortcut_remove" android:title="@string/remove" android:icon="@drawable/icon_popup_menu_remove" android:iconTint="?attr/neonAccent" />
     <item android:id="@+id/shortcut_export_to_frontend" android:title="@string/shortcut_export_frontend" android:icon="@android:drawable/ic_menu_share" android:iconTint="?attr/neonAccent" />
-    <item android:id="@+id/shortcut_clone_to_container" android:title="@string/shortcut_clone_to_container" android:icon="@drawable/icon_popup_menu_transfer" android:iconTint="?attr/neonAccent" />
     <item android:id="@+id/shortcut_save_export" android:title="@string/save_export" android:icon="@android:drawable/ic_menu_save" android:iconTint="?attr/neonAccent" />
     <item android:id="@+id/shortcut_properties" android:title="@string/shortcut_properties" android:icon="@android:drawable/ic_menu_info_details" android:iconTint="?attr/neonAccent" />
 </menu>

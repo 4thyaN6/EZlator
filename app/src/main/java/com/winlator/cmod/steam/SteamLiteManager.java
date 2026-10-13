@@ -247,7 +247,9 @@ public final class SteamLiteManager {
         // reports the right build instead of an unknown one
         // 설치본의 이름 / 빌드 번호(우리 appmanifest에서 읽음). 에이전트가 알 수 없는
         // 빌드가 아니라 맞는 빌드로 보고하게 함
-        File acf = new File(SteamGameInstaller.getLibraryDir(context), "appmanifest_" + appId + ".acf");
+        // Internal or SD card library, wherever the game is
+        // 게임이 있는 라이브러리(내장 또는 SD카드)
+        File acf = SteamGameInstaller.acfOf(context, appId);
         String name = SteamGameInstaller.readAcfValue(acf, "name");
         String build = SteamGameInstaller.readAcfValue(acf, "buildid");
         if (name != null) env.put("WN_STEAM_APP_NAME", name);

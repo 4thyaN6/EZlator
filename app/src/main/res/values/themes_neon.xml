@@ -61,6 +61,13 @@
 
         <item name="toolbarStyle">@style/NeonToolbar.Light</item>
 
+        <!-- Plain dialogs (AlertDialog: confirmations, choice lists) in the neon
+             look instead of the device's grey dialog (see NeonAlertDialog)
+             일반 대화상자(AlertDialog: 확인창, 선택 목록)를 기기의 회색 대화상자 대신
+             네온 모양으로 띄움(NeonAlertDialog 참고) -->
+        <item name="android:alertDialogTheme">@style/NeonAlertDialog.Light</item>
+        <item name="alertDialogTheme">@style/NeonAlertDialog.Light</item>
+
         <!-- Custom slots / 커스텀 슬롯 -->
         <item name="neonBg">@color/neon_l_bg</item>
         <item name="neonSurface">@color/neon_l_surface</item>
@@ -112,6 +119,11 @@
 
         <item name="toolbarStyle">@style/NeonToolbar.Dark</item>
 
+        <!-- Plain dialogs in the neon look (see NeonAlertDialog)
+             일반 대화상자를 네온 모양으로 띄움(NeonAlertDialog 참고) -->
+        <item name="android:alertDialogTheme">@style/NeonAlertDialog.Dark</item>
+        <item name="alertDialogTheme">@style/NeonAlertDialog.Dark</item>
+
         <item name="neonBg">@color/neon_d_bg</item>
         <item name="neonSurface">@color/neon_d_surface</item>
         <item name="neonSurfaceAlt">@color/neon_d_surface_alt</item>
@@ -155,6 +167,38 @@
         <item name="neonScrimGradient">@drawable/neon_scrim_bottom_light</item>
     </style>
 
+
+    <!-- ================= ALERT DIALOG ================= -->
+    <!-- Theme of android.app.AlertDialog / AppCompat AlertDialog. It is laid over
+         the activity theme, so ?attr/neon* still resolve: neon card background
+         (neon_dialog_bg), neon text, accent-coloured buttons. Before this every
+         confirmation and choice list (save export, layer hint, Steam dialogs)
+         showed the device's own grey dialog
+         android.app.AlertDialog / AppCompat AlertDialog의 테마임. 액티비티 테마 위에
+         덧씌워지므로 ?attr/neon*이 그대로 해석됨: 네온 카드 바탕(neon_dialog_bg), 네온
+         글자, 강조색 버튼. 이전에는 모든 확인창과 선택 목록(세이브 내보내기, 레이어 권유,
+         스팀 창)이 기기 자체의 회색 대화상자로 떴음 -->
+    <style name="NeonAlertDialog.Light" parent="@android:style/Theme.Material.Light.Dialog.Alert">
+        <item name="android:windowBackground">@drawable/neon_dialog_bg</item>
+        <item name="android:colorBackground">?attr/neonSurface</item>
+        <item name="android:textColorPrimary">?attr/neonText</item>
+        <item name="android:textColorSecondary">?attr/neonTextDim</item>
+        <item name="android:textColorAlertDialogListItem">?attr/neonText</item>
+        <item name="android:colorAccent">?attr/neonAccent</item>
+        <item name="android:colorControlActivated">?attr/neonAccent</item>
+        <item name="colorAccent">?attr/neonAccent</item>
+    </style>
+
+    <style name="NeonAlertDialog.Dark" parent="@android:style/Theme.Material.Dialog.Alert">
+        <item name="android:windowBackground">@drawable/neon_dialog_bg</item>
+        <item name="android:colorBackground">?attr/neonSurface</item>
+        <item name="android:textColorPrimary">?attr/neonText</item>
+        <item name="android:textColorSecondary">?attr/neonTextDim</item>
+        <item name="android:textColorAlertDialogListItem">?attr/neonText</item>
+        <item name="android:colorAccent">?attr/neonAccent</item>
+        <item name="android:colorControlActivated">?attr/neonAccent</item>
+        <item name="colorAccent">?attr/neonAccent</item>
+    </style>
 
     <!-- ================= TOOLBAR ================= -->
     <!-- elevation 0 removes the grey drop shadow under the bar. That shadow -->
