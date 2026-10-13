@@ -66,8 +66,15 @@ public abstract class FileUtils {
         return new String(read(context, assetFile), StandardCharsets.UTF_8);
     }
 
+    // null when the file is missing or cannot be read. new String(null) used to
+    // throw here (NullPointerException), which ended the app when a launch read a
+    // file that did not exist yet (SteamLite version file in a new container)
+    // 파일이 없거나 읽을 수 없으면 null. 예전에는 여기서 new String(null)이 예외
+    // (NullPointerException)를 던져, 실행 중 아직 없는 파일(새 컨테이너의 SteamLite
+    // 버전 파일)을 읽을 때 앱이 종료됐음
     public static String readString(File file) {
-        return new String(read(file), StandardCharsets.UTF_8);
+        byte[] data = read(file);
+        return data != null ? new String(data, StandardCharsets.UTF_8) : null;
     }
 
     public static String readString(Context context, Uri uri) {

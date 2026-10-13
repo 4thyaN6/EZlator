@@ -88,7 +88,10 @@ LGPL 라이브러리는 라이선스 전문 제공과 해당 버전 소스 코�
 | 고운바탕 Gowun Batang (The Gowun Batang Project Authors) | Google Fonts 저장소(`ofl/gowunbatang`). 실행 중 내려받음. 대체 글꼴 `batang.ttc`(바탕·바탕체·궁서·궁서체)의 원본 | SIL OFL 1.1 |
 | Noto Sans KR, Noto Serif KR (Adobe) | Google Fonts 저장소(`ofl/notosanskr`, `ofl/notoserifkr`, 가변 글꼴). 실행 중 내려받음. 위 원본에 없는 한자·가나·CJK 기호를 대체 글꼴에 채워 넣는 데 씀 | SIL OFL 1.1 (Noto Sans KR: Reserved Font Name "Source") |
 | 위 대체 글꼴 4종 | 앱(`KoreanFontBuilder`)이 기기 안에서 만들고 배포하지 않음. 원본 글꼴을 합치고 글꼴 이름을 Windows 한글 글꼴 이름으로 바꾼 수정본(Modified Version)이며, 원본의 저작권(name ID 0)·라이선스(name ID 13, 14) 기록을 그대로 남기고 Microsoft 글꼴이 아님을 설명(name ID 10)에 적음. 원본의 Reserved Font Name(Source)은 쓰지 않음 | SIL OFL 1.1 |
-| Microsoft Visual C++ 2015-2022 런타임 DLL (`vc_redist.x86.exe`, `vc_redist.x64.exe` 안의 파일) | 앱이 받지 않음. APK와 저장소에도 없음. 기기에 이미 있는 Microsoft 설치 파일(스팀 게임과 함께 받은 `_CommonRedist`·Steamworks Shared, 또는 사용자가 `Download/.EZlator/VCRedist`에 넣은 파일)에서 앱(`VCRedistInstaller`)이 DLL만 꺼내 imagefs에 보관함. 설치 프로그램과 Windows 코드는 실행하지 않음. 켤 때 Microsoft 사용 조건 링크를 보여 주고 동의를 받음 | Microsoft 소프트웨어 사용 조건 |
+| Microsoft Visual C++ 2015-2022 런타임 DLL (`vc_redist.x86.exe`, `vc_redist.x64.exe` 안의 파일) | APK와 저장소에 없음. 사용자가 Microsoft 사용 조건에 동의하면 앱(`VCRedistInstaller`)이 Microsoft 공식 주소(aka.ms/vc14)에서 설치 파일을 받아 DLL만 꺼내 imagefs에 보관하고, 받은 설치 파일은 꺼낸 뒤 지움. 받기에 실패하면 기기에 이미 있는 설치 파일(스팀 게임과 함께 받은 `_CommonRedist`·Steamworks Shared, 또는 사용자가 `Download/.EZlator/VCRedist`에 넣은 파일)에서 꺼냄. 설치 프로그램과 Windows 코드는 실행하지 않음. 설치 여부를 확인하는 게임을 위해 Windows와 같은 설치 정보(레지스트리)를 컨테이너에 기록함 | Microsoft 소프트웨어 사용 조건 |
+| SteamLite 에이전트 (`steam.exe`, The412Banner) | `The412Banner/winlator-contents` 릴리즈 `steamlite-v1`의 `steamlite.tzst`. 앱이 실행 중에 받아 imagefs(`opt/steamlite`)에 두고 컨테이너의 `C:\Program Files (x86)\Steam`에 복사함. 앱과 분리된 별도 프로그램으로 실행함. WinNative `wn-steam-launcher`에서 파생. 소스: `winlator-contents/steamlite/agent-src` | GPL-3.0 |
+| Steam 클라이언트 파일 (`steamclient(64).dll`, `tier0_s(64).dll`, `vstdlib_s(64).dll`, `Steam.dll`, `Steam2.dll`, `steamservice.*`, `SDL3.dll`, 컨트롤러 배치 파일) | 위 SteamLite 패키지에 함께 들어 있는 Valve 파일(패키지의 `VALVE_COMPONENTS.txt`). EZlator가 포함하거나 배포하지 않음 | Valve 소유, Steam 구독자 계약 |
+| JavaSteam의 원 프로젝트 SteamKit2 (SteamRE) | JavaSteam(1-2절, MIT)은 SteamKit2의 Java 포팅임. EZlator에는 SteamKit2 코드가 따로 들어 있지 않음 | LGPL-2.1 (SteamKit2) |
 
 ## 3. 결정 사항과 미결 사항
 

@@ -147,9 +147,20 @@ public class ContainerManager {
     // 필요로 하는데 일반 작업 스레드에는 없음. ARM64EC Wine/Proton이 설치되어
     // 있지 않으면 null을 돌려줌 - x86_64로 대체하지 않음
     public Container createArm64ECContainer(ContentsManager contentsManager) {
+        return createArm64ECContainer(contentsManager, null);
+    }
+
+    // Same, but only Wine/Proton builds that wineAllowed accepts are picked
+    // (null = any). Steam installs pass a filter that leaves out builds the
+    // Steam agent cannot run on (see SteamWineSupport)
+    // 위와 같지만 wineAllowed가 받아 주는 Wine/Proton 빌드만 고름(null = 아무거나).
+    // 스팀 설치는 스팀 에이전트가 동작하지 않는 빌드를 빼는 조건을 넘김
+    // (SteamWineSupport 참고)
+    public Container createArm64ECContainer(ContentsManager contentsManager, java.util.function.Predicate<String> wineAllowed) {
         try {
             contentsManager.syncContents();
-            JSONObject data = buildDefaultContainerData(contentsManager, true);
+            String wineVersion = pickWineVersion(contentsManager, true, wineAllowed);
+            JSONObject data = wineVersion != null ? buildContainerDataForWine(contentsManager, wineVersion) : null;
             return data != null ? createContainer(data, contentsManager) : null;
         } catch (JSONException e) {
             Log.e("ContainerManager", "ARM64EC 컨테이너 생성 실패", e);
@@ -279,6 +290,13 @@ public class ContainerManager {
     // requireArm64EC: true = return null instead of falling back to x86_64
     // requireArm64EC: true = x86_64로 대체하지 않고 null을 돌려줌
     private String pickWineVersion(ContentsManager contentsManager, boolean requireArm64EC) {
+        return pickWineVersion(contentsManager, requireArm64EC, null);
+    }
+
+    // wineAllowed: extra condition on the entry name (null = no condition)
+    // wineAllowed: 항목 이름에 거는 추가 조건(null = 조건 없음)
+    private String pickWineVersion(ContentsManager contentsManager, boolean requireArm64EC,
+                                   java.util.function.Predicate<String> wineAllowed) {
         // Proton AND Wine types: the proton-wine 11.0-2 package for Winlator CMOD
         // is published as a "Wine type" wcp, so Proton-only missed it
         // Proton과 Wine 타입 모두 봄: Winlator CMOD용 proton-wine 11.0-2 패키지가
@@ -287,7 +305,11 @@ public class ContainerManager {
         for (ContentProfile.ContentType t : new ContentProfile.ContentType[]{
                 ContentProfile.ContentType.CONTENT_TYPE_PROTON, ContentProfile.ContentType.CONTENT_TYPE_WINE}) {
             java.util.List<ContentProfile> l = contentsManager.getProfiles(t);
-            if (l != null) for (ContentProfile p : l) if (p.remoteUrl == null && p.verName != null) all.add(p);
+            if (l != null) for (ContentProfile p : l) {
+                if (p.remoteUrl != null || p.verName == null) continue;
+                if (wineAllowed != null && !wineAllowed.test(ContentsManager.getEntryName(p))) continue;
+                all.add(p);
+            }
         }
         if (all.isEmpty()) return null;
 

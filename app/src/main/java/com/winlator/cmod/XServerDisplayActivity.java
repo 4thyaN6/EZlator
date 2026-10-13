@@ -969,8 +969,13 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
     private void recordQuickExit() {
         if (shortcut == null || launchWallMs <= 0) return;
         if (System.currentTimeMillis() - launchWallMs >= 30_000L) return;
+        // After a launch through the Steam agent the list first offers to start
+        // the game without Steam (ShortcutsFragment.maybeRecommendLayer)
+        // 스팀 에이전트를 거친 실행이었으면 목록 화면이 먼저 스팀 없이 실행을 권함
+        // (ShortcutsFragment.maybeRecommendLayer)
         PreferenceManager.getDefaultSharedPreferences(this).edit()
                 .putString(ShortcutsFragment.PREF_LAYER_HINT_PENDING, shortcut.file.getPath())
+                .putBoolean(ShortcutsFragment.PREF_LAYER_HINT_STEAM, steamAgentActive)
                 .commit();
     }
 
@@ -3219,6 +3224,9 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
     // True when this launch goes through the SteamLite agent (see setupXEnvironment)
     // 이번 실행이 SteamLite 에이전트를 거치면 true(setupXEnvironment 참고)
     private boolean steamAgentActive = false;
+    // Values hidden in Steam agent debug logs (see LogScrubber)
+    // 스팀 에이전트 디버그 로그에서 가릴 값(LogScrubber 참고)
+    private static java.util.List<String> steamSecrets = java.util.Collections.emptyList();
 
     private void applyHudPolicy() {
         if (Container.LEGACY_DEFAULT_DXVK_HUD.equals(envVars.get("DXVK_HUD"))) envVars.remove("DXVK_HUD");
@@ -3753,48 +3761,49 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
                 // Visual C++ with work to do (see needsWork) runs even when the
                 // setting did not change
                 // 할 일이 있는 Visual C++(needsWork 참고)는 설정이 바뀌지 않았어도 처리함
+                // Also when the load order is not native,builtin yet (containers set to
+                // "builtin" by earlier builds when the option was off, or never set)
+                // 로드 순서가 아직 native,builtin이 아닐 때도 처리함(예전 빌드가 항목을 끌 때
+                // "builtin"으로 둔 컨테이너, 또는 한 번도 지정하지 않은 컨테이너)
                 boolean vcrunPending = VCRedistInstaller.ID.equals(identifier)
-                        && VCRedistInstaller.needsWork(imageFs, windowsDir, useNative, vcrunGameKey);
+                        && (VCRedistInstaller.needsWork(imageFs, windowsDir, useNative, vcrunGameKey)
+                        || !vcrunLoadOrderIsNative());
                 if (oldValue != null && wincomponent[1].equals(oldValue) && !firstTimeBoot && !vcrunPending) continue;
 
                 if (!wineInfo.isArm64EC() && identifier.contains("opengl") && useNative)
                     continue;
 
                 if (VCRedistInstaller.ID.equals(identifier)) {
-                    // Visual C++ 2015-2022: files are only added, never taken out
-                    // Visual C++ 2015~2022: 파일은 넣기만 하고 빼지 않음
+                    // Visual C++ 2015-2022: files are only added, never taken out.
+                    // The option only decides whether EZlator puts its kept copy in;
+                    // the load order is native,builtin either way, so Microsoft's DLLs
+                    // are used wherever they exist (the game folder first, then
+                    // system32) and Wine's builtin ones otherwise
+                    // Visual C++ 2015~2022: 파일은 넣기만 하고 빼지 않음.
+                    // 이 항목은 EZlator가 보관본을 넣을지만 정함. 로드 순서는 어느 쪽이든
+                    // native,builtin이라 Microsoft DLL이 있는 곳에서는 그걸 쓰고(게임 폴더
+                    // 먼저, 그다음 system32), 없으면 Wine 기본 DLL을 씀
                     if (useNative) {
                         // Copied from the files taken from Microsoft's installers into
                         // imagefs, only where the prefix has none or an older version.
-                        // Not taken yet -> Wine's builtin DLLs stay in place (the
-                        // override is native,builtin, so the builtin ones are used)
+                        // Not taken yet -> Wine's builtin DLLs stay in place and are used
                         // Microsoft 설치 파일에서 꺼내 imagefs에 둔 파일을, 프리픽스에 없거나
                         // 더 낮은 버전일 때만 복사함. 아직 안 꺼냈으면 Wine 기본 DLL이 그대로
-                        // 남음(override가 native,builtin이라 기본 DLL이 쓰임)
+                        // 남아 쓰임
                         if (!VCRedistInstaller.applyTo(imageFs, windowsDir, vcrunGameKey))
                             Log.w("XServerDisplayActivity", "vcrun2015 is on but not installed yet - Wine builtin DLLs are used");
-                        WineUtils.overrideWinComponentDlls(this, container, identifier, true);
                     }
-                    else if (VCRedistInstaller.isMarked(windowsDir)) {
-                        // Off after EZlator put files in: they stay, and the override
-                        // "builtin" makes Wine use its own DLLs
-                        // EZlator가 파일을 넣은 뒤 끔: 파일은 두고, override "builtin"으로
-                        // Wine 기본 DLL을 쓰게 함
-                        WineUtils.setWinComponentDllLoadOrder(this, container, identifier, "builtin");
-                    }
-                    else {
-                        // Off and never put in by EZlator: the override is removed and
-                        // the files are not touched (a runtime the user installed in
-                        // the container stays as it is)
-                        // 꺼짐이고 EZlator가 넣은 적 없음: override만 지우고 파일은 건드리지
-                        // 않음(사용자가 컨테이너 안에서 설치한 런타임은 그대로 둠)
-                        WineUtils.overrideWinComponentDlls(this, container, identifier, false);
-                    }
+                    WineUtils.overrideWinComponentDlls(this, container, identifier, true);
                     // Files on the mark that are gone (an exported container leaves them
                     // out) and could not be filled from the store get Wine's builtin back
                     // 표시 목록에 있는데 없어진 파일(내보낸 컨테이너에서 빠짐) 중 보관소로
                     // 채우지 못한 것은 Wine 기본 파일을 다시 넣음
                     restoreBuiltinFiles(VCRedistInstaller.missingApplied(windowsDir));
+                    // "Installed" registry entries: written once while on, refreshed only
+                    // when the kept copy changes, never removed
+                    // "설치됨" 레지스트리 항목: 켜져 있을 때 한 번 쓰고, 보관본이 바뀔 때만
+                    // 고치며, 지우지 않음
+                    if (useNative) VCRedistInstaller.syncRegistry(imageFs, systemRegFile, windowsDir);
                     Log.d("XServerDisplayActivity", "Setting wincomponent " + identifier + " to " + String.valueOf(useNative));
                     continue;
                 }
@@ -3843,6 +3852,20 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             if (!dlls.isEmpty()) restoreOriginalDllFiles(dlls.toArray(new String[0]));
         }
         catch (JSONException e) {}
+    }
+
+    // True when vcruntime140 already has the native,builtin load order in this
+    // container (the value every Visual C++ 2015-2022 DLL gets together)
+    // 이 컨테이너에서 vcruntime140의 로드 순서가 이미 native,builtin이면 true
+    // (Visual C++ 2015~2022 DLL은 모두 같은 값을 함께 받음)
+    private boolean vcrunLoadOrderIsNative() {
+        File userReg = new File(container.getRootDir(), ".wine/user.reg");
+        if (!userReg.isFile()) return false;
+        try (WineRegistryEditor reg = new WineRegistryEditor(userReg)) {
+            return "native,builtin".equals(reg.getStringValue("Software\\Wine\\DllOverrides", "vcruntime140"));
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private void restoreOriginalDllFiles(final String... dlls) {
@@ -3990,8 +4013,15 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         int appId = 0;
         try { appId = Integer.parseInt(shortcut.getExtra("steamAppId", "0")); } catch (NumberFormatException ignored) {}
         if (appId <= 0) return;
-        if (!com.winlator.cmod.steam.SteamLiteManager.isInstalled(this)) {
-            Log.w("XServerDisplayActivity", "Steam AppID set but SteamLite not installed - normal launch");
+        // Launch mode: agent by default; without Steam when not signed in, the
+        // agent is missing, or the user chose it after an agent launch ended at once
+        // 실행 방식: 기본은 에이전트. 로그인 안 됨, 에이전트 없음, 또는 에이전트 실행이
+        // 바로 끝난 뒤 사용자가 고른 경우는 스팀 없이 실행
+        String[] reason = new String[1];
+        boolean directRequested = getIntent().getBooleanExtra(com.winlator.cmod.steam.SteamLiteManager.EXTRA_STEAM_DIRECT, false);
+        if (com.winlator.cmod.steam.SteamLiteManager.pickMode(this, appId, directRequested, reason)
+                == com.winlator.cmod.steam.SteamLiteManager.LaunchMode.DIRECT) {
+            Log.w("XServerDisplayActivity", "Steam AppID " + appId + " started without Steam: " + reason[0]);
             return;
         }
         File driveC = new File(imageFs.getRootDir(), ImageFs.WINEPREFIX + "/drive_c");
@@ -3999,9 +4029,13 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         // 받은 Steam 게임: appmanifest + common/<폴더> 링크를 이 컨테이너에 연결함
         com.winlator.cmod.steam.SteamGameInstaller.linkLibraryInto(this, driveC);
         if (com.winlator.cmod.steam.SteamLiteManager.stageIntoContainer(this, driveC)
-                && com.winlator.cmod.steam.SteamLiteManager.applyEnv(this, envVars, appId)) {
+                && com.winlator.cmod.steam.SteamLiteManager.applyEnv(this, envVars, appId,
+                        shortcut.getExtra("steamVac", null), shortcut.getExtra("steamLangs", null),
+                        shortcut.getExtra("steamLangDepots", null))) {
             steamAgentActive = true;
-            Log.i("XServerDisplayActivity", "Steam agent launch for appId=" + appId);
+            Log.i("XServerDisplayActivity", "Steam agent launch for appId=" + appId
+                    + " (vac=" + (envVars.has("WN_STEAM_VAC") ? envVars.get("WN_STEAM_VAC") : "secure")
+                    + ", language=" + (envVars.has("WN_STEAM_LANGUAGE") ? envVars.get("WN_STEAM_LANGUAGE") : "english") + ")");
             // Diagnostics: Wine's stdout/stderr is discarded unless a debug callback
             // exists, so the agent's own messages never reached logcat. Lines that
             // look Steam-related are mirrored under tag "SteamAgent".
@@ -4023,6 +4057,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             // 이름, SteamID)를 로그캣에 옮기면 안 되고, trace 채널로 Wine을 느리게
             // 만들어서도 안 됨
             if (com.winlator.cmod.core.StorageDrives.isReleaseBuild(this)) return;
+            steamSecrets = com.winlator.cmod.steam.SteamLiteManager.secrets(this);
             final File steamDirForLogs = new File(driveC, "Program Files (x86)/Steam");
             final long launchTime = System.currentTimeMillis() - 5000;
             // Also C:\ root: the agent's own log (wn-launcher.log, WinNative lineage) is
@@ -4059,7 +4094,10 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
                 if (l.contains("err:") || l.contains(":process:") || l.contains(".exe")
                         || l.contains("steam") || l.contains("agent") || l.contains("logon") || l.contains("wn_")) {
                     captured[0]++;
-                    Log.i("SteamAgent", line.length() > 400 ? line.substring(0, 400) : line);
+                    // Token, account name and SteamID are hidden even in debug logs
+                    // 디버그 로그에서도 토큰, 계정 이름, SteamID를 가림
+                    String safe = com.winlator.cmod.core.LogScrubber.scrub(line, steamSecrets);
+                    Log.i("SteamAgent", safe.length() > 400 ? safe.substring(0, 400) : safe);
                 }
             });
         } else {
@@ -4086,7 +4124,9 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
                 int from = Math.max(0, lines.size() - 80);
                 Log.i("SteamAgent", "==== " + f.getPath() + " (" + lines.size() + " lines) ====");
                 for (int i = from; i < lines.size(); i++) {
-                    String l = lines.get(i);
+                    // The agent's own log prints the decoded sign-in token: hidden here
+                    // 에이전트 자체 로그는 로그인 토큰을 풀어 씀: 여기서 가림
+                    String l = com.winlator.cmod.core.LogScrubber.scrub(lines.get(i), steamSecrets);
                     Log.i("SteamAgent", l.length() > 400 ? l.substring(0, 400) : l);
                 }
             } catch (Exception e) {

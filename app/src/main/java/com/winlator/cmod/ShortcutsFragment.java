@@ -2134,6 +2134,109 @@ public class ShortcutsFragment extends Fragment {
     void launchShortcut(Shortcut shortcut) {
         Activity activity = getActivity();
         if (activity == null) return;
+        // First launch only: a game that comes with the Visual C++ 2015-2022
+        // installer while the option is off gets a suggestion to turn it on
+        // 첫 실행 때만: Visual C++ 2015~2022 설치 파일이 함께 든 게임인데 항목이 꺼져
+        // 있으면 켜자고 권함
+        if (shortcut.getExtra(EXTRA_REDIST_CHECKED).isEmpty()) {
+            checkRedistThenLaunch(activity, shortcut);
+            return;
+        }
+        launchShortcutChecked(shortcut);
+    }
+
+    // Shortcut extra: the game folder was already checked for redistributables
+    // 바로가기 extra: 게임 폴더의 재배포 설치 파일을 이미 확인함
+    private static final String EXTRA_REDIST_CHECKED = "redistChecked";
+
+    // Looks in the game folder off the main thread, then asks or goes on
+    // 게임 폴더를 메인 스레드 밖에서 살펴본 뒤 묻거나 그대로 진행함
+    private void checkRedistThenLaunch(Activity activity, Shortcut shortcut) {
+        String wincomponents = shortcut.getExtra("wincomponents", shortcut.container.getWinComponents());
+        boolean vcOn = "1".equals(new KeyValueSet(wincomponents).get(com.winlator.cmod.core.VCRedistInstaller.ID, "0"));
+        shortcut.putExtra(EXTRA_REDIST_CHECKED, "1");
+        shortcut.saveData();
+        if (vcOn) {
+            launchShortcutChecked(shortcut);
+            return;
+        }
+        final String exeWin = com.winlator.cmod.container.ShortcutRelocator.exePart(shortcut.path);
+        Executors.newSingleThreadExecutor().execute(() -> {
+            java.util.List<File> found = java.util.Collections.emptyList();
+            try {
+                File exe = winPathToFile(shortcut.container, exeWin);
+                File gameDir = exe != null ? exe.getParentFile() : null;
+                found = com.winlator.cmod.core.RedistDetector.findVcRedist2015(gameDir);
+                // Also one folder up (games keep _CommonRedist beside a Binaries folder)
+                // 한 단계 위도 봄(게임이 _CommonRedist를 Binaries 폴더 옆에 두기도 함)
+                if (found.isEmpty() && gameDir != null && gameDir.getParentFile() != null
+                        && !isDriveRoot(shortcut.container, gameDir.getParentFile())) {
+                    found = com.winlator.cmod.core.RedistDetector.findVcRedist2015(gameDir.getParentFile());
+                }
+            } catch (Exception e) {
+                android.util.Log.w("ShortcutsFragment", "redist check failed", e);
+            }
+            final boolean hasVc = !found.isEmpty();
+            if (hasVc) android.util.Log.i("ShortcutsFragment", "Visual C++ 2015-2022 installer with the game: " + found.get(0).getName());
+            activity.runOnUiThread(() -> {
+                if (!isAdded()) return;
+                if (!hasVc) { launchShortcutChecked(shortcut); return; }
+                new AlertDialog.Builder(activity)
+                        .setTitle(R.string.vcrun2015)
+                        .setMessage(getString(R.string.redist_vc_suggest, shortcut.name))
+                        .setPositiveButton(R.string.redist_vc_turn_on, (d, w) -> {
+                            // Turned on for this game only (shortcut setting)
+                            // 이 게임에만 켬(바로가기 설정)
+                            final String before = shortcut.getExtra("wincomponents", null);
+                            KeyValueSet set = new KeyValueSet(wincomponents);
+                            set.put(com.winlator.cmod.core.VCRedistInstaller.ID, "1");
+                            shortcut.putExtra("wincomponents", set.toString());
+                            shortcut.saveData();
+                            // Agreement and download the first time; cancelling the agreement
+                            // puts the setting back. The launch goes on either way
+                            // 처음이면 동의와 받기를 거침. 동의를 취소하면 설정을 되돌림. 결과와
+                            // 상관없이 실행은 이어짐
+                            com.winlator.cmod.core.VCRedistInstaller.ensureInstalled(activity, ok -> {
+                                if (!ok) {
+                                    shortcut.putExtra("wincomponents", before);
+                                    shortcut.saveData();
+                                }
+                                if (isAdded()) launchShortcutChecked(shortcut);
+                            });
+                        })
+                        .setNegativeButton(R.string.redist_vc_keep_off, (d, w) -> launchShortcutChecked(shortcut))
+                        .setOnCancelListener(d -> launchShortcutChecked(shortcut))
+                        .show();
+            });
+        });
+    }
+
+    // Windows path in this container -> real file (through .wine/dosdevices)
+    // 이 컨테이너의 Windows 경로 -> 실제 파일(.wine/dosdevices를 거침)
+    private static File winPathToFile(Container container, String winPath) {
+        if (winPath == null || winPath.length() < 3 || winPath.charAt(1) != ':') return null;
+        File drive = new File(container.getRootDir(), ".wine/dosdevices/" + Character.toLowerCase(winPath.charAt(0)) + ":");
+        String rest = winPath.substring(2).replace('\\', '/');
+        while (rest.startsWith("/")) rest = rest.substring(1);
+        return rest.isEmpty() ? drive : new File(drive, rest);
+    }
+
+    // True for a drive's root folder (never searched as a game folder)
+    // 드라이브 루트 폴더면 true(게임 폴더로 찾지 않음)
+    private static boolean isDriveRoot(Container container, File dir) {
+        try {
+            File[] links = new File(container.getRootDir(), ".wine/dosdevices").listFiles();
+            if (links == null) return false;
+            String d = dir.getCanonicalPath();
+            for (File link : links) if (link.getCanonicalPath().equals(d)) return true;
+        } catch (IOException ignored) {}
+        return false;
+    }
+
+    // Launch after the redistributable check / 재배포 파일 확인 뒤의 실행
+    private void launchShortcutChecked(Shortcut shortcut) {
+        Activity activity = getActivity();
+        if (activity == null) return;
 
         // Steam-linked launch notice (once, unless "don't show again"). Steam lets an
         // account PLAY in one place only: starting the game here disconnects a Steam
@@ -2177,6 +2280,12 @@ public class ShortcutsFragment extends Fragment {
     }
 
     private void startShortcut(Activity activity, Shortcut shortcut) {
+        startShortcut(activity, shortcut, false);
+    }
+
+    // withoutSteam: this one launch skips the Steam agent (SteamLiteManager.EXTRA_STEAM_DIRECT)
+    // withoutSteam: 이번 한 번은 스팀 에이전트를 거치지 않음(SteamLiteManager.EXTRA_STEAM_DIRECT)
+    private void startShortcut(Activity activity, Shortcut shortcut, boolean withoutSteam) {
         shortcut.putExtra("lastPlayed", String.valueOf(System.currentTimeMillis()));
         shortcut.saveData();
 
@@ -2187,6 +2296,7 @@ public class ShortcutsFragment extends Fragment {
         intent.putExtra("shortcut_path", shortcut.file.getPath());
         intent.putExtra("shortcut_name", shortcut.name);
         intent.putExtra("disableXinput", shortcut.getExtra("disableXinput", "0"));
+        if (withoutSteam) intent.putExtra(com.winlator.cmod.steam.SteamLiteManager.EXTRA_STEAM_DIRECT, true);
         activity.startActivity(intent);
     }
 
@@ -2606,6 +2716,9 @@ public class ShortcutsFragment extends Fragment {
     // Shortcut file of a game that ended within 30 s (XServerDisplayActivity.recordQuickExit())
     // 30초 안에 끝난 게임의 숏컷 파일(XServerDisplayActivity.recordQuickExit())
     public static final String PREF_LAYER_HINT_PENDING = "layer_hint_pending";
+    // The quick exit happened on a launch through the Steam agent
+    // 빠른 종료가 스팀 에이전트를 거친 실행에서 일어남
+    public static final String PREF_LAYER_HINT_STEAM = "layer_hint_steam";
     // Detail sheet starts folded (Settings) / 상세창을 접은 채 시작(설정)
     public static final String PREF_DETAIL_FOLDED = "detail_sheet_folded";
 
@@ -2635,13 +2748,31 @@ public class ShortcutsFragment extends Fragment {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         String path = prefs.getString(PREF_LAYER_HINT_PENDING, null);
         if (path == null) return;
-        prefs.edit().remove(PREF_LAYER_HINT_PENDING).apply();
+        boolean viaSteam = prefs.getBoolean(PREF_LAYER_HINT_STEAM, false);
+        prefs.edit().remove(PREF_LAYER_HINT_PENDING).remove(PREF_LAYER_HINT_STEAM).apply();
         Shortcut found = null;
         for (Shortcut sc : manager.loadShortcuts()) {
             if (sc.file != null && sc.file.getPath().equals(path)) { found = sc; break; }
         }
         if (found == null) return;
         final Shortcut shortcut = found;
+        // Ended at once after starting through Steam: offer the same game without
+        // Steam first (a game with DRM may not start that way). The layer hint
+        // waits for a quick exit without Steam
+        // 스팀을 거쳐 시작했는데 바로 끝남: 먼저 같은 게임을 스팀 없이 실행하자고 권함
+        // (DRM이 있는 게임은 그렇게 시작되지 않을 수 있음). 레이어 권유는 스팀 없이
+        // 실행해서도 바로 끝났을 때로 미룸
+        if (viaSteam) {
+            final Activity activity = getActivity();
+            if (activity == null) return;
+            new AlertDialog.Builder(context)
+                    .setTitle(R.string.steam_agent_quick_exit_title)
+                    .setMessage(getString(R.string.steam_agent_quick_exit_message, shortcut.name))
+                    .setPositiveButton(R.string.steam_agent_run_direct, (d, w) -> startShortcut(activity, shortcut, true))
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show();
+            return;
+        }
         final boolean arm64ec = ContainerManager.isArm64EC(shortcut.container);
         for (com.winlator.cmod.container.LayerTiers.Tier tier : new com.winlator.cmod.container.LayerTiers.Tier[]{
                 com.winlator.cmod.container.LayerTiers.TIER_STABLE, com.winlator.cmod.container.LayerTiers.TIER_LEGACY}) {

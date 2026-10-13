@@ -446,13 +446,170 @@ public final class VCRedistInstaller {
 
     /**
      * True when the launch has Visual C++ work: on and applyTo has something to
-     * do, or files on the mark are missing (on or off).
+     * do, files on the mark are missing (on or off), or, while on, the registry
+     * entries are not written yet / the kept copy changed (see syncRegistry).
      * 실행 때 Visual C++ 작업이 있으면 true: 켜져 있고 applyTo가 할 일이 있거나,
-     * 표시 파일 목록의 파일이 없어졌음(켜짐·꺼짐 무관)
+     * 표시 파일 목록의 파일이 없어졌거나(켜짐·꺼짐 무관), 켜져 있을 때 레지스트리
+     * 항목을 아직 안 썼거나 보관본이 바뀌었음(syncRegistry 참고)
      */
     public static boolean needsWork(ImageFs imageFs, File windowsDir, boolean on, String gameKey) {
         if (on && needsApply(imageFs, windowsDir, gameKey)) return true;
-        return !missingApplied(windowsDir).isEmpty();
+        if (!missingApplied(windowsDir).isEmpty()) return true;
+        return on && registryPending(imageFs, windowsDir);
+    }
+
+    // ==================== Registry / 레지스트리 ====================
+
+    // Record of the registry entries EZlator wrote (windows/system32/.ezlator-vcrun2015-reg).
+    // First line "stamp\t<store stamp when written>", then one line per arch:
+    // "<arch>\t<Version text>", or "<arch>\t-" when the key was already there
+    // (written by Microsoft's installer run inside the container) and is left alone
+    // EZlator가 쓴 레지스트리 항목 기록(windows/system32/.ezlator-vcrun2015-reg).
+    // 첫 줄 "stamp\t<쓸 때의 보관소 표시값>", 이어서 아키텍처마다 한 줄:
+    // "<아키텍처>\t<Version 문자열>". 키가 이미 있었으면(컨테이너 안에서 실행한
+    // Microsoft 설치 프로그램이 씀) "<아키텍처>\t-"로 적고 건드리지 않음
+    private static final String REG_MARK = ".ezlator-vcrun2015-reg";
+    private static final String REG_STAMP = "stamp";
+    private static final String NOT_OURS = "-";
+
+    // arch -> folder whose vcruntime140.dll gives that arch's version
+    // 아키텍처 -> 그 아키텍처 버전을 알려 주는 vcruntime140.dll이 있는 폴더
+    private static final String[][] REG_ARCHES = {{"x64", "system32"}, {"x86", "syswow64"}};
+
+    // Microsoft's documented place is the 32-bit view (Wow6432Node); the same
+    // values are also put in the 64-bit view so 64-bit programs that look there
+    // find them too
+    // Microsoft 문서에 적힌 위치는 32비트 보기(Wow6432Node)임. 같은 값을 64비트 보기에도
+    // 넣어 그쪽을 보는 64비트 프로그램도 찾게 함
+    private static String[] runtimeKeys(String arch) {
+        return new String[] {
+                "Software\\Wow6432Node\\Microsoft\\VisualStudio\\14.0\\VC\\Runtimes\\" + arch,
+                "Software\\Microsoft\\VisualStudio\\14.0\\VC\\Runtimes\\" + arch
+        };
+    }
+
+    private static File regMarkFile(File windowsDir) {
+        return new File(windowsDir, "system32/" + REG_MARK);
+    }
+
+    // key -> recorded text ("stamp" and arches); empty when there is no record
+    // 키 -> 기록된 문자열("stamp"와 아키텍처). 기록이 없으면 빈 목록
+    private static Map<String, String> readRegMark(File windowsDir) {
+        Map<String, String> rec = new HashMap<>();
+        File f = regMarkFile(windowsDir);
+        if (!f.isFile()) return rec;
+        String text = FileUtils.readString(f);
+        if (text == null) return rec;
+        for (String line : text.split("\n")) {
+            String[] parts = line.trim().split("\t");
+            if (parts.length == 2) rec.put(parts[0], parts[1]);
+        }
+        return rec;
+    }
+
+    private static void writeRegMark(File windowsDir, Map<String, String> rec) {
+        StringBuilder text = new StringBuilder();
+        text.append(REG_STAMP).append('\t').append(rec.getOrDefault(REG_STAMP, "")).append('\n');
+        for (String[] a : REG_ARCHES) {
+            String v = rec.get(a[0]);
+            if (v != null) text.append(a[0]).append('\t').append(v).append('\n');
+        }
+        FileUtils.writeString(regMarkFile(windowsDir), text.toString());
+    }
+
+    // "v14.44.35211.00" style text, the form the installer writes; null when unknown
+    // 설치 프로그램이 쓰는 "v14.44.35211.00" 형식 문자열. 모르면 null
+    static String regVersionText(long v) {
+        if (v == -1) return null;
+        return String.format(Locale.ENGLISH, "v%d.%d.%d.%02d",
+                v >>> 48, (v >>> 32) & 0xFFFF, (v >>> 16) & 0xFFFF, v & 0xFFFF);
+    }
+
+    // Version from Microsoft's vcruntime140.dll in the prefix; null when only
+    // Wine's own file (or nothing) is there
+    // 프리픽스의 Microsoft vcruntime140.dll에서 읽은 버전. Wine 자체 파일뿐이거나
+    // 파일이 없으면 null
+    private static String prefixRegVersion(File windowsDir, String sub) {
+        return regVersionText(prefixVersion(new File(windowsDir, sub + "/vcruntime140.dll")));
+    }
+
+    /**
+     * True when syncRegistry has something to do: an arch with Microsoft's file
+     * and no entry yet, or entries EZlator wrote while the kept copy has changed
+     * since ("Get again" / a newer download).
+     * syncRegistry가 할 일이 있으면 true: Microsoft 파일이 있는데 아직 항목이 없는
+     * 아키텍처가 있거나, EZlator가 쓴 뒤 보관본이 바뀌었음([다시 받기] / 새로 받음)
+     */
+    static boolean registryPending(ImageFs imageFs, File windowsDir) {
+        Map<String, String> rec = readRegMark(windowsDir);
+        boolean stampChanged = !readStamp(imageFs).equals(rec.getOrDefault(REG_STAMP, ""));
+        for (String[] a : REG_ARCHES) {
+            String have = rec.get(a[0]);
+            if (NOT_OURS.equals(have)) continue;
+            String want = prefixRegVersion(windowsDir, a[1]);
+            if (want == null) continue;
+            if (have == null || (stampChanged && !have.equals(want))) return true;
+        }
+        // Same versions after a new download: only the stamp is brought up to date
+        // 새로 받았어도 버전이 같으면 표시값만 맞춤
+        return stampChanged && !rec.isEmpty();
+    }
+
+    /**
+     * Writes the "installed" registry entries of the Visual C++ 2015-2022
+     * runtime (HKLM\SOFTWARE[\WOW6432Node]\Microsoft\VisualStudio\14.0\VC\Runtimes\{x64|x86}:
+     * Installed, Version, Major, Minor, Bld, Rbld) for games and launchers that
+     * check these instead of the DLLs. Called while the option is on.
+     *  - written once, from the version of Microsoft's vcruntime140.dll in the prefix
+     *  - updated only when the kept copy changes ("Get again" / a newer download)
+     *  - never removed (turning the option off or Wine's builtin files coming back
+     *    leaves them as they are)
+     *  - a key that was there before EZlator wrote one is left alone
+     * Visual C++ 2015~2022 런타임의 "설치됨" 레지스트리 항목
+     * (HKLM\SOFTWARE[\WOW6432Node]\Microsoft\VisualStudio\14.0\VC\Runtimes\{x64|x86}:
+     * Installed, Version, Major, Minor, Bld, Rbld)을 씀. DLL 대신 이 값을 보는 게임과
+     * 런처를 위함. 항목이 켜져 있을 때 부름.
+     *  - 프리픽스의 Microsoft vcruntime140.dll 버전으로 한 번 씀
+     *  - 보관본이 바뀔 때만 고침([다시 받기] / 새로 받음)
+     *  - 지우지 않음(항목을 끄거나 Wine 기본 파일로 돌아가도 그대로 둠)
+     *  - EZlator가 쓰기 전에 이미 있던 키는 건드리지 않음
+     */
+    public static void syncRegistry(ImageFs imageFs, File systemRegFile, File windowsDir) {
+        if (!registryPending(imageFs, windowsDir)) return;
+        Map<String, String> rec = readRegMark(windowsDir);
+        String stamp = readStamp(imageFs);
+        boolean stampChanged = !stamp.equals(rec.getOrDefault(REG_STAMP, ""));
+        try (WineRegistryEditor reg = new WineRegistryEditor(systemRegFile)) {
+            for (String[] a : REG_ARCHES) {
+                String arch = a[0];
+                String have = rec.get(arch);
+                if (NOT_OURS.equals(have)) continue;
+                String want = prefixRegVersion(windowsDir, a[1]);
+                if (want == null) continue;
+                if (have != null && (!stampChanged || have.equals(want))) continue;
+                String[] keys = runtimeKeys(arch);
+                if (have == null && reg.getDwordValue(keys[0], "Installed") != null) {
+                    // Written by Microsoft's installer inside the container: left alone
+                    // 컨테이너 안에서 Microsoft 설치 프로그램이 씀: 건드리지 않음
+                    rec.put(arch, NOT_OURS);
+                    Log.i(TAG, "registry " + arch + " already present, left alone");
+                    continue;
+                }
+                long v = prefixVersion(new File(windowsDir, a[1] + "/vcruntime140.dll"));
+                for (String key : keys) {
+                    reg.setDwordValue(key, "Installed", 1);
+                    reg.setStringValue(key, "Version", want);
+                    reg.setDwordValue(key, "Major", (int) (v >>> 48));
+                    reg.setDwordValue(key, "Minor", (int) ((v >>> 32) & 0xFFFF));
+                    reg.setDwordValue(key, "Bld", (int) ((v >>> 16) & 0xFFFF));
+                    reg.setDwordValue(key, "Rbld", (int) (v & 0xFFFF));
+                }
+                rec.put(arch, want);
+                Log.i(TAG, "registry " + arch + " written: " + want);
+            }
+        }
+        rec.put(REG_STAMP, stamp);
+        writeRegMark(windowsDir, rec);
     }
 
     /**

@@ -51,6 +51,35 @@
                     android:layout_height="wrap_content"
                     android:textSize="13sp"
                     android:textColor="?attr/neonTextDim" />
+
+                <!-- Checks GitHub Releases only when tapped (no automatic check) -->
+                <!-- 누를 때만 GitHub Releases를 확인함(자동 확인 없음) -->
+                <TextView
+                    android:id="@+id/TVCheckUpdate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="?attr/neonAccent"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:text="@string/update_check" />
+
+                <!-- Zip with hidden private values, shared through Android's share window -->
+                <!-- 개인 값을 가린 zip을 안드로이드 공유 창으로 넘김 -->
+                <TextView
+                    android:id="@+id/TVReportLog"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="?attr/neonAccent"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:text="@string/report_log_make" />
             </LinearLayout>
 
             <ImageView
@@ -86,4 +115,4 @@
             android:layout_height="wrap_content"
             android:textColor="?attr/neonTextDim" />
     </LinearLayout>
-</LinearLayout>
+</LinearLayout>

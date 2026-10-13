@@ -116,6 +116,16 @@ public class ShortcutSettingsDialog extends ContentDialog {
         // 저장한 뒤 moveToContainer()에서 함
         final Spinner sShortcutContainer = findViewById(R.id.SShortcutContainer);
         final ArrayList<Container> allContainers = new ContainerManager(context).getContainers();
+        // Steam shortcuts: containers whose Wine/Proton cannot run the Steam agent
+        // (Proton 10.0-4, see SteamWineSupport) are hidden. The container the
+        // shortcut is in now stays listed so the current choice is kept as it is
+        // 스팀 바로가기: 스팀 에이전트가 동작하지 않는 Wine/Proton(Proton 10.0-4,
+        // SteamWineSupport 참고)의 컨테이너는 숨김. 바로가기가 지금 있는 컨테이너는
+        // 현재 선택이 그대로 유지되도록 목록에 남김
+        if (!shortcut.getExtra("steamAppId").isEmpty()) {
+            allContainers.removeIf(c -> c.id != shortcut.container.id
+                    && com.winlator.cmod.steam.SteamWineSupport.isBlocked(c.getWineVersion()));
+        }
         ArrayList<String> containerNames = new ArrayList<>();
         int currentIndex = 0;
         for (int i = 0; i < allContainers.size(); i++) {

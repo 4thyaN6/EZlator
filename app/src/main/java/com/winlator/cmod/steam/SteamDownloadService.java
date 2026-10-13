@@ -134,7 +134,52 @@ public class SteamDownloadService extends Service {
         return START_NOT_STICKY;
     }
 
+    // Screen off: keeps the CPU running (partial wake lock) and Wi-Fi at full
+    // speed (Wi-Fi lock) while the worker downloads. Both are released when the
+    // worker ends; pause / stop end the whole process, which releases them too.
+    // The foreground service alone kept the process, but with the screen off the
+    // CPU could sleep and Wi-Fi drop to power saving between packets
+    // 화면 꺼짐: 작업 스레드가 받는 동안 CPU를 깨워 두고(부분 wake lock) Wi-Fi를 최고
+    // 속도로 둠(Wi-Fi lock). 작업 스레드가 끝나면 둘 다 풂. 일시정지 / 정지는 프로세스
+    // 전체를 끝내므로 그때도 풀림. 포그라운드 서비스만으로는 프로세스는 남지만, 화면이
+    // 꺼지면 CPU가 잠들고 Wi-Fi가 패킷 사이에 절전 상태로 갈 수 있었음
+    private android.os.PowerManager.WakeLock wakeLock;
+    private android.net.wifi.WifiManager.WifiLock wifiLock;
+
+    private void acquireLocks() {
+        try {
+            if (wakeLock == null) {
+                android.os.PowerManager pm = (android.os.PowerManager) getSystemService(Context.POWER_SERVICE);
+                wakeLock = pm.newWakeLock(android.os.PowerManager.PARTIAL_WAKE_LOCK, "EZlator:SteamDownload");
+                wakeLock.setReferenceCounted(false);
+            }
+            // Upper limit so a stuck download cannot keep the device awake for good
+            // 멈춘 다운로드가 기기를 계속 깨워 두지 않도록 상한을 둠
+            wakeLock.acquire(6L * 60 * 60 * 1000);
+            if (wifiLock == null) {
+                android.net.wifi.WifiManager wm = (android.net.wifi.WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+                if (wm != null) {
+                    wifiLock = wm.createWifiLock(Build.VERSION.SDK_INT >= 29
+                            ? android.net.wifi.WifiManager.WIFI_MODE_FULL_HIGH_PERF
+                            : android.net.wifi.WifiManager.WIFI_MODE_FULL, "EZlator:SteamDownload");
+                    wifiLock.setReferenceCounted(false);
+                }
+            }
+            if (wifiLock != null) wifiLock.acquire();
+        } catch (Exception e) {
+            Log.w(TAG, "wake / Wi-Fi lock not taken", e);
+        }
+    }
+
+    private void releaseLocks() {
+        try {
+            if (wakeLock != null && wakeLock.isHeld()) wakeLock.release();
+            if (wifiLock != null && wifiLock.isHeld()) wifiLock.release();
+        } catch (Exception ignored) {}
+    }
+
     private void startWorker() {
+        acquireLocks();
         stopRequested = false;
         cancel = new AtomicBoolean(false);
         final AtomicBoolean myCancel = cancel;
@@ -187,6 +232,7 @@ public class SteamDownloadService extends Service {
                 state.running = false;
                 if (result != null) state.result = result;
                 state.write(this);
+                releaseLocks();
             }
             if (state.appId == 0) finishService();
         }, "SteamDlWorker");
@@ -262,6 +308,13 @@ public class SteamDownloadService extends Service {
 
     private void tickLoop() {
         long lastRx = -1, lastTime = 0;
+        // The notification is refreshed every 2 s (4 ticks). Every 0.5 s made the
+        // system UI redraw it all the time (seen: a log full of RemoteViews lines
+        // during a download)
+        // 알림은 2초(4번)마다 고침. 0.5초마다 고치면 시스템 화면이 알림을 계속 다시
+        // 그렸음(확인: 다운로드 중 로그가 RemoteViews 줄로 가득 참)
+        int tick = 0;
+        boolean lastRunning = false, lastPaused = false;
         while (alive) {
             long now = SystemClock.elapsedRealtime();
             long rx = TrafficStats.getUidRxBytes(android.os.Process.myUid());
@@ -293,10 +346,16 @@ public class SteamDownloadService extends Service {
             }
 
             state.write(this);
-            if (alive) {
+            // A change of state (start / pause) shows at once
+            // 상태 변화(시작 / 일시정지)는 바로 보여 줌
+            boolean changed = state.running != lastRunning || state.paused != lastPaused;
+            lastRunning = state.running;
+            lastPaused = state.paused;
+            if (alive && (changed || tick % 4 == 0)) {
                 NotificationManager nm = getSystemService(NotificationManager.class);
                 nm.notify(NOTIFICATION_ID, buildNotification());
             }
+            tick++;
             SystemClock.sleep(500);
         }
     }

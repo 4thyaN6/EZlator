@@ -63,6 +63,16 @@ public final class SteamSession implements AutoCloseable {
         // depotId -> owning app for shared depots ("depotfromapp", e.g. 228989 -> 228980)
         // 공유 depot의 depotId -> 소유 앱("depotfromapp", 예: 228989 -> 228980)
         public Map<Integer, Integer> sharedDepots = new HashMap<>();
+        // VAC-protected (store category 8); null when the app info does not say
+        // VAC 보호 게임인지(상점 분류 8). 앱 정보에 없으면 null
+        public Boolean vac;
+        // Steam language names the game supports ("english", "koreana" ...)
+        // 게임이 지원하는 스팀 언어 이름("english", "koreana" 등)
+        public List<String> languages = new ArrayList<>();
+        // True when some depot is for one language only (changing the language
+        // could make Steam want a download)
+        // 특정 언어 전용 depot이 있으면 true(언어를 바꾸면 스팀이 받기를 원할 수 있음)
+        public boolean languageDepots;
     }
 
     private final SteamClient client = new SteamClient();
@@ -254,7 +264,29 @@ public final class SteamSession implements AutoCloseable {
                 d.depotIds.add(id);
                 String from = depot.get("depotfromapp").asString();
                 if (from != null && !from.isEmpty()) d.sharedDepots.put(id, Integer.parseInt(from.trim()));
+                String lang = depot.get("config").get("language").asString();
+                if (lang != null && !lang.trim().isEmpty()) d.languageDepots = true;
             } catch (Exception ignored) {}
+        }
+        // VAC: common/category/category_8 = "1" (store category "Valve Anti-Cheat
+        // enabled"). Only an app info that lists categories counts as "no VAC"
+        // VAC: common/category/category_8 = "1"(상점 분류 "Valve Anti-Cheat 사용").
+        // 분류 목록이 있는 앱 정보만 "VAC 없음"으로 봄
+        KeyValue category = root.get("common").get("category");
+        if (!category.getChildren().isEmpty()) {
+            d.vac = "1".equals(category.get("category_8").asString());
+        }
+        // Languages: newer app info has common/supported_languages/<lang>/supported
+        // = "true"; older app info has common/languages/<lang> = "1"
+        // 언어: 새 앱 정보는 common/supported_languages/<언어>/supported = "true",
+        // 옛 앱 정보는 common/languages/<언어> = "1"
+        for (KeyValue lang : root.get("common").get("supported_languages").getChildren()) {
+            if ("true".equalsIgnoreCase(lang.get("supported").asString())) d.languages.add(lang.getName().toLowerCase(java.util.Locale.ENGLISH));
+        }
+        if (d.languages.isEmpty()) {
+            for (KeyValue lang : root.get("common").get("languages").getChildren()) {
+                if ("1".equals(lang.asString())) d.languages.add(lang.getName().toLowerCase(java.util.Locale.ENGLISH));
+            }
         }
         return d;
     }

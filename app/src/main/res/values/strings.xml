@@ -709,7 +709,7 @@
     <string name="content_status_available">Not installed</string>
     <!-- Visual C++ 2015-2022 from installers already on the device (core/VCRedistInstaller) -->
     <!-- 기기에 이미 있는 설치 파일에서 꺼내는 Visual C++ 2015~2022(core/VCRedistInstaller) -->
-    <string name="vcredist_enable_message">Visual C++ 2015-2022 DLLs are not part of the app. After you agree, the app downloads Microsoft\'s official installers (vc_redist.x64.exe / vc_redist.x86.exe, aka.ms/vc14) and takes the DLLs out of them. If the download fails, it uses installers already on this device: those that come with Steam games (for example _CommonRedist or Steamworks Shared) and the ones you put in %1$s. The installers are not run, so their license screen does not appear: please read Microsoft\'s license terms below. The newest version is kept on this device and copied into containers that have this option on.</string>
+    <string name="vcredist_enable_message">Visual C++ 2015-2022 DLLs are not part of the app. After you agree, the app downloads Microsoft\'s official installers (vc_redist.x64.exe / vc_redist.x86.exe, aka.ms/vc14) and takes the DLLs out of them. If the download fails, it uses installers already on this device: those that come with Steam games (for example _CommonRedist or Steamworks Shared) and the ones you put in %1$s. The installers are not run, so their license screen does not appear: please read Microsoft\'s license terms below. The newest version is kept on this device and copied into containers that have this option on. Turning it off only stops new copies: DLLs already in a container stay and are still used, and DLLs that come with a game are used either way.</string>
     <string name="vcredist_agree">Agree</string>
     <string name="vcredist_downloading">Downloading from Microsoft: %1$s (%2$s)</string>
     <string name="vcredist_download_failed">Could not download from Microsoft (%1$s).</string>
@@ -763,4 +763,26 @@
     <string name="add_game_archive_err_unsafe">This archive was not unpacked: it contains entries that point outside its folder (damaged or unsafe file).</string>
     <string name="add_game_archive_err_corrupt">The archive could not be read. It may be damaged or not completely downloaded. The partly unpacked files were removed.\nDetails: %1$s</string>
     <string name="add_game_archive_err_io">Unpacking stopped with an error. The partly unpacked files were removed and the archive was kept.\nDetails: %1$s</string>
+
+    <!-- Steam: launch through the agent ended at once / 스팀: 에이전트를 거친 실행이 바로 끝남 -->
+    <string name="steam_agent_quick_exit_title">Steam launch</string>
+    <string name="steam_agent_quick_exit_message">%1$s ended right after starting through Steam. Start it without Steam this time? A game with DRM may not start that way.</string>
+    <string name="steam_agent_run_direct">Start without Steam</string>
+    <!-- Visual C++ installer found with the game / 게임과 함께 든 Visual C++ 설치 파일 -->
+    <string name="redist_vc_suggest">%1$s comes with the Visual C++ 2015-2022 installer, so it probably needs this runtime. Turn on Visual C++ 2015-2022 for this game?</string>
+    <string name="redist_vc_turn_on">Turn on</string>
+    <string name="redist_vc_keep_off">Keep off</string>
+    <!-- Update check (only when tapped) / 업데이트 확인(누를 때만) -->
+    <string name="update_check">Check for updates</string>
+    <string name="update_checking">Checking for updates…</string>
+    <string name="update_check_failed">Could not check for updates. Check the network and try again.</string>
+    <string name="update_latest">You have the latest version (%1$s).</string>
+    <string name="update_available">A newer version is available: %1$s (installed: %2$s). Open the release page?</string>
+    <string name="update_open_page">Open page</string>
+    <!-- Report log / 제보용 로그 -->
+    <string name="report_log_make">Make a report log</string>
+    <string name="report_log_making">Making the report log…</string>
+    <string name="report_log_failed">Could not make the report log.</string>
+    <string name="report_log_share">Share the report log</string>
+    <string name="report_log_saved">Saved: %1$s</string>
 </resources>

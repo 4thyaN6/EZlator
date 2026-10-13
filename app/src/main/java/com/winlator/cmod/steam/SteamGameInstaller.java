@@ -631,24 +631,30 @@ public final class SteamGameInstaller {
         Log.i(DLTAG, "uninstalled app=" + appId + " dir=" + dir + " depots=" + depots);
     }
 
-    // First container whose Wine/Proton is ARM64EC. If there is none, a default
-    // ARM64EC container is created here (runs on the download thread, so the
-    // synchronous ContainerManager.createArm64ECContainer() is used).
-    // Returns null only when no ARM64EC Wine/Proton is installed at all.
-    // Wine/Proton이 ARM64EC인 첫 번째 컨테이너를 씀. 없으면 여기서 기본 ARM64EC
-    // 컨테이너를 만듦(다운로드 스레드에서 돌기 때문에 동기식
-    // ContainerManager.createArm64ECContainer()를 씀).
-    // ARM64EC Wine/Proton이 아예 설치되어 있지 않을 때만 null을 돌려줌
+    // First container whose Wine/Proton is ARM64EC and runs the Steam agent
+    // (Proton 10.0-4 is left out, see SteamWineSupport). If there is none, a
+    // default ARM64EC container is created here with such a build (runs on the
+    // download thread, so the synchronous ContainerManager.createArm64ECContainer()
+    // is used). Returns null only when no usable ARM64EC Wine/Proton is installed.
+    // Wine/Proton이 ARM64EC이고 스팀 에이전트가 동작하는 첫 번째 컨테이너를 씀
+    // (Proton 10.0-4는 뺌, SteamWineSupport 참고). 없으면 여기서 그런 빌드로 기본
+    // ARM64EC 컨테이너를 만듦(다운로드 스레드에서 돌기 때문에 동기식
+    // ContainerManager.createArm64ECContainer()를 씀). 쓸 수 있는 ARM64EC
+    // Wine/Proton이 아예 설치되어 있지 않을 때만 null을 돌려줌
     private static Container arm64ecContainer(Context context, Progress progress) {
         ContainerManager manager = new ContainerManager(context);
         ArrayList<Container> list = manager.getContainers();
         for (Container c : list) {
             String wine = c.getWineVersion();
-            if (wine != null && wine.toLowerCase(java.util.Locale.ENGLISH).contains("arm64ec")) return c;
+            if (wine == null || !wine.toLowerCase(java.util.Locale.ENGLISH).contains("arm64ec")) continue;
+            if (SteamWineSupport.isBlocked(wine)) continue;
+            return c;
         }
         progress.onStatus(context.getString(R.string.steam_creating_arm64ec_container));
-        Container created = manager.createArm64ECContainer(new ContentsManager(context));
-        Log.i(DLTAG, created != null ? "created ARM64EC container " + created.id : "no ARM64EC Wine/Proton installed");
+        Container created = manager.createArm64ECContainer(new ContentsManager(context),
+                wine -> !SteamWineSupport.isBlocked(wine));
+        Log.i(DLTAG, created != null ? "created ARM64EC container " + created.id + " (" + created.getWineVersion() + ")"
+                : "no ARM64EC Wine/Proton for Steam installed (Proton 10.0-4 is not used)");
         return created;
     }
 
@@ -682,7 +688,8 @@ public final class SteamGameInstaller {
                 + "StartupWMClass=" + FileUtils.getName(app.exePath.replace('\\', '/')) + "\n\n"
                 + "[Extra Data]\n"
                 + "container_id:" + container.id + "\n"
-                + "steamAppId=" + app.appId + "\n";
+                + "steamAppId=" + app.appId + "\n"
+                + SteamLiteManager.launchInfoExtras(app);
         FileUtils.writeString(desktopFile, content);
         return name;
     }

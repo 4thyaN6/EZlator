@@ -603,7 +603,7 @@
     <string name="content_status_available">미설치</string>
     <!-- Visual C++ 2015-2022 from installers already on the device (core/VCRedistInstaller) -->
     <!-- 기기에 이미 있는 설치 파일에서 꺼내는 Visual C++ 2015~2022(core/VCRedistInstaller) -->
-    <string name="vcredist_enable_message">Visual C++ 2015-2022 DLL은 앱에 들어 있지 않습니다. 동의하면 Microsoft 공식 설치 파일(vc_redist.x64.exe / vc_redist.x86.exe, aka.ms/vc14)을 받아 그 안에서 DLL을 꺼냅니다. 받기에 실패하면 이 기기에 이미 있는 설치 파일을 씁니다: 스팀 게임과 함께 받은 설치 파일(예: _CommonRedist, Steamworks Shared)과 %1$s에 직접 넣은 파일입니다. 설치 프로그램을 실행하지 않으므로 그 사용 조건 화면이 나오지 않습니다. 아래 Microsoft 사용 조건을 읽어 주세요. 가장 새 버전을 이 기기에 보관해 이 항목을 켠 컨테이너에 복사합니다.</string>
+    <string name="vcredist_enable_message">Visual C++ 2015-2022 DLL은 앱에 들어 있지 않습니다. 동의하면 Microsoft 공식 설치 파일(vc_redist.x64.exe / vc_redist.x86.exe, aka.ms/vc14)을 받아 그 안에서 DLL을 꺼냅니다. 받기에 실패하면 이 기기에 이미 있는 설치 파일을 씁니다: 스팀 게임과 함께 받은 설치 파일(예: _CommonRedist, Steamworks Shared)과 %1$s에 직접 넣은 파일입니다. 설치 프로그램을 실행하지 않으므로 그 사용 조건 화면이 나오지 않습니다. 아래 Microsoft 사용 조건을 읽어 주세요. 가장 새 버전을 이 기기에 보관해 이 항목을 켠 컨테이너에 복사합니다. 끄면 새로 복사하지 않을 뿐이며, 컨테이너에 이미 들어간 DLL은 그대로 남아 계속 쓰이고 게임에 함께 들어 있는 DLL은 어느 쪽이든 쓰입니다.</string>
     <string name="vcredist_agree">동의</string>
     <string name="vcredist_downloading">Microsoft에서 받는 중: %1$s (%2$s)</string>
     <string name="vcredist_download_failed">Microsoft에서 받지 못했습니다(%1$s).</string>
@@ -657,4 +657,26 @@
     <string name="add_game_archive_err_unsafe">압축 안에 폴더 밖을 가리키는 항목이 있어 풀지 않았습니다(손상되었거나 안전하지 않은 파일).</string>
     <string name="add_game_archive_err_corrupt">압축 파일을 읽지 못했습니다. 파일이 손상되었거나 다 받아지지 않았을 수 있습니다. 풀던 파일은 지웠습니다.\n자세한 내용: %1$s</string>
     <string name="add_game_archive_err_io">압축을 푸는 중 오류가 나서 멈췄습니다. 풀던 파일은 지웠고 압축 파일은 그대로 두었습니다.\n자세한 내용: %1$s</string>
+
+    <!-- Steam: launch through the agent ended at once / 스팀: 에이전트를 거친 실행이 바로 끝남 -->
+    <string name="steam_agent_quick_exit_title">스팀 실행</string>
+    <string name="steam_agent_quick_exit_message">%1$s이(가) 스팀을 거쳐 시작한 뒤 바로 끝났습니다. 이번에는 스팀 없이 실행해 볼까요? DRM이 있는 게임은 스팀 없이 실행되지 않을 수 있습니다.</string>
+    <string name="steam_agent_run_direct">스팀 없이 실행</string>
+    <!-- Visual C++ installer found with the game / 게임과 함께 든 Visual C++ 설치 파일 -->
+    <string name="redist_vc_suggest">%1$s에 Visual C++ 2015-2022 설치 파일이 함께 들어 있어 이 런타임이 필요할 가능성이 높습니다. 이 게임에 Visual C++ 2015-2022를 켤까요?</string>
+    <string name="redist_vc_turn_on">켜기</string>
+    <string name="redist_vc_keep_off">그대로 두기</string>
+    <!-- Update check (only when tapped) / 업데이트 확인(누를 때만) -->
+    <string name="update_check">업데이트 확인</string>
+    <string name="update_checking">업데이트를 확인하는 중…</string>
+    <string name="update_check_failed">업데이트를 확인하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요.</string>
+    <string name="update_latest">최신 버전입니다(%1$s).</string>
+    <string name="update_available">새 버전이 있습니다: %1$s(설치된 버전: %2$s). 릴리즈 페이지를 열까요?</string>
+    <string name="update_open_page">페이지 열기</string>
+    <!-- Report log / 제보용 로그 -->
+    <string name="report_log_make">제보용 로그 만들기</string>
+    <string name="report_log_making">제보용 로그를 만드는 중…</string>
+    <string name="report_log_failed">제보용 로그를 만들지 못했습니다.</string>
+    <string name="report_log_share">제보용 로그 공유</string>
+    <string name="report_log_saved">저장됨: %1$s</string>
 </resources>

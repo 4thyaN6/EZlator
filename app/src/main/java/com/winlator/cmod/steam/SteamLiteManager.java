@@ -25,6 +25,15 @@ import java.io.File;
  *   "C:\Program Files (x86)\Steam\steam.exe" "<game exe>" [args]
  *   WN_STEAM_USERNAME / WN_STEAM_STEAMID / WN_STEAM_TOKEN / WN_STEAM_APPID
  *   PROTON_DISABLE_LSTEAMCLIENT=1, WINEDLLOVERRIDES += lsteamclient=
+ *   optional: WN_STEAM_VAC=0 (no VAC), WN_STEAM_LANGUAGE (game language)
+ *   선택: WN_STEAM_VAC=0(VAC 없음), WN_STEAM_LANGUAGE(게임 언어)
+ *
+ * The agent itself runs the redistributable installers it finds in the game
+ * folder (vc_redist, DXSETUP, PhysX ...) silently on the first launch and keeps
+ * a list in C:\wn-installed-redists.txt (agent-src main.cpp scan_and_install_redists).
+ * 에이전트는 첫 실행 때 게임 폴더에서 찾은 재배포 설치 파일(vc_redist, DXSETUP,
+ * PhysX 등)을 직접 조용히 실행하고 목록을 C:\wn-installed-redists.txt에 남김
+ * (agent-src main.cpp scan_and_install_redists)
  */
 public final class SteamLiteManager {
     private static final String TAG = "SteamLiteManager";
@@ -39,8 +48,41 @@ public final class SteamLiteManager {
         return new File(context.getFilesDir(), "imagefs/opt/steamlite");
     }
 
+    // Parts the agent needs next to it (checked against the package's own list,
+    // VALVE_COMPONENTS.txt: 64-bit and 32-bit client, tier0, vstdlib)
+    // 에이전트 옆에 있어야 하는 부품(패키지 자체 목록 VALVE_COMPONENTS.txt 기준:
+    // 64비트·32비트 클라이언트, tier0, vstdlib)
+    static final String[] REQUIRED_FILES = {
+            "steam.exe", "steamclient64.dll", "steamclient.dll",
+            "tier0_s64.dll", "tier0_s.dll", "vstdlib_s64.dll", "vstdlib_s.dll"
+    };
+    // Package version file / 패키지 버전 파일
+    private static final String VERSION_FILE = "steamlite.version";
+
     public static boolean isInstalled(Context context) {
-        return new File(getInstallDir(context), "steam.exe").isFile();
+        return missingParts(getInstallDir(context)).isEmpty();
+    }
+
+    // Names from REQUIRED_FILES that are not in dir / dir에 없는 REQUIRED_FILES 이름
+    static java.util.List<String> missingParts(File dir) {
+        java.util.List<String> missing = new java.util.ArrayList<>();
+        for (String name : REQUIRED_FILES) if (!new File(dir, name).isFile()) missing.add(name);
+        return missing;
+    }
+
+    // "version=" line of steamlite.version, or "" / steamlite.version의 "version=" 줄, 없으면 ""
+    static String packageVersion(File dir) {
+        // A container that has no copy yet has no version file
+        // 아직 복사본이 없는 컨테이너에는 버전 파일이 없음
+        File f = new File(dir, VERSION_FILE);
+        if (!f.isFile()) return "";
+        String text = FileUtils.readString(f);
+        if (text == null) return "";
+        for (String line : text.split("\n")) {
+            line = line.trim();
+            if (line.startsWith("version=")) return line.substring(8).trim();
+        }
+        return "";
     }
 
     /** Blocking download + extract. / 블로킹 다운로드 + 압축 해제 */
@@ -64,8 +106,11 @@ public final class SteamLiteManager {
                     inner.delete();
                 }
             }
-            Log.i(TAG, "SteamLite installed=" + isInstalled(context));
-            return isInstalled(context);
+            // Package check (what the agent needs) / 패키지 점검(에이전트에 필요한 것)
+            java.util.List<String> missing = missingParts(dir);
+            Log.i(TAG, "SteamLite installed: version=" + packageVersion(dir)
+                    + (missing.isEmpty() ? ", all parts present" : ", missing " + missing));
+            return missing.isEmpty();
         } catch (Exception e) {
             Log.w(TAG, "SteamLite install failed", e);
             return false;
@@ -86,10 +131,20 @@ public final class SteamLiteManager {
         File dst = new File(driveC, "Program Files (x86)/Steam");
         File srcExe = new File(src, "steam.exe"), dstExe = new File(dst, "steam.exe");
         if (!srcExe.isFile()) return false;
-        if (dstExe.isFile() && dstExe.length() == srcExe.length()) return true;
+        // Same package version and every part in place: nothing to copy. The size
+        // of steam.exe is only the fallback for a package without a version file
+        // 패키지 버전이 같고 부품이 다 있으면 복사하지 않음. steam.exe 크기 비교는
+        // 버전 파일이 없는 패키지에만 씀
+        String srcVer = packageVersion(src);
+        boolean same = !srcVer.isEmpty() ? srcVer.equals(packageVersion(dst))
+                : dstExe.isFile() && dstExe.length() == srcExe.length();
+        if (same && missingParts(dst).isEmpty()) return true;
         dst.mkdirs();
         copyTree(src, dst);
-        return dstExe.isFile();
+        java.util.List<String> missing = missingParts(dst);
+        Log.i(TAG, "SteamLite staged into container: version=" + srcVer
+                + (missing.isEmpty() ? ", all parts present" : ", missing " + missing));
+        return missing.isEmpty();
     }
 
     private static void copyTree(File src, File dst) {
@@ -140,8 +195,34 @@ public final class SteamLiteManager {
      * 돌려주고 아무것도 넣지 않음 - 그러면 게임은 Steam 없이 그대로 실행됨
      */
     public static boolean applyEnv(Context context, EnvVars env, int appId) {
+        return applyEnv(context, env, appId, null, null, null);
+    }
+
+    /**
+     * Same, plus what was read from the app info when the game was downloaded
+     * (shortcut extras, see launchInfoExtras; null for older shortcuts):
+     *  - steamVac "0": the game needs no VAC-secure launch, so the agent starts
+     *    it directly after ~15 s instead of ~60 s when Steam does not spawn it
+     *    (WN_STEAM_VAC=0, agent p3b). "1" or unknown keeps the secure window
+     *  - steamLangs / steamLangDepots: the device language is passed as the
+     *    game's Steam language (WN_STEAM_LANGUAGE) only when the game supports it
+     *    and has no language-only depots (otherwise Steam could want a download)
+     * 같은 일에 더해, 게임을 받을 때 앱 정보에서 읽은 값(바로가기 extra,
+     * launchInfoExtras 참고. 옛 바로가기는 null)을 씀:
+     *  - steamVac "0": VAC 보안 실행이 필요 없는 게임이라, 스팀이 게임을 띄우지 않을 때
+     *    에이전트가 약 60초 대신 약 15초 뒤 바로 실행함(WN_STEAM_VAC=0, 에이전트 p3b).
+     *    "1"이거나 모르면 보안 대기 시간을 그대로 둠
+     *  - steamLangs / steamLangDepots: 게임이 기기 언어를 지원하고 언어 전용 depot이
+     *    없을 때만 기기 언어를 게임의 스팀 언어로 넘김(WN_STEAM_LANGUAGE). 언어 전용
+     *    depot이 있으면 스팀이 받기를 원할 수 있음
+     */
+    public static boolean applyEnv(Context context, EnvVars env, int appId,
+                                   String vacExtra, String langsExtra, String langDepotsExtra) {
         SteamAccountStore store = new SteamAccountStore(context);
         if (!store.isLoggedIn() || appId <= 0) return false;
+        if ("0".equals(vacExtra)) env.put("WN_STEAM_VAC", "0");
+        String lang = gameLanguage(SteamAchievements.steamLanguage(), langsExtra, "1".equals(langDepotsExtra));
+        if (lang != null) env.put("WN_STEAM_LANGUAGE", lang);
         env.put("WN_STEAM_USERNAME", store.getAccountName());
         env.put("WN_STEAM_STEAMID", String.valueOf(store.getSteamId64()));
         env.put("WN_STEAM_TOKEN", store.getRefreshToken());
@@ -188,5 +269,80 @@ public final class SteamLiteManager {
         String o = env.has("WINEDLLOVERRIDES") ? env.get("WINEDLLOVERRIDES") : "";
         if (!o.contains("lsteamclient=")) env.put("WINEDLLOVERRIDES", o.isEmpty() ? "lsteamclient=" : o + ";lsteamclient=");
         return true;
+    }
+
+    /**
+     * Steam language to pass for a game: the device's Steam language when the
+     * game lists it and has no language-only depots; null otherwise (the agent
+     * then uses "english", as before).
+     * 게임에 넘길 스팀 언어: 게임 목록에 기기의 스팀 언어가 있고 언어 전용 depot이
+     * 없으면 그 언어. 아니면 null(그러면 에이전트가 예전처럼 "english"를 씀)
+     */
+    static String gameLanguage(String deviceLang, String langsCsv, boolean languageDepots) {
+        if (deviceLang == null || deviceLang.isEmpty() || "english".equals(deviceLang)) return null;
+        if (languageDepots || langsCsv == null || langsCsv.isEmpty()) return null;
+        for (String l : langsCsv.split(",")) if (l.trim().equals(deviceLang)) return deviceLang;
+        return null;
+    }
+
+    /**
+     * Shortcut extras with what the launch needs from the app info (read once,
+     * when the game is downloaded): "steamVac=0|1", "steamLangs=a,b",
+     * "steamLangDepots=0|1", each on its own line. Unknown values are left out.
+     * 실행에 필요한 앱 정보 값을 담은 바로가기 extra(게임을 받을 때 한 번 읽음):
+     * "steamVac=0|1", "steamLangs=a,b", "steamLangDepots=0|1"을 한 줄씩 씀. 모르는
+     * 값은 넣지 않음
+     */
+    public static String launchInfoExtras(SteamSession.AppDetails app) {
+        StringBuilder sb = new StringBuilder();
+        if (app.vac != null) sb.append("steamVac=").append(app.vac ? "1" : "0").append('\n');
+        if (!app.languages.isEmpty()) sb.append("steamLangs=").append(String.join(",", app.languages)).append('\n');
+        sb.append("steamLangDepots=").append(app.languageDepots ? "1" : "0").append('\n');
+        return sb.toString();
+    }
+
+    /**
+     * How a Steam game is started. AGENT: through the SteamLite agent (the
+     * default for games with a Steam AppID while signed in). DIRECT: the game
+     * exe on its own, without Steam (not signed in, sign-in expired, agent
+     * missing, or chosen after the agent launch ended at once).
+     * 스팀 게임을 시작하는 방식. AGENT: SteamLite 에이전트를 거침(로그인 상태에서
+     * Steam AppID가 있는 게임의 기본값). DIRECT: 스팀 없이 게임 exe만 실행(로그인
+     * 안 됨, 로그인 만료, 에이전트 없음, 또는 에이전트 실행이 바로 끝난 뒤 고름)
+     */
+    public enum LaunchMode { AGENT, DIRECT }
+
+    // Intent extra: start this one launch without Steam / 인텐트 extra: 이번 한 번은 스팀 없이 실행
+    public static final String EXTRA_STEAM_DIRECT = "steam_direct";
+
+    /**
+     * Picks the launch mode. reasonOut[0] gets a short reason for the log.
+     * 실행 방식을 고름. reasonOut[0]에 로그용 짧은 이유를 넣음
+     */
+    public static LaunchMode pickMode(Context context, int appId, boolean directRequested, String[] reasonOut) {
+        String reason;
+        LaunchMode mode;
+        if (appId <= 0) { mode = LaunchMode.DIRECT; reason = "no Steam AppID"; }
+        else if (directRequested) { mode = LaunchMode.DIRECT; reason = "chosen by the user for this launch"; }
+        else if (!isInstalled(context)) { mode = LaunchMode.DIRECT; reason = "SteamLite not installed"; }
+        else if (!new SteamAccountStore(context).isLoggedIn()) { mode = LaunchMode.DIRECT; reason = "not signed in"; }
+        else { mode = LaunchMode.AGENT; reason = "signed in, agent installed"; }
+        if (reasonOut != null && reasonOut.length > 0) reasonOut[0] = reason;
+        return mode;
+    }
+
+    /**
+     * Private values of the signed-in account, for LogScrubber: token, account
+     * name, SteamID.
+     * LogScrubber에 넘길 로그인 계정의 개인 값: 토큰, 계정 이름, SteamID
+     */
+    public static java.util.List<String> secrets(Context context) {
+        SteamAccountStore store = new SteamAccountStore(context);
+        java.util.List<String> list = new java.util.ArrayList<>();
+        list.add(store.getRefreshToken());
+        list.add(store.getAccountName());
+        long id = store.getSteamId64();
+        if (id > 0) list.add(String.valueOf(id));
+        return list;
     }
 }

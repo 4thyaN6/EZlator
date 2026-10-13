@@ -331,46 +331,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             com.winlator.cmod.container.LayerTiers.firstRunContents();
 
 
-    // Graphics driver URLs by detected GPU. Confirmed working on real device
-    // for Adreno 8xx (Gen8 V34; now V36 per user-supplied link); v26.3.0-R5 / ExynosTools filenames still need
-    // manual confirmation (GitHub loads asset lists via JS, can't auto-verify).
-    // 감지된 GPU별 그래픽 드라이버 URL. Adreno 8xx(Gen8 V34)는 실기기 검증됨;
-    // v26.3.0-R5 / ExynosTools 파일명은 수동 확인 필요
-    private static final String TURNIP_GEN8_URL =
-            "https://github.com/StevenMXZ/Adreno-Tools-Drivers/releases/download/v36/Turnip_Gen8_V36.zip";
-    private static final String TURNIP_UNIVERSAL_URL =
-            "https://github.com/StevenMXZ/Adreno-Tools-Drivers/releases/download/v26.3.0-R5/Turnip_v26.3.0-R5.zip";
-    private static final String TURNIP_UNIVERSAL_ONEUI_URL =
-            "https://github.com/StevenMXZ/Adreno-Tools-Drivers/releases/download/v26.3.0-R5/Turnip_v26.3.0-R5-Oneui.zip";
-    private static final String EXYNOSTOOLS_URL =
-            "https://github.com/WearyConcern1165/ExynosTools/releases/download/2.0/ExynosTools_V2.0stable.zip";
-
-    // Decide which graphics driver (if any) this device needs, based on GPU
-    // renderer string + manufacturer. Returns null when the system driver
-    // should be used as-is (Mali, unrecognized GPUs, etc.)
-    // 렌더러 문자열+제조사로 이 기기에 어떤 그래픽 드라이버가 필요한지 결정.
-    // null이면 시스템 드라이버 그대로 사용(Mali, 미확인 GPU 등)
+    // Graphics driver for this device on first run (Latest tier): fixed, checked
+    // StevenMXZ / ExynosTools builds picked by GPU, see TurnipPicker. null = the
+    // device driver is used as it is (Adreno 710/720/722, Mali, unknown GPUs)
+    // 첫 실행 때 이 기기에 넣을 그래픽 드라이버(Latest 단계): GPU별로 고른, 확인한
+    // StevenMXZ / ExynosTools 고정 빌드임. TurnipPicker 참고. null = 기기 드라이버를
+    // 그대로 씀(Adreno 710/720/722, Mali, 알 수 없는 GPU)
     @Nullable
     private String[] pickGraphicsDriverForDevice() {
-        String renderer = GPUInformation.getRenderer();
-        if (renderer == null) return null;
-        renderer = renderer.toLowerCase(java.util.Locale.ENGLISH);
-        boolean isSamsung = android.os.Build.MANUFACTURER.equalsIgnoreCase("samsung");
-
-        if (renderer.contains("adreno")) {
-            if (GPUInformation.isAdreno8xx()) {
-                return new String[]{"Turnip Gen8 V36 (Adreno 8xx)", TURNIP_GEN8_URL};
-            } else if (isSamsung) {
-                return new String[]{"Turnip v26.3.0-R5 OneUI (Adreno 6xx/7xx)", TURNIP_UNIVERSAL_ONEUI_URL};
-            } else {
-                return new String[]{"Turnip v26.3.0-R5 (Adreno 6xx/7xx)", TURNIP_UNIVERSAL_URL};
-            }
-        } else if (renderer.contains("xclipse")) {
-            return new String[]{"ExynosTools V2.0 (Samsung Xclipse)", EXYNOSTOOLS_URL};
-        }
-        // Mali or unrecognized GPU: use system driver, install nothing
-        // Mali 또는 미확인 GPU: 시스템 드라이버 사용, 아무것도 설치 안 함
-        return null;
+        String[] pick = com.winlator.cmod.contents.TurnipPicker.pick(GPUInformation.getRenderer(), android.os.Build.MANUFACTURER);
+        Log.i("MainActivity", "[recommended] GPU " + GPUInformation.getRenderer() + " -> "
+                + (pick != null ? pick[0] : "device driver"));
+        return pick;
     }
 
     private void checkForAndInstallAssetContents(@Nullable Runnable onCompletion) {
@@ -606,6 +578,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         runOnUiThread(() -> progressDialog.setFileStatus("설치 중…"));
                         AdrenotoolsManager adrenotoolsManager = new AdrenotoolsManager(this);
                         String installedDriver = adrenotoolsManager.installDriver(Uri.fromFile(driverTemp));
+                        // Install failed: nothing is set, so the device driver stays in use
+                        // 설치 실패: 아무것도 지정하지 않으므로 기기 드라이버가 그대로 쓰임
+                        if (installedDriver == null || installedDriver.isEmpty()) {
+                            Log.w("MainActivity", "[recommended] driver install failed, device driver stays: " + label);
+                            driverTemp.delete();
+                            throw new IllegalStateException("driver install failed");
+                        }
                         // Auto-installed drivers come from the recommended source, so they
                         // list under that sub-tab in Contents > GraphicTools
                         // 자동 설치 드라이버는 권장 배포처 것이므로 Contents > GraphicTools의
@@ -919,6 +898,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             tvWebpage.setMovementMethod(LinkMovementMethod.getInstance());
 
             ((TextView) dialog.findViewById(R.id.TVAppVersion)).setText(getString(R.string.version) + " " + pInfo.versionName);
+            // Update check on tap only / 누를 때만 업데이트 확인
+            dialog.findViewById(R.id.TVCheckUpdate).setOnClickListener(v -> com.winlator.cmod.core.AppUpdateChecker.check(this));
+            // Report log: made only when tapped, the user picks where it goes
+            // 제보용 로그: 누를 때만 만들고, 보낼 곳은 사용자가 고름
+            dialog.findViewById(R.id.TVReportLog).setOnClickListener(v -> com.winlator.cmod.core.ReportLogBuilder.makeAndShare(this));
 
             // Credits + third-party notices. Rules used for this list:
             //  - only what the app ships or downloads is listed, with its license;
@@ -987,7 +971,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     "Turnip driver builds by StevenMXZ (<a href=\"https://github.com/StevenMXZ/Adreno-Tools-Drivers\">Adreno-Tools-Drivers</a>)",
                     "ExynosTools by WearyConcern1165 (<a href=\"https://github.com/WearyConcern1165/ExynosTools\">Git</a>)",
                     "Component catalog by nicholasx417 (<a href=\"https://github.com/nicholasx417/WinNative-Components\">WinNative-Components</a>)",
-                    "The412Banner (<a href=\"https://github.com/The412Banner\">Git</a>)"
+                    "The412Banner (<a href=\"https://github.com/The412Banner\">Git</a>)",
+                    // Downloaded at run time, a separate program (see THIRD_PARTY_NOTICES.md)
+                    // 실행 중에 받는 별도 프로그램임(THIRD_PARTY_NOTICES.md 참고)
+                    "SteamLite agent by The412Banner, derived from WinNative wn-steam-launcher (<a href=\"https://github.com/The412Banner/winlator-contents/tree/main/steamlite/agent-src\">source</a>) — GPL-3.0"
             );
 
             TextView tvCreditsAndThirdPartyApps = dialog.findViewById(R.id.TVCreditsAndThirdPartyApps);
