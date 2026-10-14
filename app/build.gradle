@@ -54,8 +54,8 @@ android {
         // builds (core/ReleaseVersion)
         // 베타와 정식: versionCode가 짝수면 베타(프리릴리즈, 이름 끝이 "-beta"), 홀수면
         // 정식임. 업데이트 확인은 베타 빌드에만 베타를 알려 줌(core/ReleaseVersion)
-        versionCode 22
-        versionName "EZlator-0.2.0-beta"
+        versionCode 23
+        versionName "EZlator-0.2.0"
 
         // External native build from Winlator
         externalNativeBuild {
