@@ -161,15 +161,22 @@ public abstract class ProcessHelper {
                 String stat = readFirstLine(new File(proc, p + "/stat"));
                 if (stat == null) continue;
                 int open = stat.indexOf('('), close = stat.lastIndexOf(')');
-                if (close != -1 && close + 2 < stat.length() && stat.charAt(close + 2) == 'Z') continue;
+                boolean zombie = close != -1 && close + 2 < stat.length() && stat.charAt(close + 2) == 'Z';
+                // A zombie leader with live threads is still running (see liveThread)
+                // 살아 있는 스레드가 있는 좀비 리더는 아직 돌고 있음(liveThread 참고)
+                String live = zombie ? liveThread(pid) : null;
+                if (zombie && live == null) continue;
                 String comm = open >= 0 && close > open ? stat.substring(open + 1, close) : "";
-                String cmdline = readCmdline(new File(proc, p + "/cmdline"));
+                // The leader's own cmdline and exe are empty once it has exited; a live thread
+                // still has them / 리더가 끝나면 그 cmdline·exe는 비어 있음. 살아 있는 스레드에는 남아 있음
+                String base = live != null ? p + "/task/" + live : p;
+                String cmdline = readCmdline(new File(proc, base + "/cmdline"));
                 // App processes (main, ":download") are not guests
                 // 앱 프로세스(메인, ":download")는 게스트가 아님
                 if (cmdline.startsWith("com.ezlator") || cmdline.startsWith("com.winlator")) continue;
                 String exe = "";
                 try {
-                    exe = new File(proc, p + "/exe").getCanonicalPath();
+                    exe = new File(proc, base + "/exe").getCanonicalPath();
                 } catch (IOException | SecurityException ignored) {}
                 list.add(new GuestProc(pid, comm, cmdline, exe));
             } catch (Exception ignored) {
@@ -177,6 +184,30 @@ public abstract class ProcessHelper {
             }
         }
         return list;
+    }
+
+    /**
+     * A live thread of a process whose leader (main thread) has exited, or null. Such a process
+     * shows as a zombie ("Z") but keeps running in its other threads: a steam.exe that got stuck
+     * when the FUSE daemon crashed (2026-11-10 23:28) lived on with 21 threads for days, and the
+     * orphan sweep and the exit cleanup both skipped it as a zombie. Signals to the process id
+     * still reach the whole thread group.
+     * 리더(메인 스레드)가 끝난 프로세스의 살아 있는 스레드, 없으면 null. 이런 프로세스는 좀비("Z")로
+     * 보이지만 다른 스레드로 계속 돎: FUSE 데몬이 죽었을 때(2026-11-10 23:28) 멈춘 steam.exe가 스레드
+     * 21개로 며칠 동안 남았고, 남은 프로세스 정리와 종료 정리 모두 좀비로 보고 건너뛰었음. 프로세스 id로
+     * 보내는 신호는 여전히 스레드 그룹 전체에 감
+     */
+    static String liveThread(int pid) {
+        String[] tids = new File("/proc/" + pid + "/task").list();
+        if (tids == null) return null;
+        for (String t : tids) {
+            if (t.equals(Integer.toString(pid))) continue;
+            String st = readFirstLine(new File("/proc/" + pid + "/task/" + t + "/stat"));
+            if (st == null) continue;
+            int c = st.lastIndexOf(')');
+            if (c != -1 && c + 2 < st.length() && st.charAt(c + 2) != 'Z' && st.charAt(c + 2) != 'X') return t;
+        }
+        return null;
     }
 
     private static int procUid(int pid) throws IOException {
@@ -509,7 +540,10 @@ public abstract class ProcessHelper {
             // stat format: "pid (comm) state ...", comm may contain spaces
             // stat 형식: "pid (comm) state ...", comm 안에 공백이 있을 수 있음
             int close = data.lastIndexOf(')');
-            if (close != -1 && close + 2 < data.length() && data.charAt(close + 2) == 'Z') continue;
+            // A zombie leader with live threads still runs: kept, so pause and resume reach it
+            // 살아 있는 스레드가 있는 좀비 리더는 아직 돎: 남겨서 일시 정지·재개가 닿게 함
+            if (close != -1 && close + 2 < data.length() && data.charAt(close + 2) == 'Z'
+                    && liveThread(Integer.parseInt(pid)) == null) continue;
 
             boolean match = false;
             for (String filter : filters) {
